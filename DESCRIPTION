@@ -1,0 +1,30 @@
+Package: BiDAG
+Type: Package
+Title: Bayesian Inference for Directed Acyclic Graphs (BiDAG): Software
+        for the Efficient Inference and Sampling of Bayesian Networks
+Version: 1.0.0
+Date: 2017-07-17
+Author: Polina Minkina [aut, cre], Jack Kuipers [aut]
+Maintainer: Polina Minkina <polina.minkina@bsse.ethz.ch>
+Description: Implementation of a collection of MCMC methods for Bayesian structure learning
+    of directed acyclic graphs (DAGs), both from continuous and discrete data. For efficient
+    inference on larger DAGs, the space of DAGs is pruned according to the data. To filter
+    the search space, the algorithm employs a hybrid approach, combining constraint-based 
+    learning with search and score. A reduced search space is initially defined on the basis
+    of a skeleton obtained by means of the PC-algorithm, and then iteratively improved with
+    search and score. Search and score is then performed following two approaches:
+    Order MCMC, or Partition MCMC.
+    The BGe score is implemented for continuous data and the BDe score is implemented
+    for binary data. The algorithms may provide the maximum a posteriori (MAP) graph or
+    a sample (a collection of DAGs) from the posterior distribution given the data.
+Acknowledgments: We would like to thank Giusi Moffa for discussion and
+        comments on the package and its manual.
+License: GPL (>= 2)
+Imports: Rcpp (>= 0.12.7), pcalg, methods, stats, utils
+LinkingTo: Rcpp
+RoxygenNote: 6.0.1
+LazyData: TRUE
+NeedsCompilation: yes
+Packaged: 2017-07-19 20:02:39 UTC; me664
+Repository: CRAN
+Date/Publication: 2017-07-19 21:44:55 UTC
