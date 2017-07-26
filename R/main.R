@@ -267,6 +267,7 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #'@importFrom stats pchisq 
 #'@importFrom stats runif 
 #'@importFrom utils data
+#'@importFrom utils flush.console
 #'@importFrom Rcpp evalCpp
 #'@useDynLib BiDAG, .registration=TRUE
 #'@export

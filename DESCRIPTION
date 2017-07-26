@@ -2,7 +2,7 @@ Package: BiDAG
 Type: Package
 Title: Bayesian Inference for Directed Acyclic Graphs (BiDAG): Software
         for the Efficient Inference and Sampling of Bayesian Networks
-Version: 1.0.0
+Version: 1.0.1
 Date: 2017-07-17
 Author: Polina Minkina [aut, cre], Jack Kuipers [aut]
 Maintainer: Polina Minkina <polina.minkina@bsse.ethz.ch>
@@ -25,6 +25,6 @@ LinkingTo: Rcpp
 RoxygenNote: 6.0.1
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2017-07-19 20:02:39 UTC; me664
+Packaged: 2017-07-26 14:19:47 UTC; me664
 Repository: CRAN
-Date/Publication: 2017-07-19 21:44:55 UTC
+Date/Publication: 2017-07-26 15:35:25 UTC

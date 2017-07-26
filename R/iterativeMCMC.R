@@ -65,8 +65,10 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
     }
     ptab<-listpossibleparents.PC.aliases(startskeleton,isgraphNEL=FALSE,n,updatenodes)
     maxDAG<-startskeleton
-    if (verbose) {print("skeleton ready")}
-
+    if (verbose) {
+      print("skeleton ready")
+      flush.console()
+      }
     if (plus1==FALSE){
       starttime<-Sys.time()
       parenttable<-ptab$parenttable # basic parenttable without plus1 lists
@@ -84,7 +86,10 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
         MCMCresult<-orderMCMCbasemax(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                      scoretable,aliases,numparents,rowmaps,maxmatrices,numberofparentsvec,gamma=gamma)
         endtime<-Sys.time()
-        if(verbose) {print(endtime-starttime)}
+        if(verbose) {
+          print(endtime-starttime)
+          flush.console()
+          }
       } else {
         bannedscore<-poset.scores(posetparenttable,scoretable,numberofparentsvec,rowmaps,
                                   n,plus1lists=NULL,ptab$numparents)
@@ -93,7 +98,10 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
                                   scoretable,aliases,numparents,rowmaps,
                                   bannedscore,numberofparentsvec,gamma=gamma)
         endtime<-Sys.time()
-        if(verbose) {print(endtime-starttime)}
+        if(verbose) {
+          print(endtime-starttime)
+          flush.console()
+          }
       }
       
       maxres<-list()
@@ -191,20 +199,32 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
                                            n,plus1lists=plus1lists,numparents,updatenodes)
               bannedscore[updatenodes]<-newbannedscore[updatenodes]
             }
-            if(verbose) {print(paste("MCMC plus1 iteration",i))}
-          } else {if(verbose) {print(paste("score tables calculated, MCMC plus1 starts"))}}
+            if(verbose) {
+              print(paste("MCMC plus1 iteration",i))
+              flush.console()
+              }
+          } else { 
+            if(verbose) {
+              print(paste("score tables calculated, MCMC plus1 starts"))
+              flush.console()
+              }
+            }
           if(MAP) {
             MCMCresult<-orderMCMCplus1max(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                           scoretable,aliases,numparents,rowmaps,plus1lists,maxmatrices,numberofparentsvec,
                                           gamma=gamma)
             endtime<-Sys.time()
-            if(verbose) {print(endtime-starttime)}
+            if(verbose) {
+              print(endtime-starttime)
+              flush.console()}
           } else {
             MCMCresult<-orderMCMCplus1(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                        scoretable,aliases,numparents,rowmaps,plus1lists,
                                        bannedscore,numberofparentsvec,gamma=gamma)
             endtime<-Sys.time()
-            if(verbose){print(endtime-starttime)}
+            if(verbose) {
+              print(endtime-starttime)
+              flush.console()}
           }
           
           MCMCchains[[i]]<-MCMCresult
@@ -216,19 +236,19 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
               maxscore<-MCMCresult[[2]][[maxN]]
               maxit<-i
             }
-            if (MAP) {
-              maxcp<-dagadj2cpadj(MCMCresult[[1]][[maxN]]) #find CPDAG
-              if (plus1it>1){
-                newadj<-newspacemap(n,startskeleton,oldadj,softlimit,hardlimit,blacklist,maxN=maxN,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
-              } } else {
-                newadj<- newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior, blacklist,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
-              }
           } else {
             maxDAG<-MCMCresult[[1]][[maxN]]
             maxorder<-MCMCresult[[4]][[maxN]]
             maxscore<-MCMCresult[[2]][[maxN]]
             maxit<-1
           }
+          if (MAP) {
+            maxcp<-dagadj2cpadj(MCMCresult[[1]][[maxN]]) #find CPDAG
+            if (plus1it>1){
+              newadj<-newspacemap(n,startskeleton,oldadj,softlimit,hardlimit,blacklist,maxN=maxN,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
+            } } else {
+              newadj<- newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior, blacklist,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
+            }
           if (i<plus1it) {
             updatenodes<-which(apply(newadj==oldadj,2,all)==FALSE)
             updatenodeslist[[i]]<-updatenodes
@@ -263,20 +283,34 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
                                            n,plus1lists=plus1lists,numparents,updatenodes)
               bannedscore[updatenodes]<-newbannedscore[updatenodes]
             }
-            if(verbose) {print(paste("MCMC plus1 iteration",i))}
-          } else {if(verbose) {print(paste("score tables calculated, MCMC plus1 starts"))}}
+            if(verbose) {
+              print(paste("MCMC plus1 iteration",i))
+              flush.console()
+              }
+          } else { 
+            if(verbose) {
+            print(paste("score tables calculated, MCMC plus1 starts"))
+            flush.console()
+          }
+        }
           if(MAP) {
             MCMCresult<-orderMCMCplus1max(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                           scoretable,aliases,numparents,rowmaps,plus1lists,maxmatrices,numberofparentsvec,
                                           gamma=gamma)
             endtime<-Sys.time()
-            if(verbose) {print(endtime-starttime)}
+            if(verbose) {
+              print(endtime-starttime)
+              flush.console()
+              }
           } else {
             MCMCresult<-orderMCMCplus1(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                        scoretable,aliases,numparents,rowmaps,plus1lists,
                                        bannedscore,numberofparentsvec,gamma=gamma)
             endtime<-Sys.time()
-            if(verbose){print(endtime-starttime)}
+            if(verbose){
+              print(endtime-starttime)
+              flush.console()
+              }
           }
           
           MCMCchains[[i]]<-MCMCresult
