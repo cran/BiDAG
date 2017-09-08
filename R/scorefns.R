@@ -91,20 +91,19 @@ scorepossibleparents.alias<-function(parenttable,aliases,n,param,updatenodes=c(1
   return(listz)
 }
 
-PLUS1<-function(n,aliases,updatenodes=c(1:n)) {
+PLUS1<-function(n,aliases,updatenodes=c(1:n),blacklistparents=NULL) {
   listz<-list()
   plus1mask<-list()
   plus1parents<-list()
   plus1aliases<-list()
   for (i in updatenodes){
     plus1mask[[i]]<-rep(1,n)
-    plus1mask[[i]][c(aliases[[i]],i)]<-0
+    plus1mask[[i]][c(aliases[[i]],blacklistparents[[i]])]<-0
     plus1parents[[i]]<-which(plus1mask[[i]]==1)
     nrows<-length(plus1parents[[i]])+1
     ncols<-length(aliases[[i]])+1
     plus1aliases[[i]]<-matrix(c(NaN,plus1parents[[i]],rep(aliases[[i]], each = nrows) ),
                               nrow=nrows,ncol=ncols)
-
   }
   listz$mask<-plus1mask
   listz$parents<-plus1parents

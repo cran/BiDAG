@@ -4,12 +4,14 @@
 \alias{edges.posterior}
 \title{Estimating posterior probabilities of single edges}
 \usage{
-edges.posterior(MCMCchain, startstep = 200)
+edges.posterior(MCMCchain, pdag = FALSE, burnin = 0.2)
 }
 \arguments{
 \item{MCMCchain}{list of square matrices with elements in \code{\{0,1\}} and representing adjacency matrices of a sample of DAGs obtained via an MCMC scheme}
 
-\item{startstep}{(optional) indicates the index of of the first element in the list to be included as part of the sample used to calculate the posterior probabilities; all elements before startstep will be discarded as `burn-in' of the MCMC chain}
+\item{pdag}{logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging}
+
+\item{burnin}{(optional) number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default}
 }
 \value{
 a square matrix with dimensions equal to the number of variables; each entry \code{[i,j]} is an estimate of the posterior probability of the edge from node \code{i} to node \code{j}
@@ -22,6 +24,6 @@ obtained via an MCMC scheme.
 Bostonscore<-scoreparameters(14, "bge", Boston)
 \dontrun{
 samplefit<-orderMCMC(14, Bostonscore, iterations=25000)
-edgesposterior<-edges.posterior(samplefit$chain$incidence, startstep=300)
+edgesposterior<-edges.posterior(samplefit$chain$incidence, burnin=0.2)
 }
 }

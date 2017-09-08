@@ -1,24 +1,28 @@
 #implements partition MCMC scheme for structure learning problem, searches in plus1 neighbourhood of a search space defined
 #by startspace or iterativeMCMCsearch function
 
-
 partitionMCMCplus1sample<-function(n,param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
                                    startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE){
   
   if (is.null(blacklist)) {
     blacklist<-matrix(rep(0,n*n),ncol=n)
-    diag(blacklist)<-1
+  } 
+  diag(blacklist)<-1
+  blacklistparents<-list()
+  for  (i in 1:n) {
+    blacklistparents[[i]]<-which(blacklist[,i]==1)
   }
   
   if(is.null(startspace)) {
     if(verbose){print("defining a search space with iterativeMCMCsearch")}
     searchspace<-iterativeMCMCsearch(n,scoreparam=param,moveprobs=NULL,plus1it=NULL,
                                      iterations=NULL,stepsave=NULL,softlimit=9,hardlimit=14,alpha=NULL,
-                                     verbose=verbose,chainout=FALSE,scoreout=FALSE,
+                                     verbose=verbose,chainout=FALSE,scoreout=TRUE,
                                      gamma=gamma,cpdag=FALSE,mergetype="skeleton",blacklist=blacklist)
     
     maxDAG<-searchspace$max$DAG
-    startspace<-maxDAG
+    startspace<-searchspace$space$adjacency
+    scoretable<-searchspace$space$scoretable
     forpart<-DAGtopartition(n,maxDAG)
   } else {
     startspace<-1*(startspace&!blacklist)
@@ -26,7 +30,8 @@ partitionMCMCplus1sample<-function(n,param,startspace,blacklist=NULL,moveprobs,n
       forpart<-list()
       forpart$permy<-c(1:n)
       forpart$party=c(n)
-    } else {forpart<-DAGtopartition(n,DAG)}}
+    } else {forpart<-DAGtopartition(n,DAG)}
+    }
   if(verbose){print("search space identified, score tables to be calculated")}
   permy<-forpart$permy
   party<-forpart$party
@@ -36,15 +41,18 @@ partitionMCMCplus1sample<-function(n,param,startspace,blacklist=NULL,moveprobs,n
   aliases<-ptab$aliases
   numberofparentsvec<-ptab$numberofparentsvec
   numparents<-ptab$numparents
-  plus1lists<-PLUS1(n,ptab$aliases)
-  if (is.null(scoretable)) {scoretable<-scorepossibleparents.PLUS1(ptab$parenttable,plus1lists,n,param)}
+  updatenodes<-c(1:n)
+  plus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
+  rowmapsneeded<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
+  if (is.null(scoretable)) {
+    scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,rowmapsneeded,numparents,numberofparentsvec)
+    }
   scoretab<-list()
   for (i in 1:n) {
-    scoretab[[i]]<-matrix(sapply(scoretable[[i]], unlist),nrow=nrow(scoretable[[i]][[1]]))}
-  rowmapsneeded<-parentsmapping(ptab$parenttable,ptab$numberofparentsvec,n)
+  scoretab[[i]]<-matrix(sapply(scoretable[[i]], unlist),nrow=nrow(scoretable[[i]][[1]]))}
   posetparenttable<-poset(ptab$parenttable,ptab$numberofparentsvec,rowmapsneeded,n)
-  plus1neededpart<-poset.scores(posetparenttable,scoretable,ptab$numberofparentsvec,rowmapsneeded,
-                                n,plus1lists=plus1lists,ptab$numparents)
+  plus1neededpart<-poset.scores(posetparenttable,scoretable,numberofparentsvec,rowmapsneeded,
+                                n,plus1lists=plus1lists,numparents)
   needednodetable<-partitionlist(parenttable,ptab$numberofparentsvec,n)
   numberofpartitionparentsvec<-partitionlistnumberofparents(needednodetable,ptab$numberofparentsvec,n)
   needednodebannedrow<-partitionmapneedednodebannedrow(ptab$numparents,ptab$numberofparentsvec,n)

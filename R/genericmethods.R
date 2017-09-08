@@ -2,17 +2,17 @@
 #a generic method (does not need description) print for scoreparameters class
 print.scoreparameters <-function(x,...){
   if (x$type=="bge") {
-    cat("Scoretype: BGe", "\n")
+    cat("Score type: BGe", "\n")
   } else {
-    cat("Scoretype: BDe", "\n")
+    cat("Score type: BDe", "\n")
     cat("Prior pseudo counts:", x$chi,"\n")
-    cat("Edges prenalization factor:", x$pf,"\n")
+    cat("Edge penalization factor:", x$pf,"\n")
   }
   
   if(is.null(x$weightvector)) {
     cat("Data is not weighted\n")
   } else {
-    "Data is weighted according to the weightvector"
+    "Data is weighted according to the weight vector"
   }
   cat("Score constant vector:", x$scoreconstvec,"\n")
 }
@@ -40,9 +40,9 @@ print.MCMCmult <-function(x,...){
 #'@export
 #
 print.MCMCspace <-function(x,...){
-  cat("Number of edges in the searchspace: ", sum(x$adjacency), "\n")
+  cat("Number of edges in the search space: ", sum(x$adjacency), "\n")
   if (all(lapply(x$scoretable,length)==1)) {
-    cat("Search space is not extended (not plus1)\n")
+    cat("Search space is not extended\n")
   } else {
     cat("Search space is extended (plus1)\n")
   }
@@ -54,7 +54,7 @@ print.MCMCspace <-function(x,...){
 print.MCMCmax <-function(x,...){
   
   cat("Number of edges in the maximum score DAG: ", sum(x$DAG), "\n")
-  cat("maximum DAG score: ", x$score, "\n")
+  cat("Maximum DAG score: ", x$score, "\n")
   cat("Order: ", x$order, "\n")
   
 }

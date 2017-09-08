@@ -12,6 +12,7 @@ dag2adjacencymatrix<-function(g) {
   adj<-matrix(rep(0,l*l),nrow=l,ncol=l)
   for (i in 1:l) {
     adj[g@edgeL[[i]]$edges,i]<-1}
+  rownames(adj)<-g@nodes
   return(t(adj))
 }
 
@@ -55,10 +56,16 @@ dag2skeletonadjacency <-function(g) {
 #'@export
 adjacency2dag<-function(adj,nodes=NULL) {
   l<-ncol(adj)
-  if (length(nodes)==0) {
+  if (is.null(nodes)) {
+    if (!all(is.character(colnames(adj)))) {
     V <- c(1:l)
     edL <- vector("list", length=l)
     names(edL) <- sapply(V,toString)
+    } else {
+      edL <- vector("list", length=l)
+      names(edL) <- colnames(adj)
+      V<-colnames(adj)
+    }
     for(i in 1:l)
       edL[[i]] <- list(edges=which(adj[i,]==1))}
   else {

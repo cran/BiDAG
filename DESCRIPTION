@@ -1,11 +1,10 @@
 Package: BiDAG
 Type: Package
-Title: Bayesian Inference for Directed Acyclic Graphs (BiDAG): Software
-        for the Efficient Inference and Sampling of Bayesian Networks
-Version: 1.0.1
-Date: 2017-07-17
-Author: Polina Minkina [aut, cre], Jack Kuipers [aut]
-Maintainer: Polina Minkina <polina.minkina@bsse.ethz.ch>
+Title: Bayesian Inference for Directed Acyclic Graphs (BiDAG)
+Version: 1.0.2
+Date: 2017-09-08
+Author: Polina Suter [aut, cre], Jack Kuipers [aut]
+Maintainer: Polina Suter <polina.minkina@bsse.ethz.ch>
 Description: Implementation of a collection of MCMC methods for Bayesian structure learning
     of directed acyclic graphs (DAGs), both from continuous and discrete data. For efficient
     inference on larger DAGs, the space of DAGs is pruned according to the data. To filter
@@ -17,6 +16,11 @@ Description: Implementation of a collection of MCMC methods for Bayesian structu
     The BGe score is implemented for continuous data and the BDe score is implemented
     for binary data. The algorithms may provide the maximum a posteriori (MAP) graph or
     a sample (a collection of DAGs) from the posterior distribution given the data.
+    References:
+    N. Friedman and D. Koller (2003) <doi:10.1023/A:1020249912095>, 
+    D. Geiger and D. Heckerman (2002) <doi:10.1214/aos/1035844981>, 
+    J. Kuipers and G. Moffa (2016) <doi:10.1080/01621459.2015.1133426>, 
+    M. Kalisch et al.(2012) <doi:10.18637/jss.v047.i11>.
 Acknowledgments: We would like to thank Giusi Moffa for discussion and
         comments on the package and its manual.
 License: GPL (>= 2)
@@ -25,6 +29,6 @@ LinkingTo: Rcpp
 RoxygenNote: 6.0.1
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2017-07-26 14:19:47 UTC; me664
+Packaged: 2017-09-08 13:14:06 UTC; me664
 Repository: CRAN
-Date/Publication: 2017-07-26 15:35:25 UTC
+Date/Publication: 2017-09-08 14:07:33 UTC

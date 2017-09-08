@@ -8,7 +8,8 @@ iterativeMCMCsearch(n, scoreparam, plus1it = NULL, moveprobs = NULL,
   MAP = TRUE, posterior = 0.5, iterations = NULL, stepsave = NULL,
   softlimit = 9, hardlimit = 12, alpha = NULL, gamma = 1,
   startspace = NULL, blacklist = NULL, verbose = TRUE, chainout = FALSE,
-  scoreout = FALSE, cpdag = FALSE, mergetype = "skeleton")
+  scoreout = FALSE, cpdag = FALSE, mergetype = "skeleton",
+  addspace = NULL)
 }
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
@@ -45,9 +46,9 @@ on the parameter \code{mergecp}), above the limit only the directed edges are ad
 
 \item{gamma}{(optional) tuning parameter which transforms the score by raising it to this power, 1 by default}
 
-\item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.}
+\item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used; if \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1}
 
-\item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space. If \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space.}
+\item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space}
 
 \item{verbose}{logical, if TRUE (default) prints messages on the progress of execution}
 
@@ -64,6 +65,8 @@ space, when FALSE (default) the undirected skeleton used as a search space}
 \item "cpdag", then the maximum scoring DAG is first converted to the CPDAG, from which all edges are added to the search space;
 \item "skeleton", then the maximum scoring DAG is first converted to the skeleton, from which all edges are added to the search space
 }}
+
+\item{addspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the edges, which are added at to the search space only at the first iteration of iterative seach and do not necessarily stay afterwards; defined in the form of an adjacency matrix;  if \code{addspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{addspace[i,j]} and \code{addspace[j,i]} should be 1}
 }
 \value{
 Depends on the logical parameters \code{chainout} and \code{scoreout}. If both are FALSE (default), an oject of class \code{MCMCmax}, containing a list of 4 elements:

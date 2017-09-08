@@ -1,5 +1,5 @@
 DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numparents,numberofparentsvec){
-
+  
   lp<-length(parentnodes) # number of parents
   noparams<-2^lp # number of binary states of the parents
   
@@ -12,20 +12,26 @@ DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numpar
   N0slist<-vector("list", noparams)
   
   if(lp==0){ # no parents
-    N1<-sum(param$d1[j,])
-    N0<-sum(param$d0[j,])
+    N1<-sum(param$d1[,j],na.rm=TRUE)
+    N0<-sum(param$d0[,j],na.rm=TRUE)
     NT<-N0+N1
     corescores[noparams] <- scoreconstvec[lp+1] + lgamma(N0+chi/(2*noparams)) + lgamma(N1+chi/(2*noparams)) - lgamma(NT+chi/noparams)
   } else {
     
     if(lp==1){
-      summys<-param$data[parentnodes,]
+      summys<-param$data[,parentnodes]
     } else {
-      summys<-colSums(2^(c(0:(lp-1)))*param$data[parentnodes,])
+      summys<-colSums(2^(c(0:(lp-1)))*t(param$data[,parentnodes]))
     }
     
-    N1s<-collectC(summys,param$d1[j,],noparams)
-    N0s<-collectC(summys,param$d0[j,],noparams)
+    tokeep<-which(!is.na(summys+param$d1[,j])) # remove NAs either in the parents or the child
+    if(length(tokeep)<length(summys)){
+      stop("missing data not implemented yet!")
+      } else {
+      missingd<-FALSE
+      N1s<-collectC(summys,param$d1[,j],noparams)
+      N0s<-collectC(summys,param$d0[,j],noparams)
+    }
     
     N1slist[[noparams]]<-N1s
     N0slist[[noparams]]<-N0s
@@ -42,7 +48,7 @@ DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numpar
       missingparentindex<-parenttable[tablemaps$backwards[noparams-tablemaps$forward[jj]+1],1] # get first element of complement of parent set
       higherlayer<-tablemaps$backwards[tablemaps$forward[jj]+2^(missingparentindex-1)] # get row of poset element with this missing parent included
       missingparent<-which(parenttable[higherlayer,]==missingparentindex) # which component it is in the higher layer
-      
+     
       
       N1stemp<-N1slist[[higherlayer]] # map to the previous lists with missing parent added
       N0stemp<-N0slist[[higherlayer]] 
@@ -51,13 +57,13 @@ DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numpar
       # since we know which power of 2 it takes in the mapping to summys, we can marginalise it out
       size1<-2^(missingparent-1)
       size2<-2^(lplocal-missingparent+1)
-     
       
       elementstocombine<-as.vector(t(t(matrix(c(1:size1),nrow=size1,ncol=size2))+2*(c(1:size2)-1)*size1)) 
       # collect the elements we want to combine to remove the missing parent from the previous tables
       
       N1s<-N1stemp[elementstocombine]+N1stemp[elementstocombine+size1]
       N0s<-N0stemp[elementstocombine]+N0stemp[elementstocombine+size1]
+      
       
       N1slist[[jj]]<-N1s
       N0slist[[jj]]<-N0s
@@ -92,13 +98,19 @@ DAGbinarytablescoreplus1<-function(j,parentnodes,additionalparent,n,param,parent
   N0slist<-vector("list", noparams)
   
   if(lpadd==1){
-    summys<-param$data[allparents,]
+    summys<-param$data[,allparents]
   } else {
-    summys<-colSums(2^(c(0:(lpadd-1)))*param$data[allparents,])
+    summys<-colSums(2^(c(0:(lpadd-1)))*t(param$data[,allparents]))
   }
   
-  N1s<-collectC(summys,param$d1[j,],noparamsadd)
-  N0s<-collectC(summys,param$d0[j,],noparamsadd)
+  tokeep<-which(!is.na(summys+param$d1[,j])) # remove NAs either in the parents or the child
+  if(length(tokeep)<length(summys)){
+    stop("missing data not implemented yet!")
+  } else {
+    missingd<-FALSE
+    N1s<-collectC(summys,param$d1[,j],noparamsadd)
+    N0s<-collectC(summys,param$d0[,j],noparamsadd)
+  }
   
   N1slist[[noparams]]<-N1s
   N0slist[[noparams]]<-N0s

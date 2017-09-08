@@ -209,8 +209,9 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #' @param posterior logical, when \code{MAP} set to FALSE defines posterior probability threshold for adding the edges to the search space 
 #' @param alpha (optional) numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})
 #' @param gamma (optional) tuning parameter which transforms the score by raising it to this power, 1 by default
-#' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.
-#' @param blacklist (optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space. If \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space.
+#' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used; if \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1
+#' @param addspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the edges, which are added at to the search space only at the first iteration of iterative seach and do not necessarily stay afterwards; defined in the form of an adjacency matrix;  if \code{addspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{addspace[i,j]} and \code{addspace[j,i]} should be 1
+#' @param blacklist (optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space
 #' @param softlimit (optional) integer, limit on the size of parent sets beyond which adding undirected edges is restricted; below this
 #' limit edges are added to expand the parent sets based on the undirected skeleton of the MAP DAG (or from its CPDAG, depending
 #' on the parameter \code{mergecp}), above the limit only the directed edges are added from the MAP DAG;  the limit is 9 by default
@@ -274,7 +275,7 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=TRUE, posterior=0.5,
                               iterations=NULL, stepsave=NULL, softlimit=9, hardlimit=12, alpha=NULL, gamma=1, 
                               startspace=NULL, blacklist=NULL,verbose=TRUE, chainout=FALSE, scoreout=FALSE, cpdag=FALSE, 
-                              mergetype="skeleton") {
+                              mergetype="skeleton",addspace=NULL) {
   
   if (is.null(moveprobs)) {
     prob1<-99
@@ -297,7 +298,7 @@ iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=T
   result<-iterativeMCMCplus1(n,param=scoreparam,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
                              moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                              plus1=TRUE,startspace=startspace,blacklist=blacklist,gamma=gamma,
-                             verbose=verbose, chainout=chainout,scoreout=scoreout,mergecp=mergetype)
+                             verbose=verbose, chainout=chainout,scoreout=scoreout,mergecp=mergetype,addspace=addspace)
   return(result)
   
 }

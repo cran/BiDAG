@@ -4,7 +4,7 @@
 \alias{dag.threshold}
 \title{Estimating a graph corresponding to a posterior probability threshold}
 \usage{
-dag.threshold(n, MCMCchain, pbarrier, pdag = FALSE, startstep = 200)
+dag.threshold(n, MCMCchain, pbarrier, pdag = FALSE, burnin = 0.2)
 }
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
@@ -15,7 +15,7 @@ dag.threshold(n, MCMCchain, pbarrier, pdag = FALSE, startstep = 200)
 
 \item{pdag}{logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging}
 
-\item{startstep}{(optional) indicates the index of the first element in the list to be included as part of the sample used to calculate the posterior probabilities, all elements before startstep will be discarded as `burn-in' of the MCMC chain}
+\item{burnin}{(optional)  number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default}
 }
 \value{
 a square matrix with dimensions equal to the number of variables representing the adjacency matrix of the directed graph summarising the sample of DAGs

@@ -4,19 +4,25 @@
 #'obtained via an MCMC scheme.
 #'
 #'@param MCMCchain list of square matrices with elements in \code{\{0,1\}} and representing adjacency matrices of a sample of DAGs obtained via an MCMC scheme
-#'@param startstep (optional) indicates the index of of the first element in the list to be included as part of the sample used to calculate the posterior probabilities; all elements before startstep will be discarded as `burn-in' of the MCMC chain
+#'@param pdag logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging
+#'@param burnin (optional) number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
 #'@return a square matrix with dimensions equal to the number of variables; each entry \code{[i,j]} is an estimate of the posterior probability of the edge from node \code{i} to node \code{j}
 #'@examples
 #'Bostonscore<-scoreparameters(14, "bge", Boston)
 #'\dontrun{
 #'samplefit<-orderMCMC(14, Bostonscore, iterations=25000)
-#'edgesposterior<-edges.posterior(samplefit$chain$incidence, startstep=300)
+#'edgesposterior<-edges.posterior(samplefit$chain$incidence, burnin=0.2)
 #'}
 #'@export
-edges.posterior<-function(MCMCchain,startstep=200) {
+edges.posterior<-function(MCMCchain,pdag=FALSE,burnin=0.2) {
   endstep<-length(MCMCchain)
-  dags<-MCMCchain[startstep:endstep]
-  return(Reduce('+', dags)/(endstep-startstep+1))
+  startstep<-as.integer(burnin*endstep)
+  if (pdag) {
+    cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
+    return(Reduce('+', cpdags)/(endstep-startstep+1))
+  } else {
+    return(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1))
+  }
 }
 
 
@@ -28,7 +34,7 @@ edges.posterior<-function(MCMCchain,startstep=200) {
 #'@param MCMCchain list of adjacency matrices with dimensions equal to n and elements in \code{\{0,1\}}, representing a sample of DAGs from an MCMC scheme
 #'@param pbarrier threshold such that only edges with a higher posterior probability will be retained in the directed graph summarising the sample of DAGs
 #'@param pdag logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging
-#'@param startstep (optional) indicates the index of the first element in the list to be included as part of the sample used to calculate the posterior probabilities, all elements before startstep will be discarded as `burn-in' of the MCMC chain
+#'@param burnin (optional)  number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
 #'@return a square matrix with dimensions equal to the number of variables representing the adjacency matrix of the directed graph summarising the sample of DAGs
 #'@examples
 #'Bostonscore<-scoreparameters(14, "bge", Boston)
@@ -38,9 +44,10 @@ edges.posterior<-function(MCMCchain,startstep=200) {
 #'hdag<-dag.threshold(14, MCMCchain, pbarrier=0.9)
 #'}
 #'@export
-dag.threshold<-function(n, MCMCchain, pbarrier, pdag=FALSE, startstep=200) {
+dag.threshold<-function(n, MCMCchain, pbarrier, pdag=FALSE, burnin=0.2) {
   incidence<-matrix(rep(0, n*n), nrow=n)
   endstep<-length(MCMCchain)
+  startstep<-as.integer(burnin*endstep)
   if (pdag) {
     cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
     incidence[which(Reduce('+', cpdags)/(endstep-startstep+1)>pbarrier)]<-1
@@ -129,7 +136,7 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
 #'@param pbarrier (optional) a vector of numeric values between 0 and 1, defining posterior probabilities according to which the edges of assessed structures are drawn, please note very low barriers can lead to very dense structures; by default 
 #'\eqn{pbarrier=c(0.99, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2)}
 #'@param pdag logical, if TRUE (default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging
-#'@param startstep (optional) indicates the index of of the first element in the list to be included as part of the sample used to calculate the posterior probabilities, all elements before startstep will be discarded as `burn-in' of the MCMC chain
+#'@param burnin (optional)  number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
 #'@return A matrix with the number of rows equal to the number of posterior thresholds tested, and 4 columns reporting for each  thresholded directed graphs the number of true positive edges (`TP'), the number of false positive edges (`FP'), the structural Hamming distance (`SHD') and the posterior threshold
 #' @examples
 #' myDAG<-pcalg::randomDAG(n=20, prob=0.1, lB = 0.4, uB = 2)
@@ -138,16 +145,17 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
 #' \dontrun{
 #' ordersample<-orderMCMC(n=20, myScore, chainout=TRUE)
 #' MCMCchain<-ordersample$chain$incidence
-#' sample.check(n=20, MCMCchain, myDAG, pdag=TRUE, startstep=300)
+#' sample.check(n=20, MCMCchain, myDAG, pdag=TRUE, burnin=0.2)
 #' }
 #'@export
 sample.check<-function(n, MCMCchain, truedag, pbarrier=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2),
-                                         pdag=TRUE, startstep=200) {
+                                         pdag=TRUE, burnin=0.2) {
   trueskeleton<-dag2skeletonadjacency(truedag)
   results<-matrix(ncol=4,nrow=length(pbarrier))
   results[,4]<-pbarrier
   numedges<-sum(trueskeleton)
   endstep<-length(MCMCchain)
+  startstep<-as.integer(burnin*endstep)
   if(pdag) {
   dags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj) #first convert every DAG in the sample to equivalence class
   } else {dags<-MCMCchain[startstep:endstep]}

@@ -18,75 +18,69 @@
 #'@export
 scoreagainstDAG <- function(n, scoreparam, incidence, datatoscore=NULL){
   if (scoreparam$type=="bge") {
-    stop("function implemented only for binary data and BDe score")}
-  if (!is.null(datatoscore)) {
-    if (scoreparam$type=="bge") {
-      stop("function implemented only for binary data and BDe score")
-      scoreparam$data<-datatoscore
-    } else {
-      if (is.null(scoreparam$weightvector)) {
-        scoreparam$d1<-t(datatoscore)
-        scoreparam$d0<-t((1-datatoscore))
-      } else {
-        scoreparam$d1<-t(datatoscore*scoreparam$weightvector)
-        scoreparam$d0<-t((1-datatoscore)*scoreparam$weightvector)
-      }
-      scoreparam$data<-t(datatoscore)
+    stop("function implemented only for binary data and BDe score")
+  } else {
+    if (is.null(datatoscore)) {
+      datatoscore<-scoreparam$data
     }
   }
-  samplescores <- matrix(0,nrow=n,ncol=ncol(scoreparam$data))  
+  samplescores <- matrix(0,nrow=nrow(datatoscore),ncol=n)  
   for (j in 1:n)  {
     parentnodes <- which(incidence[,j]==1)
-    samplescores[j,]<-scoreagainstDAGcore(j,parentnodes,n,scoreparam)
+    samplescores[,j]<-scoreagainstDAGcore(j,parentnodes,n,scoreparam,datatoscore)
   }
-  return(colSums(samplescores))
+  
+  return(rowSums(samplescores))
 }
 
-
-scoreagainstDAGcore<-function(j,parentnodes,n,param) {
-  samplenodescores<-rep(0,ncol(param$data)) # store
+scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
+  samplenodescores<-rep(0,nrow(datatoscore)) # store
   lp<-length(parentnodes) # number of parents
   noparams<-2^lp # number of binary states of the parents
   switch(as.character(lp),
          "0"={# no parents
-           N1<-sum(param$d1[j,])
-           N0<-sum(param$d0[j,])
+           N1<-sum(param$d1[,j],na.rm=TRUE)
+           N0<-sum(param$d0[,j],na.rm=TRUE)
            NT<-N0+N1
            theta<-(N1+param$chi/(2*noparams))/(NT+param$chi/noparams) # the probability of each state
-           samplenodescores[which(param$data[j,]==1)]<-log(theta) # log scores of 1s
-           samplenodescores[which(param$data[j,]==0)]<-log(1-theta) # log scores of 0s
+           samplenodescores[which(datatoscore[,j]==1)]<-log(theta) # log scores of 1s
+           samplenodescores[which(datatoscore[,j]==0)]<-log(1-theta) # log scores of 0s
          },
          "1"={# one parent
            corescore<-param$scoreconstvec[lp+1]  
-           summys<-param$data[parentnodes,]
-           summysfull<-param$data[parentnodes,]
+           summys<-param$data[,parentnodes]
+           summysfull<-datatoscore[,parentnodes]
            
            for(i in 1:noparams-1){
              totest<-which(summys==i)
-             N1<-sum(param$d1[j,totest])
-             N0<-sum(param$d0[j,totest])
+             N1<-sum(param$d1[totest,j],na.rm=TRUE)
+             N0<-sum(param$d0[totest,j],na.rm=TRUE)
              NT<-N0+N1
              theta<-(N1+param$chi/(2*noparams))/(NT+param$chi/noparams) # the probability of each state
              toscore<-which(summysfull==i)
-             samplenodescores[toscore[which(param$data[j,toscore]==1)]]<-log(theta) # log scores of 1s
-             samplenodescores[toscore[which(param$data[j,toscore]==0)]]<-log(1-theta) # log scores of 0s
+             samplenodescores[toscore[which(datatoscore[toscore,j]==1)]]<-log(theta) # log scores of 1s
+             samplenodescores[toscore[which(datatoscore[toscore,j]==0)]]<-log(1-theta) # log scores of 0s
            }
          },     
          { # more parents
            corescore<-param$scoreconstvec[lp+1]  
-           summys<-colSums(2^(c(0:(lp-1)))*param$data[parentnodes,])
-           summysfull<-colSums(2^(c(0:(lp-1)))*param$data[parentnodes,])
-           
-           for(i in 1:noparams-1){
-             totest<-which(summys==i)
-             N1<-sum(param$d1[j,totest])
-             N0<-sum(param$d0[j,totest])
-             NT<-N0+N1
-             theta<-(N1+param$chi/(2*noparams))/(NT+param$chi/noparams) # the probability of each state
-             toscore<-which(summysfull==i)
-             samplenodescores[toscore[which(param$data[j,toscore]==1)]]<-log(theta) # log scores of 1s
-             samplenodescores[toscore[which(param$data[j,toscore]==0)]]<-log(1-theta) # log scores of 0s
+           summys<-colSums(2^(c(0:(lp-1)))*t(param$data[,parentnodes]))
+           tokeep<-which(!is.na(summys+param$d1[,j])) # remove NAs either in the parents or the child
+           if(length(tokeep)<length(summys)){
+             N1s<-collectC(summys[tokeep],param$d1[tokeep,j],noparams)
+             N0s<-collectC(summys[tokeep],param$d0[tokeep,j],noparams)
+           } else {
+             N1s<-collectC(summys,param$d1[,j],noparams)
+             N0s<-collectC(summys,param$d0[,j],noparams)
            }
+           NTs<-N0s+N1s
+           thetas<-(N1s+param$chi/(2*noparams))/(NTs+param$chi/noparams) # the probability of each state
+           
+           summysfull<-colSums(2^(c(0:(lp-1)))*t(datatoscore[,parentnodes]))
+           ones<-which(datatoscore[,j]==1)
+           samplenodescores[ones]<-log(thetas[summysfull[ones]+1])
+           zeros<-which(datatoscore[,j]==0)
+           samplenodescores[zeros]<-log(1-thetas[summysfull[zeros]+1])
          })
   
   return(samplenodescores)

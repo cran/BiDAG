@@ -16,6 +16,7 @@
 #' \item chi (optional) a positive number of prior pseudo counts used by the BDe score, 0.5 by default
 #' \item edgepf (optional) a positive numerical value providing the edge penalization factor to be combined with the BDe score, 2 by default
 #' }
+#'@param nodeslabels (optional) a vector of characters which denote the names of nodes in the Bayesian network
 #'@return an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
 #'@references Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian acyclic graphical models. The Annals of Statistics 42, 1689-1691.
@@ -28,35 +29,59 @@
 #'@export
 # a constructor function for the "scoreparameters" class
 scoreparameters<-function(n, scoretype=c("bge","bde"), data, weightvector=NULL, bgepar=list(am=1, aw=NULL),
-                          bdepar=list(edgepf=2, chi=0.5)) {
+                          bdepar=list(edgepf=2, chi=0.5),nodeslabels=NULL) {
+
   if (!(scoretype%in%c("bde","bge"))) {
-    stop("Scoretype should be bge (for continious data) or bde (for binary data)")
+    stop("Scoretype should be bge (for continuous data) or bde (for binary data)")
   }
+  
+  if (anyNA(data)) {
+    stop("Dataset contains missing data")  
+  }
+  
   if (ncol(data)!=n) {
     stop("n and number of columns in data do not match")
   }
   if (!is.null(weightvector)) {
-  if (length(weightvector)!=nrow(data)) {
-    stop("length of weightvector does not match number of columns (observations) in data")
+    if (length(weightvector)!=nrow(data)) {
+      stop("Length of the weightvector does not match the number of columns (observations) in data")
+    }
   }
+
+  if (scoretype=="bde") {
+    if (!all(sapply(data,function(x)x%in%c(0,1)))) {
+      stop("Dataset contains non-binary values")  
+    }
   }
+  
+  
+  if (is.null(nodeslabels)) {
+    if(all(is.character(colnames(data)))){
+      nodeslabels<-colnames(data)
+    } else {
+      nodeslabels<-sapply(c(1:n), function(x)paste("v",x,sep=""))
+    }}
+  
+  colnames(data)<-nodeslabels
+  
   initparam<-list()
-  initparam$type=scoretype
+  initparam$labels<-nodeslabels
+  initparam$type<-scoretype
   initparam$weightvector<-weightvector
   if(scoretype=="bge") {
     initparam$data<-data
     if (is.null(weightvector)) {
-        N<-nrow(data)
-        covmat<-cov(data)
-        means<-colMeans(data)
+      N<-nrow(data)
+      covmat<-cov(data)
+      means<-colMeans(data)
     } else {
-        N=sum(weightvector)
-        forcov<-cov.wt(data,wt=weightvector,cor=TRUE)
-        covmat<-forcov$cov
-        means<-forcov$center
-      }
+      N=sum(weightvector)
+      forcov<-cov.wt(data,wt=weightvector,cor=TRUE)
+      covmat<-forcov$cov
+      means<-forcov$center
+    }
     if (is.null(bgepar$aw)) {
-    bgepar$aw<-n+bgepar$am+1
+      bgepar$aw<-n+bgepar$am+1
     }
     mu0<-numeric(n)
     T0scale <- bgepar$am*(bgepar$aw-n-1)/(bgepar$am+1) # This follows from equations (19) and (20) of [GH2002]
@@ -64,7 +89,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde"), data, weightvector=NULL, 
     initparam$TN <- T0 + (N-1)* covmat + ((bgepar$am*N)/(bgepar$am+N))* (mu0 - means)%*%t(mu0 - means)
     initparam$awpN<-bgepar$aw+N
     constscorefact<- -(N/2)*log(pi) + (1/2)*log(bgepar$am/(bgepar$am+N))
-
+    
     initparam$scoreconstvec<-numeric(n)
     for (j in 1:n) {# j represents the number of parents plus 1
       awp<-bgepar$aw-n+j
@@ -72,14 +97,16 @@ scoreparameters<-function(n, scoretype=c("bge","bde"), data, weightvector=NULL, 
     }
   }
   else if (scoretype=="bde") {
+    if(is.null(bdepar$chi)) {bdepar$chi<-0.5}
+    if(is.null(bdepar$edgepf)) {bdepar$edgepf<-0.5}
     if (is.null(weightvector)) {
-      initparam$d1<-t(data)
-      initparam$d0<-t((1-data))
+      initparam$d1<-data
+      initparam$d0<-(1-data)
     } else {
-      initparam$d1<-t(data*weightvector)
-      initparam$d0<-t((1-data)*weightvector)
+      initparam$d1<-data*weightvector
+      initparam$d0<-(1-data)*weightvector
     }
-    initparam$data<-t(data)
+    initparam$data<-data
     maxparents<-n-1
     initparam$scoreconstvec<-rep(0,maxparents+1)
     initparam$chi<-bdepar$chi #1

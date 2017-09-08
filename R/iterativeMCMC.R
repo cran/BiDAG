@@ -2,15 +2,20 @@
 iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, posterior=0.5,
                              startorder=c(1:n),moveprobs,softlimit=9,hardlimit=12,plus1=FALSE,chainout=FALSE,
                              scoreout=FALSE,startspace=NULL,blacklist=NULL,gamma=1,verbose=FALSE,alpha=NULL,
-                             cpdag=FALSE,mergecp="skeleton") {
+                             cpdag=FALSE,mergecp="skeleton",addspace=NULL) {
     updatenodeslist<-list()
     MCMCchains<-list()
     updatenodes<-c(1:n)
     maxorder<-startorder
     
+    
     if (is.null(blacklist)) {
       blacklist<-matrix(rep(0,n*n),ncol=n)
-      diag(blacklist)<-1
+    } 
+    diag(blacklist)<-1
+    blacklistparents<-list()
+    for  (i in 1:n) {
+      blacklistparents[[i]]<-which(blacklist[,i]==1)
     }
     
     if (is.null(startspace)) {
@@ -18,28 +23,17 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
       if(is.null(alpha)) { if(n<50) {alpha<-0.4} else {alpha<-max(20/n,0.01)}}
       
       if(param$type=="bde") {
-        if(is.null(param$weightvector)) {
-          if(cpdag){
-            pc.skel<-pc(suffStat = list(dm = t(param$data), adaptDF = FALSE),
-                        indepTest = binCItest, alpha = alpha, labels = rownames(param$data),
-                        verbose = FALSE)
-          } else {
-            pc.skel<-pcalg::skeleton(suffStat = list(dm = t(param$data), adaptDF = FALSE),
-                                     indepTest = binCItest, alpha = alpha, labels = rownames(param$data),
-                                     verbose = FALSE)
-          }
-        } else {
           if(cpdag){
             pc.skel<-pc(suffStat = list(d1=param$d1,d0=param$d0,data=param$data),
-                        indepTest = weightedbinCItest, alpha = alpha, labels = rownames(param$data),
+                        indepTest = weightedbinCItest, alpha = alpha, labels = colnames(param$data),
                         verbose = FALSE)
             
           } else {
             pc.skel<-pcalg::skeleton(suffStat = list(d1=param$d1,d0=param$d0,data=param$data),
-                                     indepTest = weightedbinCItest, alpha = alpha, labels = rownames(param$data),
+                                     indepTest = weightedbinCItest, alpha = alpha, labels = colnames(param$data),
                                      verbose = FALSE)
           }
-        }
+        
       } else if(param$type=="bge") {
         if(is.null(param$weightvector)) {
           cormat<-cor(param$data)
@@ -63,8 +57,11 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
     } else {
       startskeleton<-1*(startspace&!blacklist)
     }
-    ptab<-listpossibleparents.PC.aliases(startskeleton,isgraphNEL=FALSE,n,updatenodes)
-    maxDAG<-startskeleton
+    if(!is.null(addspace)) {startskel<-1*((addspace|startskeleton)&!blacklist)} else {
+      startskel<-startskeleton
+    }
+    ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
+    
     if (verbose) {
       print("skeleton ready")
       flush.console()
@@ -117,7 +114,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
         if(chainout) {output<-2}
         else {output<-1}
       }
-      
+      colnames(maxres$DAG)<-colnames(param$data)
       
       switch(as.character(output),
              "1"={ # return only maximum DAG and order
@@ -160,7 +157,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
       aliases<-ptab$aliases #aliases for each node since all nodes in parent tables are done as 1,2,3,4... not real parent names
       numberofparentsvec<-ptab$numberofparentsvec
       numparents<-ptab$numparents
-      plus1lists<-PLUS1(n,aliases,updatenodes)
+      plus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
       rowmaps<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
       scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,rowmaps,numparents,numberofparentsvec)
       posetparenttable<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)
@@ -180,7 +177,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
             aliases[updatenodes]<-newptab$aliases[updatenodes] #aliases for each node since all nodes in parent tables are done as 1,2,3,4... not real parent names
             numberofparentsvec[updatenodes]<-newptab$numberofparentsvec[updatenodes]
             numparents[updatenodes]<-newptab$numparents[updatenodes]
-            newplus1lists<-PLUS1(n,aliases,updatenodes)
+            newplus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
             plus1lists$mask[updatenodes]<- newplus1lists$mask[updatenodes]
             plus1lists$parents[updatenodes]<- newplus1lists$parents[updatenodes]
             plus1lists$aliases[updatenodes]<- newplus1lists$aliases[updatenodes]
@@ -244,7 +241,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
           }
           if (MAP) {
             maxcp<-dagadj2cpadj(MCMCresult[[1]][[maxN]]) #find CPDAG
-            if (plus1it>1){
+            if (plus1it>1){ #plus1it parameter defining the number of plus1 iterations
               newadj<-newspacemap(n,startskeleton,oldadj,softlimit,hardlimit,blacklist,maxN=maxN,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
             } } else {
               newadj<- newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior, blacklist,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
@@ -252,7 +249,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
           if (i<plus1it) {
             updatenodes<-which(apply(newadj==oldadj,2,all)==FALSE)
             updatenodeslist[[i]]<-updatenodes
-            oldadj<-newadj
+            oldadj<-newadj 
           }
           startorder<-MCMCresult[[4]][[maxN]]
         }
@@ -265,7 +262,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
             aliases[updatenodes]<-newptab$aliases[updatenodes] #aliases for each node since all nodes in parent tables are done as 1,2,3,4... not real parent names
             numberofparentsvec[updatenodes]<-newptab$numberofparentsvec[updatenodes]
             numparents[updatenodes]<-newptab$numparents[updatenodes]
-            newplus1lists<-PLUS1(n,aliases,updatenodes)
+            newplus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
             plus1lists$mask[updatenodes]<- newplus1lists$mask[updatenodes]
             plus1lists$parents[updatenodes]<- newplus1lists$parents[updatenodes]
             plus1lists$aliases[updatenodes]<- newplus1lists$aliases[updatenodes]
@@ -342,14 +339,13 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
         
       }
       
-      
-      
       maxres<-list()
       maxres$DAG<-maxDAG
       maxres$order<-maxorder
       maxres$score<-maxscore
       maxres$it<-maxit
       
+      colnames(maxres$DAG)<-colnames(param$data)
       
       result<-list()
       if (scoreout){
