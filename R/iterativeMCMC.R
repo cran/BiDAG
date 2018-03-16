@@ -2,66 +2,30 @@
 iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, posterior=0.5,
                              startorder=c(1:n),moveprobs,softlimit=9,hardlimit=12,plus1=FALSE,chainout=FALSE,
                              scoreout=FALSE,startspace=NULL,blacklist=NULL,gamma=1,verbose=FALSE,alpha=NULL,
-                             cpdag=FALSE,mergecp="skeleton",addspace=NULL) {
+                             cpdag=FALSE,mergecp="skeleton",addspace=NULL,scoretable=NULL) {
     updatenodeslist<-list()
     MCMCchains<-list()
     updatenodes<-c(1:n)
     maxorder<-startorder
     
-    
     if (is.null(blacklist)) {
       blacklist<-matrix(rep(0,n*n),ncol=n)
-    } 
+    }
     diag(blacklist)<-1
     blacklistparents<-list()
     for  (i in 1:n) {
       blacklistparents[[i]]<-which(blacklist[,i]==1)
     }
     
-    if (is.null(startspace)) {
-      
-      if(is.null(alpha)) { if(n<50) {alpha<-0.4} else {alpha<-max(20/n,0.01)}}
-      
-      if(param$type=="bde") {
-          if(cpdag){
-            pc.skel<-pc(suffStat = list(d1=param$d1,d0=param$d0,data=param$data),
-                        indepTest = weightedbinCItest, alpha = alpha, labels = colnames(param$data),
-                        verbose = FALSE)
-            
-          } else {
-            pc.skel<-pcalg::skeleton(suffStat = list(d1=param$d1,d0=param$d0,data=param$data),
-                                     indepTest = weightedbinCItest, alpha = alpha, labels = colnames(param$data),
-                                     verbose = FALSE)
-          }
-        
-      } else if(param$type=="bge") {
-        if(is.null(param$weightvector)) {
-          cormat<-cor(param$data)
-          N<-nrow(param$data)
-        } else { N<-sum(param$weightvector)
-          cormat<-cov.wt(param$data,wt=param$weightvector,cor=TRUE)$cor}
-        if(cpdag){
-          pc.skel<-pcalg::pc(suffStat = list(C = cormat, n = N),
-                             indepTest = gaussCItest,
-                             alpha=alpha,labels=colnames(param$data),skel.method="stable",verbose = FALSE)
-        } else {
-          pc.skel<-pcalg::skeleton(suffStat = list(C = cormat, n = N),
-                                   indepTest = gaussCItest,
-                                   alpha=alpha,labels=colnames(param$data),method="stable",verbose = FALSE)
-        }
-        } 
-       
-      g<-pc.skel@graph
-      startspace<-1*(dag2adjacencymatrix(g)&!blacklist)
-      startskeleton<-startspace
-    } else {
-      startskeleton<-1*(startspace&!blacklist)
-    }
-    if(!is.null(addspace)) {startskel<-1*((addspace|startskeleton)&!blacklist)} else {
-      startskel<-startskeleton
-    }
-    ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
+    if (is.null(startspace)) startspace<-definestartspace(alpha,param,cpdag,n,algo="pc")
+
+    startskeleton<-1*(startspace&!blacklist)
     
+    if(!is.null(addspace)) {startskel<-1*((addspace|startskeleton)&!blacklist)
+    } else { startskel<-startskeleton }
+    
+    ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
+
     if (verbose) {
       print("skeleton ready")
       flush.console()
@@ -75,11 +39,11 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
       rowmaps<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
       scoretable<-scorepossibleparents.alias(parenttable,aliases,n,param,updatenodes,rowmaps,numparents,numberofparentsvec)
       posetparenttable<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)
-      
+
       if(MAP==TRUE){
         maxmatrices<-posetscoremax(posetparenttable,scoretable,numberofparentsvec,rowmaps,
                                    n,plus1lists=NULL,updatenodes)
-        
+
         MCMCresult<-orderMCMCbasemax(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                      scoretable,aliases,numparents,rowmaps,maxmatrices,numberofparentsvec,gamma=gamma)
         endtime<-Sys.time()
@@ -90,7 +54,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
       } else {
         bannedscore<-poset.scores(posetparenttable,scoretable,numberofparentsvec,rowmaps,
                                   n,plus1lists=NULL,ptab$numparents)
-        
+
         MCMCresult<-orderMCMCbase(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                   scoretable,aliases,numparents,rowmaps,
                                   bannedscore,numberofparentsvec,gamma=gamma)
@@ -100,13 +64,13 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
           flush.console()
           }
       }
-      
+
       maxres<-list()
       maxN<-which.max(unlist(MCMCresult[[2]]))
       maxres$DAG<-MCMCresult[[1]][[maxN]]
       maxres$order<-MCMCresult[[4]][[maxN]]
       maxres$score<-MCMCresult[[2]][[maxN]]
-      
+
       if (scoreout){
         if(chainout){output<-4}
         else{output<-3}
@@ -115,7 +79,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
         else {output<-1}
       }
       colnames(maxres$DAG)<-colnames(param$data)
-      
+
       switch(as.character(output),
              "1"={ # return only maximum DAG and order
                result<-list()
@@ -150,7 +114,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
                return(result)
              }
       )
-      
+
     } else {
       starttime<-Sys.time()
       parenttable<-ptab$parenttable # basic parenttable without plus1 lists
@@ -159,7 +123,8 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
       numparents<-ptab$numparents
       plus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
       rowmaps<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
-      scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,rowmaps,numparents,numberofparentsvec)
+      if(is.null(scoretable)) {
+      scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,rowmaps,numparents,numberofparentsvec) }
       posetparenttable<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)
       if(MAP==TRUE){
         maxmatrices<-posetscoremax(posetparenttable,scoretable,numberofparentsvec,
@@ -181,11 +146,11 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
             plus1lists$mask[updatenodes]<- newplus1lists$mask[updatenodes]
             plus1lists$parents[updatenodes]<- newplus1lists$parents[updatenodes]
             plus1lists$aliases[updatenodes]<- newplus1lists$aliases[updatenodes]
-            
+
             rowmaps[updatenodes]<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)[updatenodes]
             scoretable[updatenodes]<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,rowmaps,numparents,numberofparentsvec)[updatenodes]
             posetparenttable[updatenodes]<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)[updatenodes]
-            
+
             if (MAP) {
               newmaxmatrices<-posetscoremax(posetparenttable,scoretable,numberofparentsvec,
                                             rowmaps,n,plus1lists=plus1lists,updatenodes)
@@ -200,7 +165,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
               print(paste("MCMC plus1 iteration",i))
               flush.console()
               }
-          } else { 
+          } else {
             if(verbose) {
               print(paste("score tables calculated, MCMC plus1 starts"))
               flush.console()
@@ -215,15 +180,17 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
               print(endtime-starttime)
               flush.console()}
           } else {
+            starttime<-Sys.time()
             MCMCresult<-orderMCMCplus1(n,startorder,iterations,stepsave,moveprobs,parenttable,
                                        scoretable,aliases,numparents,rowmaps,plus1lists,
                                        bannedscore,numberofparentsvec,gamma=gamma)
             endtime<-Sys.time()
+            print(endtime-starttime)
             if(verbose) {
               print(endtime-starttime)
               flush.console()}
           }
-          
+
           MCMCchains[[i]]<-MCMCresult
           maxN<-which.max(unlist(MCMCresult[[2]]))
           if(i>1){
@@ -239,17 +206,18 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
             maxscore<-MCMCresult[[2]][[maxN]]
             maxit<-1
           }
-          if (MAP) {
-            maxcp<-dagadj2cpadj(MCMCresult[[1]][[maxN]]) #find CPDAG
-            if (plus1it>1){ #plus1it parameter defining the number of plus1 iterations
-              newadj<-newspacemap(n,startskeleton,oldadj,softlimit,hardlimit,blacklist,maxN=maxN,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
-            } } else {
-              newadj<- newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior, blacklist,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
-            }
+         
           if (i<plus1it) {
+            if (MAP) {
+              maxcp<-dagadj2cpadj(MCMCresult[[1]][[maxN]]) #find CPDAG
+              if (plus1it>1){ #plus1it parameter defining the number of plus1 iterations
+                newadj<-newspacemap(n,startskeleton,oldadj,softlimit,hardlimit,blacklist,maxN=maxN,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
+              } } else {
+                newadj<- newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior, blacklist,MCMCchain=MCMCresult[[1]],mergetype=mergecp)
+              }
             updatenodes<-which(apply(newadj==oldadj,2,all)==FALSE)
             updatenodeslist[[i]]<-updatenodes
-            oldadj<-newadj 
+            oldadj<-newadj
           }
           startorder<-MCMCresult[[4]][[maxN]]
         }
@@ -266,7 +234,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
             plus1lists$mask[updatenodes]<- newplus1lists$mask[updatenodes]
             plus1lists$parents[updatenodes]<- newplus1lists$parents[updatenodes]
             plus1lists$aliases[updatenodes]<- newplus1lists$aliases[updatenodes]
-            
+
             rowmaps[updatenodes]<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)[updatenodes]
             scoretable[updatenodes]<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,rowmaps,numparents,numberofparentsvec)[updatenodes]
             posetparenttable[updatenodes]<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)[updatenodes]
@@ -284,7 +252,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
               print(paste("MCMC plus1 iteration",i))
               flush.console()
               }
-          } else { 
+          } else {
             if(verbose) {
             print(paste("score tables calculated, MCMC plus1 starts"))
             flush.console()
@@ -309,7 +277,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
               flush.console()
               }
           }
-          
+
           MCMCchains[[i]]<-MCMCresult
           maxN<-which.max(unlist(MCMCresult[[2]]))
           if(i>1){
@@ -336,7 +304,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
           startorder<-MCMCresult[[4]][[maxN]]
           i<-i+1
         }
-        
+
       }
       
       maxres<-list()
@@ -344,9 +312,9 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
       maxres$order<-maxorder
       maxres$score<-maxscore
       maxres$it<-maxit
-      
+
       colnames(maxres$DAG)<-colnames(param$data)
-      
+
       result<-list()
       if (scoreout){
         if(chainout){output<-4}
@@ -355,7 +323,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
         if(chainout) {output<-2}
         else {output<-1}
       }
-      
+
       switch(as.character(output),
              "1"={ # return only maximum DAG and order
                result$max<-maxres
@@ -368,7 +336,7 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
                if (i==1) {
                  result$chain<-MCMCresult
                  attr(result$chain,"class")<-"MCMCchain"
-               } else { 
+               } else {
                  result$chain<-MCMCchains
                  attr(result$chain,"class")<-"MCMCmult"}
                return(result)
@@ -397,6 +365,6 @@ iterativeMCMCplus1<-function(n,param,iterations,stepsave,plus1it=NULL,MAP=TRUE, 
                return(result)
              }
       )
-    } 
-  
+    }
+
 }

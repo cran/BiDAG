@@ -1,6 +1,6 @@
 DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numparents,numberofparentsvec){
-  
-  lp<-length(parentnodes) # number of parents
+
+    lp<-length(parentnodes) # number of parents
   noparams<-2^lp # number of binary states of the parents
   
   corescores<-rep(NA,noparams)
@@ -12,8 +12,8 @@ DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numpar
   N0slist<-vector("list", noparams)
   
   if(lp==0){ # no parents
-    N1<-sum(param$d1[,j],na.rm=TRUE)
-    N0<-sum(param$d0[,j],na.rm=TRUE)
+    N1<-sum(param$d1[,j])
+    N0<-sum(param$d0[,j])
     NT<-N0+N1
     corescores[noparams] <- scoreconstvec[lp+1] + lgamma(N0+chi/(2*noparams)) + lgamma(N1+chi/(2*noparams)) - lgamma(NT+chi/noparams)
   } else {
@@ -24,15 +24,9 @@ DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numpar
       summys<-colSums(2^(c(0:(lp-1)))*t(param$data[,parentnodes]))
     }
     
-    tokeep<-which(!is.na(summys+param$d1[,j])) # remove NAs either in the parents or the child
-    if(length(tokeep)<length(summys)){
-      stop("missing data not implemented yet!")
-      } else {
-      missingd<-FALSE
-      N1s<-collectC(summys,param$d1[,j],noparams)
-      N0s<-collectC(summys,param$d0[,j],noparams)
-    }
-    
+    N1s<-collectC(summys,param$d1[,j],noparams)
+    N0s<-collectC(summys,param$d0[,j],noparams)
+
     N1slist[[noparams]]<-N1s
     N0slist[[noparams]]<-N0s
     
@@ -72,6 +66,14 @@ DAGbinarytablescore<-function(j,parentnodes,n,param,parenttable,tablemaps,numpar
       
       corescores[jj] <- scoreconstvec[lplocal+1] + sum(lgamma(N0s+chi/(2*noparamslocal))) + sum(lgamma(N1s+chi/(2*noparamslocal))) - sum(lgamma(NTs+chi/noparamslocal))
       
+      if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+        if(lplocal>0) {
+        localparents <- parentnodes[parenttable[jj, 1:lplocal]]
+        if(length(localparents)>0) {
+          corescores[jj] <- corescores[jj] - sum(param$logedgepmat[localparents, j])
+        }
+        }
+      }
     }
     
   }
@@ -103,15 +105,9 @@ DAGbinarytablescoreplus1<-function(j,parentnodes,additionalparent,n,param,parent
     summys<-colSums(2^(c(0:(lpadd-1)))*t(param$data[,allparents]))
   }
   
-  tokeep<-which(!is.na(summys+param$d1[,j])) # remove NAs either in the parents or the child
-  if(length(tokeep)<length(summys)){
-    stop("missing data not implemented yet!")
-  } else {
-    missingd<-FALSE
-    N1s<-collectC(summys,param$d1[,j],noparamsadd)
-    N0s<-collectC(summys,param$d0[,j],noparamsadd)
-  }
-  
+  N1s<-collectC(summys,param$d1[,j],noparamsadd)
+  N0s<-collectC(summys,param$d0[,j],noparamsadd)
+
   N1slist[[noparams]]<-N1s
   N0slist[[noparams]]<-N0s
   
@@ -119,6 +115,10 @@ DAGbinarytablescoreplus1<-function(j,parentnodes,additionalparent,n,param,parent
   
   corescores[noparams] <- scoreconstvec[lpadd+1] + sum(lgamma(N0s+chi/(2*noparamsadd))) + sum(lgamma(N1s+chi/(2*noparamsadd))) - sum(lgamma(NTs+chi/noparamsadd))
   
+  if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+    corescores[noparams] <- corescores[noparams] - param$logedgepmat[additionalparent, j]
+  }
+
   if(lpadd>1){ # otherwise there are no further terms to compute!  
     
     for (jj in (noparams-1):1){ # use poset to combine sets
@@ -148,8 +148,17 @@ DAGbinarytablescoreplus1<-function(j,parentnodes,additionalparent,n,param,parent
       
       NTs<-N1s+N0s
       
+      #lplocal+1 because we have 1 additional parent and indexing in scoreconstvec started with 0
       corescores[jj] <- scoreconstvec[lplocal+1] + sum(lgamma(N0s+chi/(2*noparamslocal))) + sum(lgamma(N1s+chi/(2*noparamslocal))) - sum(lgamma(NTs+chi/noparamslocal))
       
+      if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+        if (lplocal>1) {
+          localparents <- c(parentnodes[parenttable[jj, 1:(lplocal-1)]], additionalparent)
+        } else {
+            localparents<-additionalparent
+        }
+        corescores[jj] <- corescores[jj] - sum(param$logedgepmat[localparents, j])
+      }
     }
   }
   

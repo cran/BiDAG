@@ -49,17 +49,20 @@ samplescoreplus1<-function(n,scores,plus1lists,scoretable,bannedscores,parenttab
       }
     }
     if(is.null(plus1lists)) {
+      
       allowedscores<-matrix(scoretable[[i]][allowedrows,1],nrow=length(allowedrows))
       k<-sample.int(length(allowedscores),1,prob=exp(allowedscores-scores$totscores[i]))
       krow<-allowedrows[k]
       parentset<-aliases[[i]][parenttable[[i]][krow,which(parenttable[[i]][krow,]>0)]] #take right parent set
       incidence[parentset,i]<-1 # fill in elements of the adjacency matrix
       sampledscore<-sampledscore+scoretable[[i]][krow,1]
+      
     } else {
-
+              #first sample plus1 list
               klist<-sample.int(length(scores$allowedlists[[i]]),1,
                                       prob=exp(bannedscores[[i]][scores$therow[i],scores$allowedlists[[i]]]-scores$totscores[i]))
               abslist<-scores$allowedlists[[i]][klist]
+              #then sample a row from allowed rows
               k<-sample.int(length(allowedrows),1,prob=exp(scoretable[[i]][[abslist]][allowedrows]-scores$totscores[i]))
               krow<-allowedrows[k]
               parentrow<-plus1lists$aliases[[i]][abslist,c(1,parenttable[[i]][krow,!is.na(parenttable[[i]][krow,])]+1)]

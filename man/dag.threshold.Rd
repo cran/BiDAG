@@ -26,8 +26,8 @@ This function constructs a directed graph (not necessarily acyclic) including al
 \examples{
 Bostonscore<-scoreparameters(14, "bge", Boston)
 \dontrun{
-orderfit<-orderMCMC(14, Bostonscore, MAP=FALSE, iterations=25000)
+orderfit<-orderMCMC(14, Bostonscore, MAP=FALSE, iterations=25000, chainout=TRUE)
 MCMCchain<-orderfit$chain$incidence
-hdag<-dag.threshold(14, MCMCchain, pbarrier=0.9)
+hdag<-dag.threshold(MCMCchain, pbarrier=0.9)
 }
 }

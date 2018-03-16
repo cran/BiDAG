@@ -35,7 +35,6 @@ orderMCMCbasemax<-function(n,startorder,iterations,stepsave,moveprobs,parenttabl
         switch(as.character(chosenmove),
                "1"={ # swap any two elements at random
                  sampledelements<-sample.int(n,2,replace=FALSE) #chosen at random
-                 #print("1")
                },
                "2"={ # swap any adjacent elements
                  k<-sample.int(n-1,1) #chose the smallest at random

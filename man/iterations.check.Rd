@@ -35,6 +35,6 @@ myData<-pcalg::rmvDAG(200, myDAG)
 myScore<-scoreparameters(20, "bge", myData)
 \dontrun{
 MAPestimate<-iterativeMCMCsearch(20, myScore, chainout=TRUE, scoreout=TRUE)
-iterations.check(MAPestimate$chain, myDAG)
+iterations.check(MAPestimate, myDAG)
 }
 }

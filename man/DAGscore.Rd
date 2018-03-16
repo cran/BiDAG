@@ -25,7 +25,7 @@ myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2)
 myData<-pcalg::rmvDAG(200, myDAG) 
 adjacency<-dag2adjacencymatrix(myDAG)
 myScore<-scoreparameters(20,"bge",myData)
-DAGscore(20, myScore, adjacency)
+DAGscore(20,myScore, adjacency)
 }
 \references{
 Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.

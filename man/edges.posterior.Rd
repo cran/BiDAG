@@ -23,7 +23,9 @@ obtained via an MCMC scheme.
 \examples{
 Bostonscore<-scoreparameters(14, "bge", Boston)
 \dontrun{
-samplefit<-orderMCMC(14, Bostonscore, iterations=25000)
-edgesposterior<-edges.posterior(samplefit$chain$incidence, burnin=0.2)
+samplefit<-orderMCMC(14, Bostonscore, iterations=25000,chainout=TRUE)
+MCMCchain<-samplefit$chain$incidence
+edgesposterior<-edges.posterior(MCMCchain, burnin=0.2)
+edgesposterior<-edges.posterior(MCMCchain, pdag=TRUE, burnin=0.2)
 }
 }

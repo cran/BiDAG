@@ -10,8 +10,10 @@
 #'@examples
 #'Bostonscore<-scoreparameters(14, "bge", Boston)
 #'\dontrun{
-#'samplefit<-orderMCMC(14, Bostonscore, iterations=25000)
-#'edgesposterior<-edges.posterior(samplefit$chain$incidence, burnin=0.2)
+#'samplefit<-orderMCMC(14, Bostonscore, iterations=25000,chainout=TRUE)
+#'MCMCchain<-samplefit$chain$incidence
+#'edgesposterior<-edges.posterior(MCMCchain, burnin=0.2)
+#'edgesposterior<-edges.posterior(MCMCchain, pdag=TRUE, burnin=0.2)
 #'}
 #'@export
 edges.posterior<-function(MCMCchain,pdag=FALSE,burnin=0.2) {
@@ -39,13 +41,14 @@ edges.posterior<-function(MCMCchain,pdag=FALSE,burnin=0.2) {
 #'@examples
 #'Bostonscore<-scoreparameters(14, "bge", Boston)
 #'\dontrun{
-#'orderfit<-orderMCMC(14, Bostonscore, MAP=FALSE, iterations=25000)
+#'orderfit<-orderMCMC(14, Bostonscore, MAP=FALSE, iterations=25000, chainout=TRUE)
 #'MCMCchain<-orderfit$chain$incidence
-#'hdag<-dag.threshold(14, MCMCchain, pbarrier=0.9)
+#'hdag<-dag.threshold(MCMCchain, pbarrier=0.9)
 #'}
 #'@export
-dag.threshold<-function(n, MCMCchain, pbarrier, pdag=FALSE, burnin=0.2) {
-  incidence<-matrix(rep(0, n*n), nrow=n)
+dag.threshold<-function(n,MCMCchain, pbarrier, pdag=FALSE, burnin=0.2) {
+  n<-nrow(MCMCchain[[1]])
+  incidence<-matrix(rep(0, n*n), nrow=n, ncol=n)
   endstep<-length(MCMCchain)
   startstep<-as.integer(burnin*endstep)
   if (pdag) {
@@ -79,7 +82,7 @@ dag.threshold<-function(n, MCMCchain, pbarrier, pdag=FALSE, burnin=0.2) {
 #' myScore<-scoreparameters(20, "bge", myData)
 #'\dontrun{
 #' MAPestimate<-iterativeMCMCsearch(20, myScore, chainout=TRUE, scoreout=TRUE)
-#' iterations.check(MAPestimate$chain, myDAG)
+#' iterations.check(MAPestimate, myDAG)
 #' }
 #'@export
 iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=0.5) {
@@ -91,10 +94,10 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
   trueskeleton<-dag2skeletonadjacency(truedag)
   numedges<-sum(trueskeleton)
   if (!sample) {
-  for (j in  1:length(MCMCmult)) {
-    maxN<-which.max(unlist(MCMCmult[[j]][[2]]))
-    SC[j]<-MCMCmult[[j]][[2]][[maxN]]
-    maxadj<-MCMCmult[[j]][[1]][[maxN]]
+  for (j in  1:length(MCMCmult$chain)) {
+    maxN<-which.max(unlist(MCMCmult$chain[[j]][[2]]))
+    SC[j]<-MCMCmult$chain[[j]][[2]][[maxN]]
+    maxadj<-MCMCmult$chain[[j]][[1]][[maxN]]
     estskelmcmc<-adjacency2skeleton(maxadj)
     diffmcmc<-estskelmcmc-trueskeleton
     mc.dag<-adjacency2dag(maxadj)
@@ -108,12 +111,12 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
   result<-cbind(TP, FP, TPR, SHD, SC)
   colnames(result)<-c("TP", "FP", "TPR", "SHD", "SC")
   return(result) } else {
-    n<-nrow(MCMCmult[[1]][[1]][[1]])
-    for (j in  1:length(MCMCmult)) {
-      adj<-dag.threshold(n,MCMCmult[[j]][[1]],pbarrier,pdag=cpdag)
+    n<-nrow(MCMCmult$max$DAG)
+    for (j in  1:length(MCMCmult$chain)) {
+      adj<-dag.threshold(n,MCMCmult$chain[[j]][[1]],pbarrier,pdag=cpdag)
       estskelmcmc<-adjacency2skeleton(adj)
       diffmcmc<-estskelmcmc-trueskeleton
-      mc.dag<-adjacency2dag(adj)
+      mc.dag<-dag2cpdag(adjacency2dag(adj))
       truecp<-pcalg::dag2cpdag(truedag)
       TP[j]<-numedges-sum(diffmcmc<0)
       FP[j]<-sum(diffmcmc>0)
@@ -145,11 +148,12 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
 #' \dontrun{
 #' ordersample<-orderMCMC(n=20, myScore, chainout=TRUE)
 #' MCMCchain<-ordersample$chain$incidence
-#' sample.check(n=20, MCMCchain, myDAG, pdag=TRUE, burnin=0.2)
+#' sample.check(MCMCchain, myDAG, pdag=TRUE, burnin=0.2)
 #' }
 #'@export
-sample.check<-function(n, MCMCchain, truedag, pbarrier=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2),
+sample.check<-function(n,MCMCchain, truedag, pbarrier=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2),
                                          pdag=TRUE, burnin=0.2) {
+  n<-nrow(MCMCchain[[1]])
   trueskeleton<-dag2skeletonadjacency(truedag)
   results<-matrix(ncol=4,nrow=length(pbarrier))
   results[,4]<-pbarrier
@@ -160,7 +164,7 @@ sample.check<-function(n, MCMCchain, truedag, pbarrier=c(0.99,0.95,0.9,0.8,0.7,0
   dags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj) #first convert every DAG in the sample to equivalence class
   } else {dags<-MCMCchain[startstep:endstep]}
   for (p in 1:length(pbarrier)) {
-    sampledag<-matrix(rep(0, n*n), nrow=n)
+    sampledag<-matrix(0, nrow=n,ncol=n)
     sampledag[which(Reduce('+', dags)/(endstep-startstep+1)>pbarrier[p])]<-1 #average over CPDAGs
     sampleest<-adjacency2skeleton(sampledag)
     diffmcmc<-sampleest-trueskeleton

@@ -9,7 +9,7 @@ iterativeMCMCsearch(n, scoreparam, plus1it = NULL, moveprobs = NULL,
   softlimit = 9, hardlimit = 12, alpha = NULL, gamma = 1,
   startspace = NULL, blacklist = NULL, verbose = TRUE, chainout = FALSE,
   scoreout = FALSE, cpdag = FALSE, mergetype = "skeleton",
-  addspace = NULL)
+  addspace = NULL, scoretable = NULL, startorder = c(1:n))
 }
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
@@ -67,6 +67,10 @@ space, when FALSE (default) the undirected skeleton used as a search space}
 }}
 
 \item{addspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the edges, which are added at to the search space only at the first iteration of iterative seach and do not necessarily stay afterwards; defined in the form of an adjacency matrix;  if \code{addspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{addspace[i,j]} and \code{addspace[j,i]} should be 1}
+
+\item{scoretable}{(optional) list of score tables which has to match startspace and addspace}
+
+\item{startorder}{(optional) integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is \code{c(1:n)}}
 }
 \value{
 Depends on the logical parameters \code{chainout} and \code{scoreout}. If both are FALSE (default), an oject of class \code{MCMCmax}, containing a list of 4 elements:

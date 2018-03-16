@@ -15,6 +15,7 @@
 #' \itemize{
 #' \item chi (optional) a positive number of prior pseudo counts used by the BDe score, 0.5 by default
 #' \item edgepf (optional) a positive numerical value providing the edge penalization factor to be combined with the BDe score, 2 by default
+#' \item edgepmat (optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the BDe score, NULL by default
 #' }
 #'@param nodeslabels (optional) a vector of characters which denote the names of nodes in the Bayesian network
 #'@return an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
@@ -29,7 +30,7 @@
 #'@export
 # a constructor function for the "scoreparameters" class
 scoreparameters<-function(n, scoretype=c("bge","bde"), data, weightvector=NULL, bgepar=list(am=1, aw=NULL),
-                          bdepar=list(edgepf=2, chi=0.5),nodeslabels=NULL) {
+                          bdepar=list(edgepf=2, edgepmat=NULL, chi=0.5),nodeslabels=NULL) {
 
   if (!(scoretype%in%c("bde","bge"))) {
     stop("Scoretype should be bge (for continuous data) or bde (for binary data)")
@@ -111,6 +112,11 @@ scoreparameters<-function(n, scoretype=c("bge","bde"), data, weightvector=NULL, 
     initparam$scoreconstvec<-rep(0,maxparents+1)
     initparam$chi<-bdepar$chi #1
     initparam$pf<-bdepar$edgepf
+    if (is.null(bdepar$edgepmat)) {
+      initparam$logedgepmat <- NULL
+    } else {
+      initparam$logedgepmat <- log(bdepar$edgepmat)
+    }
     for(i in 0:maxparents){ # constant part of the score depending only on the hyperparameters
       noparams<-2^i
       initparam$scoreconstvec[i+1]<-noparams*lgamma(initparam$chi/noparams)-2*noparams*lgamma(initparam$chi/(2*noparams))-i*log(initparam$pf) #

@@ -63,8 +63,8 @@ DAGcorescore<-function(j,parentnodes,n,param) {
            
            switch(as.character(lp),
                   "0"={# no parents
-                    N1<-sum(param$d1[,j],na.rm=TRUE)
-                    N0<-sum(param$d0[,j],na.rm=TRUE)
+                    N1<-sum(param$d1[,j])
+                    N0<-sum(param$d0[,j])
                     NT<-N0+N1
                     corescore <- scoreconstvec[lp+1] + lgamma(N0+chi/(2*noparams)) + lgamma(N1+chi/(2*noparams)) - lgamma(NT+chi/noparams)
                   },
@@ -78,6 +78,9 @@ DAGcorescore<-function(j,parentnodes,n,param) {
                       NT<-N0+N1
                       corescore <- corescore + lgamma(N0+chi/(2*noparams)) + lgamma(N1+chi/(2*noparams)) - lgamma(NT+chi/noparams)
                     }
+                    if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+                      corescore <- corescore - param$logedgepmat[parentnodes, j]
+                    }
                   },     
                   { # more parents
                     summys<-colSums(2^(c(0:(lp-1)))*t(param$data[,parentnodes]))
@@ -87,6 +90,9 @@ DAGcorescore<-function(j,parentnodes,n,param) {
                     NTs<-N1s+N0s       
                     corescore <- scoreconstvec[lp+1] + sum(lgamma(N0s+chi/(2*noparams))) + 
                       sum(lgamma(N1s+chi/(2*noparams))) - sum(lgamma(NTs+chi/noparams))
+                    if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+                      corescore <- corescore - sum(param$logedgepmat[parentnodes, j])
+                    }
                   })
            
          }

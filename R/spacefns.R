@@ -83,7 +83,42 @@ newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist, maxN
   )
   return(newadj)
 }
-            
+
+definestartspace<-function(alpha,param,cpdag=FALSE,n,algo="pc") {
+  if(is.null(alpha)) { if(n<50) {alpha<-0.4} else {alpha<-max(20/n,0.01)}}
+  
+  if(param$type=="bde") {
+    if(cpdag){
+      pc.skel<-pc(suffStat = list(d1=param$d1,d0=param$d0,data=param$data),
+                  indepTest = weightedbinCItest, alpha = alpha, labels = colnames(param$data),
+                  verbose = FALSE)
+      
+    } else {
+      pc.skel<-pcalg::skeleton(suffStat = list(d1=param$d1,d0=param$d0,data=param$data),
+                               indepTest = weightedbinCItest, alpha = alpha, labels = colnames(param$data),
+                               verbose = FALSE)
+    }
+    
+  } else if(param$type=="bge") {
+    if(is.null(param$weightvector)) {
+      cormat<-cor(param$data)
+      N<-nrow(param$data)
+    } else { N<-sum(param$weightvector)
+    cormat<-cov.wt(param$data,wt=param$weightvector,cor=TRUE)$cor}
+    if(cpdag){
+      pc.skel<-pcalg::pc(suffStat = list(C = cormat, n = N),
+                         indepTest = gaussCItest,
+                         alpha=alpha,labels=colnames(param$data),skel.method="stable",verbose = FALSE)
+    } else {
+      pc.skel<-pcalg::skeleton(suffStat = list(C = cormat, n = N),
+                               indepTest = gaussCItest,
+                               alpha=alpha,labels=colnames(param$data),method="stable",verbose = FALSE)
+    }
+  }
+  
+  g<-pc.skel@graph
+  startspace<-1*(dag2adjacencymatrix(g))
+}
 
 
 

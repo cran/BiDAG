@@ -34,6 +34,6 @@ myScore<-scoreparameters(20, "bge", myData)
 \dontrun{
 ordersample<-orderMCMC(n=20, myScore, chainout=TRUE)
 MCMCchain<-ordersample$chain$incidence
-sample.check(n=20, MCMCchain, myDAG, pdag=TRUE, burnin=0.2)
+sample.check(MCMCchain, myDAG, pdag=TRUE, burnin=0.2)
 }
 }

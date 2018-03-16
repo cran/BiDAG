@@ -5,8 +5,8 @@
 \title{Initialising score object}
 \usage{
 scoreparameters(n, scoretype = c("bge", "bde"), data, weightvector = NULL,
-  bgepar = list(am = 1, aw = NULL), bdepar = list(edgepf = 2, chi = 0.5),
-  nodeslabels = NULL)
+  bgepar = list(am = 1, aw = NULL), bdepar = list(edgepf = 2, edgepmat =
+  NULL, chi = 0.5), nodeslabels = NULL)
 }
 \arguments{
 \item{n}{number of nodes (variables) in the Bayesian network}
@@ -27,6 +27,7 @@ scoreparameters(n, scoretype = c("bge", "bde"), data, weightvector = NULL,
 \itemize{
 \item chi (optional) a positive number of prior pseudo counts used by the BDe score, 0.5 by default
 \item edgepf (optional) a positive numerical value providing the edge penalization factor to be combined with the BDe score, 2 by default
+\item edgepmat (optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the BDe score, NULL by default
 }}
 
 \item{nodeslabels}{(optional) a vector of characters which denote the names of nodes in the Bayesian network}
