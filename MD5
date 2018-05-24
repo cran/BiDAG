@@ -1,4 +1,4 @@
-06b70811aac0532af345044d9cfdbff6 *DESCRIPTION
+60c6d70204a8e6babc1ad41f28518dfe *DESCRIPTION
 586ffa417ba7a272c211951f59d969cd *NAMESPACE
 0af30dea4522696e45a5137497e85f68 *R/Asia.R
 d36844546ba75f371e2da64d7070cd2f *R/Boston.R
@@ -10,7 +10,7 @@ bd5aa15006c6a1f9ba1904b97ad02cad *R/RcppExports.R
 2404684d988c09b10d1589efa7fc84f6 *R/initpar.R
 3c53415fd15ca04925cd6f209c1d9336 *R/iterativeMCMC.R
 ee803362d67a757f0429fae600aa1d5c *R/main.R
-0075f658f72535e675567fe3a15769c6 *R/newbinaryscoring.R
+0ba8a52dd5ae66f004790eeb1a25aea1 *R/newbinaryscoring.R
 394c84aace396a11e9ad1a423b851610 *R/orderMCMCbase.R
 2d88d4c3cfed48b145ca6cc34210d465 *R/orderMCMCbasemax.R
 9630fe3abe7b6a365f63b4cff80f9e8f *R/orderMCMCplus1.R
