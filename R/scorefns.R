@@ -1,35 +1,48 @@
-TableDAGscore.alias <- function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,numberofparentsvec=NULL) {
-  if (param$type=="bge") {
-  nrows<-nrow(parentrows)
-  P_local <- numeric(nrows)
-  for (i in 1:nrows)  {
-    parentnodes <- alias[parentrows[i,!is.na(parentrows[i,])]]
-    P_local[i]<-DAGcorescore(j,parentnodes,n,param)
-  } } else {
+TableDAGscore.alias <- function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,
+                                numberofparentsvec=NULL) {
+  
+  if (param$type=="bde") {
     nrows<-nrow(parentrows)
     parentnodes<- alias[parentrows[nrows,!is.na(parentrows[nrows,])]]
     P_local<-DAGbinarytablescore(j,parentnodes,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
+  } else if (param$type=="bdecat") {
+    nrows<-nrow(parentrows)
+    parentnodes<- alias[parentrows[nrows,!is.na(parentrows[nrows,])]]
+    P_local<-DAGcattablescore(j,parentnodes,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
+  } else {
+    nrows<-nrow(parentrows)
+    P_local <- numeric(nrows)
+    for (i in 1:nrows)  {
+      parentnodes <- alias[parentrows[i,!is.na(parentrows[i,])]]
+      P_local[i]<-DAGcorescore(j,parentnodes,n,param)
+    } 
   }
-
+  
   return(P_local)
 }
 
 TableDAGscore.alias.plus1<-function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,numberofparentsvec=NULL) {
-
-  if (param$type=="bge") { 
-    nrows<-nrow(parentrows)
-   P_local <- numeric(nrows)
-
-  for (i in 1:nrows)  {
-    parentnodes <- alias[c(1,parentrows[i,!is.na(parentrows[i,])]+1)]
-    P_local[i]<-DAGcorescore(j,parentnodes,n,param)
-  } } else {
-    nrows<-nrow(parentrows)
+  
+  if (param$type=="bde") {
+    nrows <- nrow(parentrows)
     parentnodes <- alias[parentrows[nrows,!is.na(parentrows[nrows,])]+1]
-    addpar<-alias[1]
-    P_local<-DAGbinarytablescoreplus1(j,parentnodes,addpar,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
+    addpar <- alias[1]
+    P_local <- DAGbinarytablescoreplus1(j,parentnodes,addpar,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
+  } else if (param$type=="bdecat") {
+    nrows <- nrow(parentrows)
+    parentnodes <- alias[parentrows[nrows,!is.na(parentrows[nrows,])]+1]
+    addpar <- alias[1]
+    P_local <- DAGcattablescoreplus1(j,parentnodes,addpar,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
+  } else { 
+    nrows<-nrow(parentrows)
+    P_local <- numeric(nrows)
+    
+    for (i in 1:nrows)  {
+      parentnodes <- alias[c(1,parentrows[i,!is.na(parentrows[i,])]+1)]
+      P_local[i] <- DAGcorescore(j,parentnodes,n,param)
+    } 
   }
-
+  
   return(P_local)
 }
 
@@ -80,7 +93,9 @@ listpossibleparents.PC.aliases<-function(skeletonedges,isgraphNEL=FALSE,n,update
   return(listz)
 }
 
-scorepossibleparents.alias<-function(parenttable,aliases,n,param,updatenodes=c(1:n),parentmaps=NULL,numparents=NULL,numberofparentsvec=NULL){
+scorepossibleparents.alias<-function(parenttable,aliases,n,param,
+                                     updatenodes=c(1:n),parentmaps=NULL,
+                                     numparents=NULL,numberofparentsvec=NULL){
 
   listz<-vector("list",n)
 
@@ -124,7 +139,8 @@ scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes=
 
     for (j in 1:k){ #for every list
       if (j==1) {
-        scoretemp<-TableDAGscore.alias(parenttable[[i]], i, n,aliases[[i]][j,which(!is.na(aliases[[i]][j,]))],param,parentmaps[[i]],numparents[i],numberofparentsvec[[i]])
+        scoretemp<-TableDAGscore.alias(parenttable[[i]], i, n,aliases[[i]][j,which(!is.na(aliases[[i]][j,]))],param,parentmaps[[i]],numparents[i],
+                                       numberofparentsvec[[i]])
       } else {
         scoretemp<-TableDAGscore.alias.plus1(parenttable[[i]], i, n,aliases[[i]][j,],param,parentmaps[[i]],numparents[i],numberofparentsvec[[i]])}
        listz[[j]] <- as.matrix(scoretemp)
@@ -134,54 +150,13 @@ scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes=
   return(listy)
 }
 
-parentsmapping<-function(parenttable,numberofparentsvec,n,updatenodes=c(1:n)) {
-  maps<-list()
-  mapi<-list()
-
-  for (i in updatenodes) {
-    nrows<-nrow(parenttable[[i]])
-    P_local <- numeric(nrows)
-    P_localinv <- numeric(nrows)
-
-    P_local[1]<-1
-    P_localinv[1]<-1
-    if (nrows>1){
-      for (j in 2:nrows)  {
-        parentnodes <- parenttable[[i]][j,c(1:numberofparentsvec[[i]][j])]
-        #numberofparentsvec stores number of non zero entries in i-th row in a parnttable,
-        P_local[j]<-sum(2^parentnodes)/2+1
-        #so extracting those non-zero entries we get row index
-        P_localinv[P_local[j]]<-j # the inverse mapping
-      }
-    }
-    mapi$forward<-P_local
-    mapi$backwards<-P_localinv
-    maps[[i]]<- mapi
+bgNodeScore<-function(n,bgnodes,param) {
+  totscores<-vector()
+  for(i in bgnodes) {
+    totscores[i]<-DAGcorescore(i,NULL,n,param)
   }
-
-  return(maps)
+  return(totscores)
 }
 
-poset<-function(parenttable,numberofparentsvec,rowmaps,n,updatenodes=c(1:n)){
-  posetparenttables<-list(length=n)
-  for (i in updatenodes) {
-    
-    nrows<-nrow(parenttable[[i]])
-    ncols<-ncol(parenttable[[i]])
-    posetparenttables[[i]]<-matrix(NA,nrow=nrows,ncol=ncols)
-    offsets<-rep(1,nrows)
 
-    if(nrows>1) {
-      for(j in nrows:2){
-
-        parentnodes<- parenttable[[i]][j,c(1:numberofparentsvec[[i]][j])]
-        children<-rowmaps[[i]]$backwards[rowmaps[[i]]$forward[j]-2^parentnodes/2]
-        posetparenttables[[i]][cbind(children,offsets[children])]<-j
-        offsets[children]<-offsets[children]+1
-      }
-    }
-
-  }
-  return(posetparenttables)
-}
 

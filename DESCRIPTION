@@ -1,8 +1,8 @@
 Package: BiDAG
 Type: Package
-Title: Bayesian Inference for Directed Acyclic Graphs (BiDAG)
-Version: 1.1.2
-Date: 2018-05-24
+Title: Bayesian Inference for Directed Acyclic Graphs
+Version: 1.2.0
+Date: 2019-07-24
 Author: Polina Suter [aut, cre], Jack Kuipers [aut]
 Maintainer: Polina Suter <polina.minkina@bsse.ethz.ch>
 Description: Implementation of a collection of MCMC methods for Bayesian structure learning
@@ -14,21 +14,25 @@ Description: Implementation of a collection of MCMC methods for Bayesian structu
     search and score. Search and score is then performed following two approaches:
     Order MCMC, or Partition MCMC.
     The BGe score is implemented for continuous data and the BDe score is implemented
-    for binary data. The algorithms may provide the maximum a posteriori (MAP) graph or
-    a sample (a collection of DAGs) from the posterior distribution given the data.
+    for binary data or categorical data. The algorithms may provide the maximum a posteriori 
+    (MAP) graph or a sample (a collection of DAGs) from the posterior distribution given the data.
+    All algorithms are also applicable to structure learning of dynamic Bayesian networks.
     References:
+    J. Kuipers, P. Suter and G. Moffa (2018) <arXiv:1803.07859v2>,
     N. Friedman and D. Koller (2003) <doi:10.1023/A:1020249912095>, 
     D. Geiger and D. Heckerman (2002) <doi:10.1214/aos/1035844981>, 
-    J. Kuipers and G. Moffa (2016) <doi:10.1080/01621459.2015.1133426>, 
+    J. Kuipers and G. Moffa (2017) <doi:10.1080/01621459.2015.1133426>, 
     M. Kalisch et al.(2012) <doi:10.18637/jss.v047.i11>.
 Acknowledgments: We would like to thank Giusi Moffa for discussion and
         comments on the package and its manual.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.7), pcalg, methods, stats, utils
+Imports: Rcpp (>= 0.12.7), methods, pcalg
+Depends: graphics
 LinkingTo: Rcpp
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
+Encoding: UTF-8
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2018-05-24 10:00:57 UTC; me664
+Packaged: 2019-08-19 07:08:00 UTC; me664
 Repository: CRAN
-Date/Publication: 2018-05-24 11:16:07 UTC
+Date/Publication: 2019-08-19 08:00:04 UTC

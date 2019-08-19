@@ -1,6 +1,4 @@
-#scores a single order base version (base neighbourhood)
-
-orderscoreBase<-function(n,scorenodes,scorepositions,parenttable,aliases,numparents,rowmaps,scoretable,scoresmatrices,permy) {
+orderscoreBase.old<-function(n,scorenodes,scorepositions,parenttable,aliases,numparents,rowmaps,scoretable,scoresmatrices,permy) {
  
   orderscores<-vector("double",n)
   therows<-vector("integer",n)
@@ -32,11 +30,46 @@ orderscoreBase<-function(n,scorenodes,scorepositions,parenttable,aliases,numpare
 
   }
 
+#scores a single order base version (base neighbourhood)
+orderscoreBase<-function(n,scorenodes,scorepositions,parenttable,aliases,numparents,rowmaps,
+                         scoretable,scoresmatrices,permy) {
+  
+  orderscores<-vector("double",n)
+  therows<-vector("integer",n)
+  k<-1
+  for (i in scorenodes){
+    position<-scorepositions[k]
+    if (position==n) {  #no parents allowed, i.e. only first row, only first list
+      orderscores[i]<-scoretable[[i]][1,1]
+      therows[i]<-c(2^numparents[i])
+    }
+    else {
+      bannednodes<-permy[1:position]
+      allowednodes<-permy[(position+1):n]
+      bannedpool<-which(aliases[[i]]%in%bannednodes)
+      if (numparents[i]==0||length(bannedpool)==0) { #all parents allowed or no parents in the parent table
+        therows[i]<-c(1)
+      }
+      else {
+        therows[i]<-rowmaps[[i]]$backwards[sum(2^bannedpool)/2+1]
+      }
+      orderscores[i]<-scoresmatrices[[i]][therows[i],1]
+    }
+    k<-k+1
+  }
+  scores<-list()
+  scores$therow<-therows
+  scores$totscores<-orderscores
+  return(scores)
+  
+}
+
 #scores a single order base version (plus1 neighbourhood)
 
-orderscorePlus1<-function(n,scorenodes,scorepositions,parenttable,aliases,numparents,rowmaps,plus1lists,scoretable,scoresmatrices,permy) {
+orderscorePlus1<-function(n,scorenodes,scorepositions,parenttable,aliases,numparents,
+                          rowmaps,plus1lists,scoretable,scoresmatrices,permy) {
  
-   orderscores<-vector("double",n)
+  orderscores<-vector("double",n)
   allowedscorelists<-vector("list",n)
   therows<-vector("integer",n)
   k<-1
@@ -76,11 +109,12 @@ orderscorePlus1<-function(n,scorenodes,scorepositions,parenttable,aliases,numpar
 #returns an order and its BGe/BDe logscore such that is sampled from all orders (according to their scores), obtained via
 #putting a given node in every position from 1 to n with all other nodes fixed  (plus1 neighbourhood)
 
-positionscorePlus1<-function(n,currentscore,positionx,permy,aliases,rowmaps,plus1lists,numparents,scoretable,scoresmatrices) {
-  vectorx<-vector(length=n) #scores of node in each place in the order
-  vectorall<-vector(length=n) #scores for each node when x takes its position
+positionscorePlus1<-function(n,nsmall,currentscore,positionx,permy,aliases,rowmaps,plus1lists,numparents,
+                             scoretable,scoresmatrices) {
+  vectorx<-vector(length=nsmall) #scores of node in each place in the order
+  vectorall<-vector(length=nsmall) #scores for each node when x takes its position
   base<-currentscore$totscores
-  totalall<-vector(length=n) #result vector with log scores of all orders
+  totalall<-vector(length=nsmall) #result vector with log scores of all orders
   totalall[positionx]<-sum(base) #totallogscore of initial permutation
   x<-permy[positionx] #node for which we search max/sample position
   vectorx[positionx]<-base[x] #its score in current permy
@@ -135,9 +169,9 @@ positionscorePlus1<-function(n,currentscore,positionx,permy,aliases,rowmaps,plus
     }
   }
 
-  if (positionx < n) {
+  if (positionx < nsmall) {
 
-    for (i in (positionx+1):n) {
+    for (i in (positionx+1):nsmall) {
       nodey<-permy[i]
 
       if (numparents[x]==0) { #there is only 1 row in the score table
@@ -185,7 +219,7 @@ positionscorePlus1<-function(n,currentscore,positionx,permy,aliases,rowmaps,plus
 
   totalmax<-max(totalall)
   allscore<-totalmax+log(sum(exp(totalall-totalmax)))
-  maxi<-sample.int(n,1,prob=exp(totalall-allscore))
+  maxi<-sample.int(nsmall,1,prob=exp(totalall-allscore))
   res<-list()
 
   if (maxi==positionx) {
@@ -227,11 +261,12 @@ positionscorePlus1<-function(n,currentscore,positionx,permy,aliases,rowmaps,plus
 #returns an order and its BGe/BDe logscore such that is sampled from all orders (according to their scores), obtained via
 #putting a given node in every position from 1 to n with all other nodes fixed  (plus1 neighbourhood)
 
-positionscorebase<-function(n,currentscore,positionx,permy,aliases,rowmaps,numparents,scoretable,scoresmatrices) {
-  vectorx<-vector(length=n) #scores of node in each place in the order
-  vectorall<-vector(length=n) #scores for each node when x takes its position
+positionscorebase<-function(n,nsmall,currentscore,positionx,permy,aliases,rowmaps,numparents,
+                            scoretable,scoresmatrices) {
+  vectorx<-vector(length=nsmall) #scores of node in each place in the order
+  vectorall<-vector(length=nsmall) #scores for each node when x takes its position
   base<-currentscore$totscores
-  totalall<-vector(length=n) #result vector with log scores of all orders
+  totalall<-vector(length=nsmall) #result vector with log scores of all orders
   totalall[positionx]<-sum(base) #totallogscore of initial permutation
   x<-permy[positionx] #node for which we search max/sample position
   vectorx[positionx]<-base[x] #its score in current permy
@@ -279,9 +314,9 @@ positionscorebase<-function(n,currentscore,positionx,permy,aliases,rowmaps,numpa
     }
   }
   
-  if (positionx < n) {
+  if (positionx < nsmall) {
     
-    for (i in (positionx+1):n) {
+    for (i in (positionx+1):nsmall) {
       nodey<-permy[i]
       
       if (numparents[x]==0) { #there is only 1 row in the score table
@@ -325,7 +360,7 @@ positionscorebase<-function(n,currentscore,positionx,permy,aliases,rowmaps,numpa
   
   totalmax<-max(totalall)
   allscore<-totalmax+log(sum(exp(totalall-totalmax)))
-  maxi<-sample.int(n,1,prob=exp(totalall-allscore))
+  maxi<-sample.int(nsmall,1,prob=exp(totalall-allscore))
   res<-list()
   
   if (maxi==positionx) {

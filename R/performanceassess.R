@@ -5,7 +5,8 @@
 #'
 #'@param MCMCchain list of square matrices with elements in \code{\{0,1\}} and representing adjacency matrices of a sample of DAGs obtained via an MCMC scheme
 #'@param pdag logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging
-#'@param burnin (optional) number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
+#'@param burnin (optional) number between \code{0} and \code{1}, indicates the percentage of the samples which will be discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
+#'@param endstep (optional) number between \code{0} and \code{1}; 1 by default 
 #'@return a square matrix with dimensions equal to the number of variables; each entry \code{[i,j]} is an estimate of the posterior probability of the edge from node \code{i} to node \code{j}
 #'@examples
 #'Bostonscore<-scoreparameters(14, "bge", Boston)
@@ -16,14 +17,20 @@
 #'edgesposterior<-edges.posterior(MCMCchain, pdag=TRUE, burnin=0.2)
 #'}
 #'@export
-edges.posterior<-function(MCMCchain,pdag=FALSE,burnin=0.2) {
+edges.posterior<-function(MCMCchain,pdag=FALSE,burnin=0.2,endstep=1) {
+  if(endstep==1) {
   endstep<-length(MCMCchain)
+  } else {
+    endstep<-ceiling(length(MCMCchain)*endstep)
+  }
   startstep<-as.integer(burnin*endstep)
   if (pdag) {
     cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
-    return(Reduce('+', cpdags)/(endstep-startstep+1))
+    return(formatC(Reduce('+', cpdags)/(endstep-startstep+1),digits=2,
+                   format="f"))
   } else {
-    return(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1))
+    return(formatC(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1),digits=2,
+                   format="f"))
   }
 }
 
@@ -93,11 +100,12 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
   SC<-vector()
   trueskeleton<-dag2skeletonadjacency(truedag)
   numedges<-sum(trueskeleton)
+  chainl<-length(MCMCmult$chain$incidence)
   if (!sample) {
-  for (j in  1:length(MCMCmult$chain)) {
-    maxN<-which.max(unlist(MCMCmult$chain[[j]][[2]]))
-    SC[j]<-MCMCmult$chain[[j]][[2]][[maxN]]
-    maxadj<-MCMCmult$chain[[j]][[1]][[maxN]]
+  for (j in  1:chainl) {
+    maxN<-which.max(unlist(MCMCmult$chain$DAGscores[[j]]))
+    SC[j]<-MCMCmult$chain$DAGscores[[j]][[maxN]]
+    maxadj<-MCMCmult$chain$incidence[[j]][[maxN]]
     estskelmcmc<-adjacency2skeleton(maxadj)
     diffmcmc<-estskelmcmc-trueskeleton
     mc.dag<-adjacency2dag(maxadj)
@@ -112,8 +120,8 @@ iterations.check<-function(MCMCmult, truedag, sample=FALSE,cpdag=TRUE, pbarrier=
   colnames(result)<-c("TP", "FP", "TPR", "SHD", "SC")
   return(result) } else {
     n<-nrow(MCMCmult$max$DAG)
-    for (j in  1:length(MCMCmult$chain)) {
-      adj<-dag.threshold(n,MCMCmult$chain[[j]][[1]],pbarrier,pdag=cpdag)
+    for (j in  1:chainl) {
+      adj<-dag.threshold(n,MCMCmult$chain$incidence[[j]],pbarrier,pdag=cpdag)
       estskelmcmc<-adjacency2skeleton(adj)
       diffmcmc<-estskelmcmc-trueskeleton
       mc.dag<-dag2cpdag(adjacency2dag(adj))

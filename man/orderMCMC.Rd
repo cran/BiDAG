@@ -6,9 +6,9 @@
 \usage{
 orderMCMC(n, scoreparam, MAP = TRUE, plus1 = TRUE, startspace = NULL,
   blacklist = NULL, startorder = c(1:n), scoretable = NULL,
-  moveprobs = NULL, iterations = NULL, stepsave = NULL, alpha = NULL,
-  cpdag = FALSE, gamma = 1, chainout = FALSE, scoreout = FALSE,
-  verbose = FALSE)
+  moveprobs = NULL, iterations = NULL, stepsave = NULL,
+  alpha = NULL, cpdag = FALSE, gamma = 1, chainout = FALSE,
+  scoreout = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
@@ -54,13 +54,14 @@ space, if FALSE (default) the full undirected skeleton will be used as the searc
 \item{verbose}{logical, if TRUE messages about the algorithm's progress will be printed, FALSE by default}
 }
 \value{
-Depends on the logical parameters \code{chainout} and \code{scoreout}. If both are FALSE (default), an oject of class \code{MCMCmax}, containing a list of 3 elements:
+Depends on the logical parameters \code{chainout} and \code{scoreout}.
+ If both are FALSE (default), an object of class \code{MCMCmax}, containing a list of 3 elements:
 \itemize{
 \item {DAG -} {the adjacency matrix of the DAG with maximal score}
 \item {order -} {an order it belongs to}
 \item {score -} {the score of the reported DAG}
 }
-If \code{chainout} is TRUE an object of class \code{MCMCchain} is additionally returned, contains 4 lists  (each of the 4 lists has length
+If \code{chainout} is TRUE an object of class \code{MCMCtrace} is additionally returned, contains 4 lists  (each of the 4 lists has length
 \code{iterations/stepsave}, i.e. the number of saved MCMC steps):
 \itemize{
 \item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC

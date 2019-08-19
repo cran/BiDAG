@@ -119,3 +119,11 @@ is.subset<-function(v1,v2){
   return(issubset)
 }
 
+orderbgn<-function(permy,bgn) {
+  movenodes<-which(permy%in%bgn)
+  newpermy<-permy[-movenodes]
+  return(c(newpermy,bgn))
+}
+
+
+

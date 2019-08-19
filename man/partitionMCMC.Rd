@@ -39,7 +39,7 @@ partitionMCMC(n, scoreparam, startspace = NULL, blacklist = NULL,
 \item{verbose}{logical, if set to TRUE (default) messages about progress will be printed}
 }
 \value{
-an object of class \code{MCMCchain}, which contains a list of 5 elements (each list contains \code{iterations/stepsave} elements):
+an object of class \code{MCMCtrace}, which contains a list of 5 elements (each list contains \code{iterations/stepsave} elements):
 \itemize{
 \item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC
 \item DAGscores - contains a list of scores of DAGs sampled at each step of MCMC

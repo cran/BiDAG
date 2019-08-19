@@ -5,13 +5,55 @@
 
 using namespace Rcpp;
 
+// extractT
+NumericVector extractT(IntegerVector xs, IntegerVector ys, NumericMatrix ts);
+RcppExport SEXP _BiDAG_extractT(SEXP xsSEXP, SEXP ysSEXP, SEXP tsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ys(ysSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type ts(tsSEXP);
+    rcpp_result_gen = Rcpp::wrap(extractT(xs, ys, ts));
+    return rcpp_result_gen;
+END_RCPP
+}
+// collectCcatwt
+NumericMatrix collectCcatwt(IntegerVector xs, IntegerVector ys, NumericVector ws, int n, int m);
+RcppExport SEXP _BiDAG_collectCcatwt(SEXP xsSEXP, SEXP ysSEXP, SEXP wsSEXP, SEXP nSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ys(ysSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ws(wsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(collectCcatwt(xs, ys, ws, n, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// collectCcat
+IntegerMatrix collectCcat(IntegerVector xs, IntegerVector ys, int n, int m);
+RcppExport SEXP _BiDAG_collectCcat(SEXP xsSEXP, SEXP ysSEXP, SEXP nSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ys(ysSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(collectCcat(xs, ys, n, m));
+    return rcpp_result_gen;
+END_RCPP
+}
 // collectC
-NumericVector collectC(NumericVector xs, NumericVector ys, int n);
+NumericVector collectC(IntegerVector xs, NumericVector ys, int n);
 RcppExport SEXP _BiDAG_collectC(SEXP xsSEXP, SEXP ysSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type xs(xsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type ys(ysSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     rcpp_result_gen = Rcpp::wrap(collectC(xs, ys, n));
@@ -45,6 +87,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_BiDAG_extractT", (DL_FUNC) &_BiDAG_extractT, 3},
+    {"_BiDAG_collectCcatwt", (DL_FUNC) &_BiDAG_collectCcatwt, 5},
+    {"_BiDAG_collectCcat", (DL_FUNC) &_BiDAG_collectCcat, 4},
     {"_BiDAG_collectC", (DL_FUNC) &_BiDAG_collectC, 3},
     {"_BiDAG_takefirst", (DL_FUNC) &_BiDAG_takefirst, 2},
     {"_BiDAG_takelast", (DL_FUNC) &_BiDAG_takelast, 3},

@@ -7,9 +7,10 @@
 iterativeMCMCsearch(n, scoreparam, plus1it = NULL, moveprobs = NULL,
   MAP = TRUE, posterior = 0.5, iterations = NULL, stepsave = NULL,
   softlimit = 9, hardlimit = 12, alpha = NULL, gamma = 1,
-  startspace = NULL, blacklist = NULL, verbose = TRUE, chainout = FALSE,
-  scoreout = FALSE, cpdag = FALSE, mergetype = "skeleton",
-  addspace = NULL, scoretable = NULL, startorder = c(1:n))
+  startspace = NULL, blacklist = NULL, verbose = TRUE,
+  chainout = FALSE, scoreout = FALSE, cpdag = FALSE,
+  mergetype = "skeleton", addspace = NULL, scoretable = NULL,
+  startorder = c(1:n))
 }
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
@@ -80,7 +81,7 @@ Depends on the logical parameters \code{chainout} and \code{scoreout}. If both a
 \item {score -} {the score of the reported DAG}
 \item {it -} {the iteration at which maximum was reached}
 }
-If \code{chainout} is TRUE an object of class \code{MCMCchain} is additionally returned, contains 4 lists  (each of the 4 lists has length
+If \code{chainout} is TRUE an object of class \code{MCMCtrace} is additionally returned, contains 4 lists  (each of the 4 lists has length
 \code{iterations/stepsave}, i.e. the number of saved MCMC steps):
 \itemize{
 \item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC

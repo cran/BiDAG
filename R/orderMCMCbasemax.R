@@ -1,11 +1,16 @@
-#implements order MCMC algorithm with a defined searchspace
-
-orderMCMCbasemax<-function(n,startorder,iterations,stepsave,moveprobs,parenttable,scoretable,aliases,numparents,
-                           rowmaps,maxmatrices,numberofparentsvec,gamma=1){
+#implements order MCMC algorithm with a defined searchspace, MAP version
+orderMCMCbasemax<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,scoretable,aliases,numparents,
+                           rowmaps,maxmatrices,numberofparentsvec,gamma=1,bgnodes,bglogscore){
+  if(nsmall<n) {
+    mainnodes<-c(1:n)[-bgnodes]
+  } else {mainnodes<-c(1:n)}
+  
   currentpermy<-startorder #starting order represented as a permutation
-  currentorderscores<-orderscoreBasemax(n,startorder,c(1:n),parenttable,aliases,numparents,rowmaps,scoretable,maxmatrices,currentpermy) #starting score
-  currenttotallogscore<-sum(currentorderscores$totscores) #log total score of all DAGs in the starting order
-  currentDAG<-samplescoreplus1.max(n,currentorderscores,plus1lists=NULL,maxmatrices,scoretable,parenttable,numberofparentsvec,aliases) #score of a single DAG sampled from the starting order
+  currentorderscores<-orderscoreBasemax(n,startorder[1:nsmall],c(1:nsmall),parenttable,aliases,numparents,
+                                        rowmaps,scoretable,maxmatrices,currentpermy) #starting score
+  currenttotallogscore<-sum(currentorderscores$totscores[mainnodes],bglogscore) #log total score of all DAGs in the starting order
+  currentDAG<-samplescoreplus1.max(n,mainnodes,currentorderscores,plus1lists=NULL,maxmatrices,scoretable,
+                                   parenttable,numberofparentsvec,aliases,bglogscore) #score of a single DAG sampled from the starting order
   L1 <- list() # stores the adjacency matrix of a DAG sampled from the orders
   L2 <- list() # stores its log BGe score
   L3 <- list() # stores the log BGe score of the entire order
@@ -34,14 +39,14 @@ orderMCMCbasemax<-function(n,startorder,iterations,stepsave,moveprobs,parenttabl
         proposedpermy<-currentpermy #sample a new order by swapping two elements
         switch(as.character(chosenmove),
                "1"={ # swap any two elements at random
-                 sampledelements<-sample.int(n,2,replace=FALSE) #chosen at random
+                 sampledelements<-sample.int(nsmall,2,replace=FALSE) #chosen at random
                },
                "2"={ # swap any adjacent elements
-                 k<-sample.int(n-1,1) #chose the smallest at random
+                 k<-sample.int(nsmall-1,1) #chose the smallest at random
                  sampledelements<-c(k,k+1)
                },
                "3"={ # find best position for 1 element
-                 sampledpos<-sample.int(n,1)
+                 sampledpos<-sample.int(nsmall,1)
                },
                "4"={ # stay still
                },
@@ -64,7 +69,7 @@ orderMCMCbasemax<-function(n,startorder,iterations,stepsave,moveprobs,parenttabl
             currenttotallogscore<-proposedtotallogscore
           } 
         } else {
-          neworder<-positionscorebasemax(n,currentorderscores,sampledpos,currentpermy,aliases,
+          neworder<-positionscorebasemax(n,nsmall,currentorderscores,sampledpos,currentpermy,aliases,
                                           rowmaps,numparents,scoretable,maxmatrices)
            currentorderscores<-neworder$score
            currentpermy<-neworder$order
@@ -72,7 +77,8 @@ orderMCMCbasemax<-function(n,startorder,iterations,stepsave,moveprobs,parenttabl
         }
       }
     }
-    currentDAG<-samplescoreplus1.max(n,currentorderscores,plus1lists=NULL,maxmatrices,scoretable,parenttable,numberofparentsvec,aliases)
+    currentDAG<-samplescoreplus1.max(n,mainnodes,currentorderscores,plus1lists=NULL,maxmatrices,scoretable,
+                                     parenttable,numberofparentsvec,aliases,bglogscore)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
     L2[[z]]<-currentDAG$logscore #and log score of a sampled DAG
     L3[[z]]<-currenttotallogscore #and the current order score

@@ -33,13 +33,14 @@
 #' @param chainout logical, if TRUE the saved MCMC steps are returned, FALSE by default
 #' @param scoreout logical, if TRUE the search space and score tables are returned, FALSE by default
 #' @param verbose logical, if TRUE messages about the algorithm's progress will be printed, FALSE by default
-#' @return Depends on the logical parameters \code{chainout} and \code{scoreout}. If both are FALSE (default), an oject of class \code{MCMCmax}, containing a list of 3 elements:
+#' @return Depends on the logical parameters \code{chainout} and \code{scoreout}.
+#'  If both are FALSE (default), an object of class \code{MCMCmax}, containing a list of 3 elements:
 #' \itemize{
 #' \item {DAG -} {the adjacency matrix of the DAG with maximal score}
 #' \item {order -} {an order it belongs to}
 #' \item {score -} {the score of the reported DAG}
 #' }
-#' If \code{chainout} is TRUE an object of class \code{MCMCchain} is additionally returned, contains 4 lists  (each of the 4 lists has length
+#' If \code{chainout} is TRUE an object of class \code{MCMCtrace} is additionally returned, contains 4 lists  (each of the 4 lists has length
 #' \code{iterations/stepsave}, i.e. the number of saved MCMC steps):
 #' \itemize{
 #' \item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC
@@ -69,7 +70,7 @@
 #'
 #'@export
 
-orderMCMC<-function(n, scoreparam, MAP=TRUE, plus1=TRUE, 
+orderMCMC<-function(n, scoreparam, MAP=TRUE, plus1=TRUE,
                     startspace=NULL, blacklist=NULL,startorder=c(1:n), scoretable=NULL,  
                     moveprobs=NULL, iterations=NULL, stepsave=NULL, alpha=NULL, cpdag=FALSE, gamma=1,
                     chainout=FALSE, scoreout=FALSE, verbose=FALSE) {
@@ -122,7 +123,7 @@ orderMCMC<-function(n, scoreparam, MAP=TRUE, plus1=TRUE,
 #' @param stepsave (optional) integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}
 #' @param gamma (optional) tuning parameter which transforms the score by raising it to this power, 1 by default
 #' @param verbose logical, if set to TRUE (default) messages about progress will be printed
-#' @return an object of class \code{MCMCchain}, which contains a list of 5 elements (each list contains \code{iterations/stepsave} elements):
+#' @return an object of class \code{MCMCtrace}, which contains a list of 5 elements (each list contains \code{iterations/stepsave} elements):
 #' \itemize{
 #' \item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC
 #' \item DAGscores - contains a list of scores of DAGs sampled at each step of MCMC
@@ -236,7 +237,7 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #' \item {score -} {the score of the reported DAG}
 #' \item {it -} {the iteration at which maximum was reached}
 #' }
-#' If \code{chainout} is TRUE an object of class \code{MCMCchain} is additionally returned, contains 4 lists  (each of the 4 lists has length
+#' If \code{chainout} is TRUE an object of class \code{MCMCtrace} is additionally returned, contains 4 lists  (each of the 4 lists has length
 #' \code{iterations/stepsave}, i.e. the number of saved MCMC steps):
 #' \itemize{
 #' \item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC
@@ -264,15 +265,22 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #'}
 #'@import pcalg
 #'@importFrom methods new
+#'@importFrom graphics lines
+#'@importFrom graphics par
 #'@importFrom stats cor 
 #'@importFrom stats cov 
 #'@importFrom stats cov.wt
 #'@importFrom stats pchisq 
 #'@importFrom stats runif 
+#'@importFrom stats rnorm 
 #'@importFrom utils data
 #'@importFrom utils flush.console
 #'@importFrom Rcpp evalCpp
 #'@useDynLib BiDAG, .registration=TRUE
+# pcalg pc
+# pcalg skeleton
+# pcalg shd
+# pcalg dag2cpdag
 #'@export
 iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=TRUE, posterior=0.5,
                               iterations=NULL, stepsave=NULL, softlimit=9, hardlimit=12, alpha=NULL, gamma=1, 
@@ -308,10 +316,14 @@ iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=T
 
 #'Calculating the BGe/BDe score of a single DAG
 #'
-#'This function calculates the score of a DAG defined by its adjacency matrix. Acceptable data matrices are homogeneous with all variables of the same type, either continuous or binary.  The BGe score is evaluated in the case of continuous data and the BDe score is evaluated for binary variables.
+#'This function calculates the score of a DAG defined by its adjacency matrix. 
+#'Acceptable data matrices are homogeneous with all variables of the same type: 
+#'continuous, binary or categorical.  The BGe score is evaluated in the case of 
+#'continuous data and the BDe score is evaluated for binary and categorical variables.
 #'
 #' @param n number of nodes in the Bayesian network
-#' @param scoreparam an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}
+#' @param scoreparam an object of class \code{scoreparameters}, containing the data and
+#'  scoring parameters; see constructor function \code{\link{scoreparameters}}
 #' @param incidence a square matrix of dimensions equal to the number of nodes, representing the adjacency matrix of a DAG;  the matrix entries are in \code{\{0,1\}} such that \code{incidence[i,j]} equals 1 if there is a directed edge from node \code{i} to node \code{j} in the DAG and 
 #' \code{incidence[i,j]} equals 0 otherwise
 #' @return the log of the BGe or BDe score of the DAG
@@ -334,10 +346,6 @@ DAGscore <- function(n,scoreparam, incidence){
     parentnodes <- which(incidence[,j]==1)
     P_local[j]<-DAGcorescore(j,parentnodes,n,scoreparam)
   }
-  
+  #print(P_local)
   return(sum(P_local))
 }
-
-
-
-

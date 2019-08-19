@@ -9,7 +9,8 @@ DAGscore(n, scoreparam, incidence)
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
 
-\item{scoreparam}{an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}}
+\item{scoreparam}{an object of class \code{scoreparameters}, containing the data and
+scoring parameters; see constructor function \code{\link{scoreparameters}}}
 
 \item{incidence}{a square matrix of dimensions equal to the number of nodes, representing the adjacency matrix of a DAG;  the matrix entries are in \code{\{0,1\}} such that \code{incidence[i,j]} equals 1 if there is a directed edge from node \code{i} to node \code{j} in the DAG and 
 \code{incidence[i,j]} equals 0 otherwise}
@@ -18,7 +19,10 @@ DAGscore(n, scoreparam, incidence)
 the log of the BGe or BDe score of the DAG
 }
 \description{
-This function calculates the score of a DAG defined by its adjacency matrix. Acceptable data matrices are homogeneous with all variables of the same type, either continuous or binary.  The BGe score is evaluated in the case of continuous data and the BDe score is evaluated for binary variables.
+This function calculates the score of a DAG defined by its adjacency matrix. 
+Acceptable data matrices are homogeneous with all variables of the same type: 
+continuous, binary or categorical.  The BGe score is evaluated in the case of 
+continuous data and the BDe score is evaluated for binary and categorical variables.
 }
 \examples{
 myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 

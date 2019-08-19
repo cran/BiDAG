@@ -1,20 +1,31 @@
 #implements partition MCMC scheme for structure learning problem, searches in plus1 neighbourhood of a search space defined
 #by aliases and scoretables 
 
-partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parenttable,scoretable,scoretab,
+partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,parenttable,scoretable,scoretab,
                              aliases,scoresneeded,scoresallowed,plus1lists, rowmapsneeded,rowmapsallowed,
                              needednodetable,numberofparentsvec,numberofpartitionparentsvec,needednodebannedrow,
-                             neededparentsvec,moveprobs) {
-
+                             neededparentsvec,moveprobs,bgnodes,bglogscore) {
+  
+  if(nsmall<n) {
+    mainnodes<-c(1:n)[-bgnodes]
+  } else {mainnodes<-c(1:n)}
+  
   currentpermy<-startpermy #starting permutation
   currentparty<-startparty #starting partition
-  currentposy<-parttolist(n,currentparty) #create a list of which nodes are in which partition element
-  currentpartitionscores<-partitionscoreplus1(n,c(1:n),parenttable,aliases,scoretable,plus1lists,rowmapsneeded,
-                                              rowmapsallowed,scoresneeded,scoresallowed,currentpermy,currentparty,currentposy) #starting score of all DAGs compatible with the starting permutation and partition
-  currenttotallogscore<-sum(currentpartitionscores$totscores) #log total score of all DAGs in the starting partition and permutation
+  currentposy<-parttolist(nsmall,currentparty) #create a list of which nodes are in which partition element
 
-  currentDAG<-samplescore.partition.plus1(n,currentpartitionscores,scoretable,scoresallowed,scoresneeded,scoretab,parenttable,needednodetable,
-                                          numberofparentsvec,needednodebannedrow,numberofpartitionparentsvec,plus1lists) #log score of a single sampled DAG from the partition and permutation
+  currentpartitionscores<-partitionscoreplus1(n,nsmall,currentpermy,c(1:nsmall),bgnodes,parenttable,aliases,scoretab,plus1lists,rowmapsneeded,
+                                              rowmapsallowed,scoresneeded,scoresallowed,
+                                              currentpermy,currentparty,currentposy) #starting score of all DAGs compatible with the starting permutation and partition
+
+  currenttotallogscore<-sum(currentpartitionscores$totscores[mainnodes],bglogscore) #log total score of all DAGs in the starting partition and permutation
+
+  currentDAG<-samplescore.partition.plus1(n,mainnodes,currentpartitionscores,scoretable,
+                                          scoresallowed,scoresneeded,scoretab,
+                                          parenttable,needednodetable,
+                                          numberofparentsvec,needednodebannedrow,
+                                          numberofpartitionparentsvec,plus1lists,bglogscore) #log score of a single sampled DAG from the partition and permutation
+
   L1 <- list() #stores the adjacency matrix of a DAG sampled from the partition and permutation
   L2 <- list() #stores the log BGe score of a DAG sampled from the partition and permutation
   L3 <- list() #stores the log BGe score of the entire partition following the permutation
@@ -50,37 +61,39 @@ partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parentt
           switch(as.character(chosenmove),
                  "1"={ # swap any two elements from diffent partition elements
                    if(permdiffelemflag>0){ # do we need to recalculate the neighbourhood?
-                     permdiffelemposs<-parttopermdiffelemposs(n,currentparty)
+                     permdiffelemposs<-parttopermdiffelemposs(nsmall,currentparty)
                      permdiffelemflag<-0
                    }
-                   temp<-swapdiffelementnodes(n,currentparty,currentposy,currentpermy,permdiffelemposs)
+                   temp<-swapdiffelementnodes(nsmall,currentparty,currentposy,currentpermy,permdiffelemposs)
                    proposedpermy<-temp[[1]]
                    rescorenodes<-temp[[2]]
+                   scorepositions<-temp[[3]]
                  },
                  "2"={ # swap any elements in adjacent partition elements
                    if(permneighbourflag>0){ # do we need to recalculate the neighbourhood?
-                     permneighbourposs<-parttopermneighbourposs(n,currentparty)
+                     permneighbourposs<-parttopermneighbourposs(nsmall,currentparty)
                      permneighbourflag<-0
                    }
-                   temp<-swapadjacentnodes(n,currentparty,currentposy,currentpermy,permneighbourposs)
+                   temp<-swapadjacentnodes(nsmall,currentparty,currentposy,currentpermy,permneighbourposs)
                    proposedpermy<-temp[[1]]
                    rescorenodes<-temp[[2]]
+                   scorepositions<-temp[[3]]
                  },
                  {# if neither is chosen, we have a problem
                    print('The move sampling has failed!')
                  })
 
-          proposedpartitionrescored<-partitionscoreplus1(n,rescorenodes,parenttable,aliases,scoretable,plus1lists,rowmapsneeded,rowmapsallowed,scoresneeded,scoresallowed,
+          proposedpartitionrescored<-partitionscoreplus1(n,nsmall,rescorenodes,scorepositions,bgnodes,parenttable,aliases,scoretab,plus1lists,rowmapsneeded,rowmapsallowed,scoresneeded,scoresallowed,
                                                          proposedpermy,currentparty,currentposy) #their scores
             proposedtotallogscore<-currenttotallogscore-sum(currentpartitionscores$totscores[rescorenodes])+sum(proposedpartitionrescored$totscores[rescorenodes]) #and the new log total score by updating only the necessary nodes
             scoreratio<-exp(proposedtotallogscore-currenttotallogscore) #acceptance probability
             count<-count+1
             if(runif(1)<scoreratio){ #Move accepted then set the current permutation and scores to the proposal
               currentpermy<-proposedpermy
-              currentpartitionscores$therow1[rescorenodes]<-proposedpartitionrescored$therow1[rescorenodes]
-              currentpartitionscores$therow2[rescorenodes]<-proposedpartitionrescored$therow2[rescorenodes]
-              currentpartitionscores$allowedlists1[rescorenodes]<-proposedpartitionrescored$allowedlists1[rescorenodes]
-              currentpartitionscores$allowedlists2[rescorenodes]<-proposedpartitionrescored$allowedlists2[rescorenodes]
+              currentpartitionscores$neededrow[rescorenodes]<-proposedpartitionrescored$neededrow[rescorenodes]
+              currentpartitionscores$allowedrow[rescorenodes]<-proposedpartitionrescored$allowedrow[rescorenodes]
+              currentpartitionscores$plus1allowedlists[rescorenodes]<-proposedpartitionrescored$plus1allowedlists[rescorenodes]
+              currentpartitionscores$plus1neededlists[rescorenodes]<-proposedpartitionrescored$plus1neededlists[rescorenodes]
               currentpartitionscores$totscores[rescorenodes]<-proposedpartitionrescored$totscores[rescorenodes]
               currenttotallogscore<-proposedtotallogscore
             }
@@ -90,23 +103,24 @@ partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parentt
         switch(as.character(chosenmove),
                "3"={ # we split a partition element or join one
                  if(partstepflag>0){ # do we need to recalculate the neighbourhood?
-                   currentpartstepposs<-partysteps(n,currentparty)
+                   currentpartstepposs<-partysteps(nsmall,currentparty)
                    currentpartstepnbhood<-sum(currentpartstepposs)
                    partstepflag<-0
                  }
-                 temp<-partitionsplitorjoin(n,currentparty,currentposy,currentpermy,currentpartstepposs)
+                 temp<-partitionsplitorjoin(nsmall,currentparty,currentposy,currentpermy,currentpartstepposs)
                  proposedparty<-temp[[1]]
                  proposedposy<-temp[[2]]
                  proposedpermy<-temp[[3]]
                  rescorenodes<-temp[[4]]
                  proposedpartstepposs<-temp[[5]]
+                 scorepositions<-temp[[6]]
                  proposedpartstepnbhood<-sum(proposedpartstepposs)
                },
                "4"={ # we move a single node into another partition element or into a new one
                  if(partjoinholeflag>0){ # do we need to recalculate the neighbourhood?
-                   currentpartjoinposs<-partyjoin(n,currentparty,currentposy)
+                   currentpartjoinposs<-partyjoin(nsmall,currentparty,currentposy)
                    currentpartjoinnbhood<-sum(currentpartjoinposs)
-                   currentpartholeposs<-partyhole(n,currentparty,currentposy)
+                   currentpartholeposs<-partyhole(nsmall,currentparty,currentposy)
                    currentpartholenbhood<-sum(currentpartholeposs)
                    partjoinholeflag<-0
                  }
@@ -115,10 +129,10 @@ partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parentt
 
                  switch(as.character(joinorhole),
                         "1"={ # we join the node to another partition element
-                          temp<-joinnode(n,currentparty,currentposy,currentpermy,currentpartjoinposs)
+                          temp<-joinnode(nsmall,currentparty,currentposy,currentpermy,currentpartjoinposs)
                         },
                         "2"={ # we place the node in a new partition element
-                          temp<-holenode(n,currentparty,currentposy,currentpermy,currentpartholeposs)
+                          temp<-holenode(nsmall,currentparty,currentposy,currentpermy,currentpartholeposs)
                         },
                         {# if nothing is chosen, we have a problem
                           print('The move sampling has failed!')
@@ -128,18 +142,19 @@ partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parentt
                  proposedposy<-temp[[2]]
                  proposedpermy<-temp[[3]]
                  rescorenodes<-temp[[4]]
+                 scorepositions<-temp[[5]]
 
                  # these neighbourhoods should be updated for efficiency
-                 proposedpartjoinposs<-partyjoin(n,proposedparty,proposedposy)
+                 proposedpartjoinposs<-partyjoin(nsmall,proposedparty,proposedposy)
                  proposedpartjoinnbhood<-sum(proposedpartjoinposs)
-                 proposedpartholeposs<-partyhole(n,proposedparty,proposedposy)
+                 proposedpartholeposs<-partyhole(nsmall,proposedparty,proposedposy)
                  proposedpartholenbhood<-sum(proposedpartholeposs)
                },
                {# if nothing is chosen, we have a problem
                  print('The move sampling has failed!')
                })
 
-        proposedpartitionrescored<-partitionscoreplus1(n,rescorenodes,parenttable,aliases,scoretable,plus1lists,rowmapsneeded,rowmapsallowed,scoresneeded,scoresallowed,
+        proposedpartitionrescored<-partitionscoreplus1(n,nsmall,rescorenodes,scorepositions,bgnodes,parenttable,aliases,scoretab,plus1lists,rowmapsneeded,rowmapsallowed,scoresneeded,scoresallowed,
                                                        proposedpermy,proposedparty,proposedposy) #only rescore the necessary nodes
         proposedtotallogscore<-currenttotallogscore-sum(currentpartitionscores$totscores[rescorenodes])+sum(proposedpartitionrescored$totscores[rescorenodes]) #and calculate the new log total score by updating only the necessary nodes
         count<-count+1
@@ -160,10 +175,10 @@ partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parentt
           currentpermy<-proposedpermy
           currentparty<-proposedparty
           currentposy<-proposedposy
-          currentpartitionscores$therow1[rescorenodes]<-proposedpartitionrescored$therow1[rescorenodes]
-          currentpartitionscores$therow2[rescorenodes]<-proposedpartitionrescored$therow2[rescorenodes]
-          currentpartitionscores$allowedlists1[rescorenodes]<-proposedpartitionrescored$allowedlists1[rescorenodes]
-          currentpartitionscores$allowedlists2[rescorenodes]<-proposedpartitionrescored$allowedlists2[rescorenodes]
+          currentpartitionscores$neededrow[rescorenodes]<-proposedpartitionrescored$neededrow[rescorenodes]
+          currentpartitionscores$allowedrow[rescorenodes]<-proposedpartitionrescored$allowedrow[rescorenodes]
+          currentpartitionscores$plus1allowedlists[rescorenodes]<-proposedpartitionrescored$plus1allowedlists[rescorenodes]
+          currentpartitionscores$plus1neededlists[rescorenodes]<-proposedpartitionrescored$plus1neededlists[rescorenodes]
           currentpartitionscores$totscores[rescorenodes]<-proposedpartitionrescored$totscores[rescorenodes]
 
           currenttotallogscore<-proposedtotallogscore
@@ -190,8 +205,9 @@ partitionMCMCplus1<-function(n,startpermy,startparty,iterations,stepsave,parentt
         }
         }
     }
-    currentDAG<-samplescore.partition.plus1(n,currentpartitionscores,scoretable,scoresallowed,scoresneeded,scoretab,parenttable,needednodetable,numberofparentsvec,
-                                            needednodebannedrow,numberofpartitionparentsvec,plus1lists)
+    currentDAG<-samplescore.partition.plus1(n,mainnodes,currentpartitionscores,
+                                            scoretable,scoresallowed,scoresneeded,scoretab,parenttable,needednodetable,numberofparentsvec,
+                                            needednodebannedrow,numberofpartitionparentsvec,plus1lists,bglogscore)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG
     L2[[z]]<-currentDAG$logscore #and its log score
     L3[[z]]<-currenttotallogscore #store the current total partition score

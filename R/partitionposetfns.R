@@ -1,11 +1,11 @@
 # this function scores by propagating through the partition poset graph
-
-posetpartitionscoreparents<-function(numberofparents,neededposetparenttable,neededparentsvec,
-                                     numberofparentsvec,rowmaps,needednodebannedrow,scoretable,n) {
+posetpartitionscoreparents<-function(numberofparents,neededposetparenttable,
+                                     neededparentsvec,numberofparentsvec,rowmaps,
+                                     needednodebannedrow,scoretable,n,updatenodes=c(1:n)) {
   
   scorematrices<-list()
 
-  for (j in 1:n)  {
+  for (j in updatenodes)  {
     np<-numberofparents[j]
     if(np==1) {
       scorematrices[[j]]<-as.matrix(scoretable[[j]][2,1])
@@ -49,17 +49,16 @@ posetpartitionscoreparents<-function(numberofparents,neededposetparenttable,need
   }
   return(scorematrices)
 }
-
-#builds a banned score table
-
-plus1allowed.partition<-function(numparents,parenttable,neededposetparenttable,neededparentsvec,
-                                 numberofparentsvec,rowmapsallowed,needednodebannedrow,scoretable,plus1lists,n) {
+#builds a table where entries correspond to partition scores of required and allowed nodes
+plus1needed.partition<-function(numparents,parenttable,neededposetparenttable,neededparentsvec,
+                                 numberofparentsvec,rowmapsneeded,needednodebannedrow,
+                                scoretable,plus1lists,n,updatenodes=c(1:n)) {
   
   revnumberofparentsvec<-lapply(numberofparentsvec,rev)
-  rowmaps<-rowmapsallowed
+  rowmaps<-rowmapsneeded
   if (is.null(plus1lists)) {
     scorematrices<-list()
-    for (j in 1:n){
+    for (j in updatenodes){
       np<-numparents[j]
       if(np==1) {
         scorematrices[[j]]<-as.matrix(scoretable[[j]][2,1])
@@ -96,8 +95,8 @@ plus1allowed.partition<-function(numparents,parenttable,neededposetparenttable,n
     }
     return(scorematrices)
   } else{
-    scorematrices.allowed<-list()
-    for (j in 1:n){
+    scorematrices.needed<-list()
+    for (j in updatenodes){
       np<-numparents[j] #number of possible parents for node j
       binomcoefs<-choose(np,c(np:1))*(2^c(np:1)-1)
       ll<-length(plus1lists$parents[[j]])+1
@@ -106,20 +105,20 @@ plus1allowed.partition<-function(numparents,parenttable,neededposetparenttable,n
       if(np>0) {P_local <- matrix(nrow=nrows,ncol=ll)}
       for (li in 1:ll){
         if (np==0){
-          scorematrices.allowed[[j]]<-NULL
+          scorematrices.needed[[j]]<-NULL
           break #we don't have allowed table, all scores already in the scoretable plus1 lists
         }
         else if(np==1) {
-          #we need just 1 additional parent set which is not in the scoretable plus1 node+the only parent in scoretable
+          #we need just 1 additional parent set which is not in the scoretable plus1 node + the only parent in scoretable
           P_local[1,li]<-as.matrix(scoretable[[j]][[li]][2,1])
-          scorematrices.allowed[[j]]<-P_local
+          scorematrices.needed[[j]]<-P_local
         } else if (np>1){
           nrowold<-length(rowmaps[[j]]$forward) # size of the other poset graph
-          # at the top of the graph we only allow one possible parent set
-          for (i in nrows:(nrows-np+1)){
-            k <- needednodebannedrow[[j]][i] # the banned nodes row, there should be (n-1) banned nodes
-            conjugatescore<-scoretable[[j]][[li]][rowmaps[[j]]$backwards[nrowold-rowmaps[[j]]$forward[k]+1],1]
-            P_local[i,li]<-conjugatescore
+
+            for (i in nrows:(nrows-np+1)) {
+              k <- needednodebannedrow[[j]][i] # the banned nodes row, there should be (n-1) banned nodes
+              conjugatescore<-scoretable[[j]][[li]][rowmaps[[j]]$backwards[nrowold-rowmaps[[j]]$forward[k]+1],1]
+              P_local[i,li]<-conjugatescore
           }
 
           # for each other level of the poset graph we need to add the parents divided by the difference in levels
@@ -128,9 +127,9 @@ plus1allowed.partition<-function(numparents,parenttable,neededposetparenttable,n
             for (i in (nrows-np):cutoff)  { # find the parents in the poset graph
               k <- needednodebannedrow[[j]][i] # the banned nodes row
               parentnodes <- neededposetparenttable[[j]][i,c(1:neededparentsvec[[j]][i])]
-              maxparents<-max(P_local[parentnodes])
+              maxparents<-max(P_local[parentnodes,li])
               # take the sum of the parent scores and divide by the relevant factor
-              parentsum<-log(sum(exp(P_local[parentnodes]-maxparents)))+maxparents - log(np-revnumberofparentsvec[[j]][k]-level+1)
+              parentsum<-log(sum(exp(P_local[parentnodes,li]-maxparents)))+maxparents-log(np-revnumberofparentsvec[[j]][k]-level+1)
               # take the conjugate score
               conjugatescore<-scoretable[[j]][[li]][rowmaps[[j]]$backwards[nrowold-rowmaps[[j]]$forward[k]+1],1]
               # find max and combine
@@ -140,12 +139,12 @@ plus1allowed.partition<-function(numparents,parenttable,neededposetparenttable,n
 
             cutoff<-cutoff+binomcoefs[level+1]
           }
-          scorematrices.allowed[[j]]<-as.matrix(P_local)
+          scorematrices.needed[[j]]<-as.matrix(P_local)
         }
 
       }
     }
-    return(scorematrices.allowed)
+    return(scorematrices.needed)
   }
 
 }
@@ -165,10 +164,10 @@ parentlistnonempty<-function(elements,n){
   return(matrixofparents)
 }
 
-partitionlistnumberofparents<-function(needednodetable,numberofparentsvec,n){
+partitionlistnumberofparents<-function(needednodetable,numberofparentsvec,n,updatenodes){
   numberofpartitionparentsvec<-list()
   
-  for (i in 1:n){
+  for (i in updatenodes){
     
     if(length(numberofparentsvec[[i]])==1) {numberofpartitionparentsvec[[i]]<-0}
     else {
@@ -185,18 +184,18 @@ partitionlistnumberofparents<-function(needednodetable,numberofparentsvec,n){
   return(numberofpartitionparentsvec)
 }
 
-partitionmapneedednodebannedrow<-function(numberofparents,numberofparentsvec,n) {
+partitionmapneedednodebannedrow<-function(numberofparents,numberofparentsvec,n,updatenodes) {
   needednodebannedrow<-list()
-  for (i in 1:n) { 
+  for (i in updatenodes) { 
     j<-numberofparents[i]
     needednodebannedrow[[i]]<-rep(1:2^j,2^(j-numberofparentsvec[[i]])-1)
   }
   return(needednodebannedrow)
 }
 
-partitionlist<-function(parenttable,numberofparentsvec,n) {
+partitionlist<-function(parenttable,numberofparentsvec,n,updatenodes) {
   needednodetable<-list()
-  for  (i in 1:n) {
+  for  (i in updatenodes) {
     cutoff<-0
     nrows<-nrow(parenttable[[i]])
     ncols<-ncol(parenttable[[i]])
@@ -216,10 +215,11 @@ partitionlist<-function(parenttable,numberofparentsvec,n) {
   return(needednodetable)
 }
 
-neededparentsmapping<-function(parenttable,numberofparentsvec,needednodetable,numberofpartitionparentsvec,needednodebannedrow,n) {
+neededparentsmapping<-function(parenttable,numberofparentsvec,needednodetable,
+                               numberofpartitionparentsvec,needednodebannedrow,n,updatenodes) {
   
   maps<-list()
-  for (i in 1:n){
+  for (i in updatenodes){
     nrows<-nrow(needednodetable[[i]])
     ncols<-ncol(needednodetable[[i]])
     maps[[i]]<-list()
@@ -242,9 +242,10 @@ neededparentsmapping<-function(parenttable,numberofparentsvec,needednodetable,nu
   return(maps)
 }
 
-needed.poset<-function(parenttable,numberofparentsvec,needednodebannedrow,neededrowmaps,n) { 
+needed.poset<-function(parenttable,numberofparentsvec,needednodebannedrow,neededrowmaps,n,
+                       updatenodes=c(1:n)) { 
   posetparents<-list()
-  for (i in 1:n) {
+  for (i in updatenodes) {
     nrows<-length(needednodebannedrow[[i]])
     numpar<-numberofparentsvec[[i]][nrow(parenttable[[i]])]
     if(nrows>1) {
@@ -280,3 +281,77 @@ needed.poset<-function(parenttable,numberofparentsvec,needednodebannedrow,needed
   }
   return(posetparents)
 }
+
+plus1allowed.partition<-function(posetparenttable,scoretable,numberofparentsvec,rowmaps,n,plus1lists=NULL,
+                                 numparents,updatenodes=c(1:n)){
+  
+  orderscore<-list(length=n) #first level of list: the only level - list of matrices - 3 dimensions
+  revnumberofparentsvec<-lapply(numberofparentsvec,rev)
+  if (is.null(plus1lists)){
+    for (j in updatenodes){
+      len<-numparents[j] #maximum number of parents for node j
+      binomcoefs<-choose(len,c(0:len))
+      nrows<-nrow(posetparenttable[[j]])
+      P_local<-vector("numeric",length=nrows)
+      P_local[nrows] <-scoretable[[j]][1,1]
+      maxoverall<-max(scoretable[[j]][,1])
+      P_local[1]<-log(sum(exp(scoretable[[j]][,1]-maxoverall)))+maxoverall
+      cutoff<-1
+      
+      if(nrows>2){
+        for(level in 1:(len-1)){
+          cutoff<-cutoff+binomcoefs[level]
+          
+          for (i in (nrows-1):cutoff)  {
+            #so we go through all rows where non-zero entries more than number of banned parents
+            # find the parents in the poset graph
+            posetparentnodes <- posetparenttable[[j]][i,c(1:revnumberofparentsvec[[j]][i])]
+            maxparents<-max(P_local[posetparentnodes])
+            parentsum<-log(sum(exp(P_local[posetparentnodes]-maxparents)))+maxparents-log(len-revnumberofparentsvec[[j]][i]-level+1)
+            conjugatescore<-scoretable[[j]][rowmaps[[j]]$backwards[nrows-rowmaps[[j]]$forward[i]+1],1]
+            maxoverall<-max(parentsum,conjugatescore)
+            P_local[i]<- log(exp(parentsum-maxoverall)+exp(conjugatescore-maxoverall)) + maxoverall
+          }
+        }
+      }
+      orderscore[[j]]<-as.matrix(P_local)
+    }
+    
+    return(orderscore)
+  } else {
+    for (j in updatenodes) {
+      len<-numparents[j] #maximum number of parents for node j
+      binomcoefs<-choose(len,c(0:len))
+      ll<-length(plus1lists$parents[[j]])+1
+      nrows<-nrow(posetparenttable[[j]])
+      P_local <- matrix(nrow=nrows,ncol=ll)
+      
+      for (li in 1:ll){
+        P_local[nrows,li] <-scoretable[[j]][[li]][1,1]
+        maxoverall<-max(scoretable[[j]][[li]][,1])
+        P_local[1,li]<-log(sum(exp(scoretable[[j]][[li]][,1]-maxoverall)))+maxoverall
+        cutoff<-1
+        if(nrows>2){
+          for(level in 1:(len-1)){
+            cutoff<-cutoff+binomcoefs[level]
+            for (i in (nrows-1):cutoff)  {
+              #so we go through all rows where non-zero entries more than number of banned parents
+              # find the parents in the poset graph
+              posetparentnodes <- posetparenttable[[j]][i,c(1:revnumberofparentsvec[[j]][i])]
+              maxparents<-max(P_local[posetparentnodes,li])
+              parentsum<-log(sum(exp(P_local[posetparentnodes,li]-maxparents)))+maxparents-log(len-revnumberofparentsvec[[j]][i]-level+1)
+              conjugatescore<-scoretable[[j]][[li]][rowmaps[[j]]$backwards[nrows-rowmaps[[j]]$forward[i]+1],1]
+              maxoverall<-max(parentsum,conjugatescore)
+              P_local[i,li]<- log(exp(parentsum-maxoverall)+exp(conjugatescore-maxoverall)) + maxoverall
+            }
+          }
+        }
+        
+      }
+      orderscore[[j]]<-P_local
+    }
+    return(orderscore)
+  }
+  
+}
+

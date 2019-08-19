@@ -153,17 +153,19 @@ partyhole<-function(n,party,posy){
 
 # this function takes in an adjacency matrix and returns the partition and permutation
 
-DAGtopartition <- function(n,incidence){
+DAGtopartition <- function(n,incidence,bgnodes=NULL){
   party<-c() # to store the partition
-  permy <- numeric(n) # to store the permutation
-  m <- n # counter
+  bgn<-length(bgnodes)
+  permy <- numeric(n-bgn) # to store the permutation
+  m <- n-bgn # counter
   while(m>0){
     topnodes<-which(colSums(incidence)==0) # find the outpoints
+    topmain<-setdiff(topnodes,bgnodes)
     incidence[topnodes,]<-0 # remove their edges
     incidence[cbind(topnodes,topnodes)]<-1 # add a one to their columns so they are no longer counted
-    l<-length(topnodes) # the number of outpoints
+    l<-length(topmain) # the number of outpoints
     m<-m-l
-    permy[(m+1):(m+l)]<-topnodes
+    permy[(m+1):(m+l)]<-topmain
     party<-c(l,party)
   }
 

@@ -77,9 +77,9 @@ orderscorePlus1max<-function(n,scorenodes,scorepositions,parenttable,aliases,num
 #returns an order and its BGe/BDe logscore such that this order's score is maximal of all orders, obtained via
 #putting a given node in every position from 1 to n with all other nodes fixed  (plus1 neighbourhood)
 
-positionscorePlus1max<-function(n,currentscore,positionx,permy,aliases,rowmaps,plus1lists,numparents,scoretable,maxmatrices) {
-  vectorx<-vector(length=n) #scores of node in each place in the order
-  vectorall<-vector(length=n) #scores for each node when x takes its position
+positionscorePlus1max<-function(n,nsmall,currentscore,positionx,permy,aliases,rowmaps,plus1lists,numparents,scoretable,maxmatrices) {
+  vectorx<-vector(length=nsmall) #scores of node in each place in the order
+  vectorall<-vector(length=nsmall) #scores for each node when x takes its position
   base<-currentscore$totscores
   totalall<-vector(length=n) #result vector with log scores of all orders
   totalall[positionx]<-sum(base)
@@ -131,9 +131,9 @@ positionscorePlus1max<-function(n,currentscore,positionx,permy,aliases,rowmaps,p
     }
   }
 
-  if (positionx<n) {
+  if (positionx<nsmall) {
 
-    for (i in (positionx+1):n) {
+    for (i in (positionx+1):nsmall) {
       nodey<-permy[i]
 
       if (numparents[x]==0) { #there is only 1 row in the score table
@@ -213,9 +213,9 @@ positionscorePlus1max<-function(n,currentscore,positionx,permy,aliases,rowmaps,p
 #returns an order and its BGe/BDe logscore such that this order's score is maximal of all orders, obtained via
 #putting a given node in every position from 1 to n with all other nodes fixed  (plus1 neighbourhood)
 
-positionscorebasemax<-function(n,currentscore,positionx,permy,aliases,rowmaps,numparents,scoretable,maxmatrices) {
-  vectorx<-vector(length=n) #scores of node in each place in the order
-  vectorall<-vector(length=n) #scores for each node when x takes its position
+positionscorebasemax<-function(n,nsmall,currentscore,positionx,permy,aliases,rowmaps,numparents,scoretable,maxmatrices) {
+  vectorx<-vector(length=nsmall) #scores of node in each place in the order
+  vectorall<-vector(length=nsmall) #scores for each node when x takes its position
   base<-currentscore$totscores
   totalall<-vector(length=n) #result vector with log scores of all orders
   totalall[positionx]<-sum(base)
@@ -262,9 +262,9 @@ positionscorebasemax<-function(n,currentscore,positionx,permy,aliases,rowmaps,nu
     }
   }
   
-  if (positionx<n) {
+  if (positionx<nsmall) {
     
-    for (i in (positionx+1):n) {
+    for (i in (positionx+1):nsmall) {
       nodey<-permy[i]
       
       if (numparents[x]==0) { #there is only 1 row in the score table
@@ -334,10 +334,6 @@ positionscorebasemax<-function(n,currentscore,positionx,permy,aliases,rowmaps,nu
   }
   
 }
-
-
-
-
 
 #returns an order which is different from a given order only in position of 1 node, moves this node from initial position to a given position
 

@@ -4,8 +4,8 @@
 \alias{sample.check}
 \title{Performance assessment of sampling algorithms against a known Bayesian network}
 \usage{
-sample.check(n, MCMCchain, truedag, pbarrier = c(0.99, 0.95, 0.9, 0.8, 0.7,
-  0.6, 0.5, 0.4, 0.3, 0.2), pdag = TRUE, burnin = 0.2)
+sample.check(n, MCMCchain, truedag, pbarrier = c(0.99, 0.95, 0.9, 0.8,
+  0.7, 0.6, 0.5, 0.4, 0.3, 0.2), pdag = TRUE, burnin = 0.2)
 }
 \arguments{
 \item{n}{number of nodes in the Bayesian network}
