@@ -1,56 +1,75 @@
 #implements partition MCMC scheme for structure learning problem, searches in plus1 neighbourhood of a search space defined
-#by startspace or iterativeMCMCsearch function
+#by startspace or iterativeMCMC function
 
-partitionMCMCplus1sample<-function(n,param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
+partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
                                    startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE){
 
-  if(!is.null(param$bgnodes)) {
-    mainnodes<-c(1:n)[-param$bgnodes]
-    bglogscore<-sum(bgNodeScore(n,param$bgnodes,param)[param$bgnodes])
-    startorder<-orderbgn(startorder,param$bgnodes)
+  MCMCtraces<-list()
+  
+  n<-param$n
+  nsmall<-param$nsmall
+  matsize<-ifelse(param$DBN,n+nsmall,n)
+  
+  
+  if(!param$DBN) {
+    if(param$bgn!=0) {
+      updatenodes<-c(1:n)[-param$bgnodes]
+    } else {
+      updatenodes<-c(1:n)
+    }
   } else {
-    mainnodes<-c(1:n)
-    bglogscore<-0
+    updatenodes<-c(1:nsmall)
   }
   
   if (is.null(blacklist)) {
-    blacklist<-matrix(rep(0,n*n),ncol=n)
-  } 
+    blacklist<-matrix(0,nrow=matsize,ncol=matsize)
+  }
+  
   diag(blacklist)<-1
+  if(!is.null(param$bgnodes)) {
+    for(i in param$bgnodes) {
+      blacklist[,i]<-1
+    }
+  }
   blacklistparents<-list()
-  for  (i in 1:n) {
+  for  (i in 1:matsize) {
     blacklistparents[[i]]<-which(blacklist[,i]==1)
   }
   
+  
   if(is.null(startspace)) {
-    if(verbose){print("defining a search space with iterativeMCMCsearch")}
-    searchspace<-iterativeMCMCsearch(n,scoreparam=param,moveprobs=NULL,plus1it=NULL,
+    if(verbose) print("defining a search space with iterativeMCMC")
+    searchspace<-iterativeMCMC(scorepar=param,moveprobs=NULL,plus1it=NULL,
                                      iterations=NULL,stepsave=NULL,softlimit=9,hardlimit=14,alpha=NULL,
                                      verbose=verbose,chainout=FALSE,scoreout=TRUE,
                                      gamma=gamma,cpdag=FALSE,mergetype="skeleton",
                                      blacklist=blacklist)
-    
-    maxDAG<-searchspace$max$DAG
-    startspace<-searchspace$space$adjacency
-    scoretable<-searchspace$space$scoretable
+    if(param$DBN) {
+      maxDAG<-DBNbacktransform(searchspace$max$DAG,param)
+    } else {
+      maxDAG<-searchspace$max$DAG
+    }
+    startspace<-searchspace$endspace
+    scoretable<-searchspace$scoretable
     forpart<-DAGtopartition(n,maxDAG,param$bgnodes)
+    
   } else {
     startspace<-1*(startspace&!blacklist)
     if (is.null(DAG)) {
       forpart<-list()
       if(is.null(param$bgnodes)) {
-      forpart$permy<-c(1:n)
-      forpart$party=c(n)
-      mainnodes<-c(1:n)
+        forpart$permy<-c(1:n)
+        forpart$party<-c(n)
+        updatenodes<-c(1:n)
       } else {
         forpart$permy<-c(1:n)[-param$bgnodes]
-        forpart$party=c(param$nsmall)
-        mainnodes<-c(1:n)[-param$bgnodes]
+        forpart$party<-c(param$nsmall)
+        updatenodes<-c(1:n)[-param$bgnodes]
       }
     } else {
       
       if(!is.null(param$bgnodes)) {
-        forpart<-DAGtopartition(param$nsmall,DAG[mainnodes,mainnodes])
+        forpart<-DAGtopartition(param$nsmall,DAG[updatenodes,updatenodes])
       } else {
         forpart<-DAGtopartition(n,DAG)
       }
@@ -60,46 +79,72 @@ partitionMCMCplus1sample<-function(n,param,startspace,blacklist=NULL,moveprobs,n
   permy<-forpart$permy
   party<-forpart$party
   starttime<-Sys.time()
-  ptab<-listpossibleparents.PC.aliases(startspace,isgraphNEL=FALSE,n,updatenodes=mainnodes)
+  ptab<-listpossibleparents.PC.aliases(startspace,isgraphNEL=FALSE,n,updatenodes=updatenodes)
   parenttable<-ptab$parenttable
   aliases<-ptab$aliases
   numberofparentsvec<-ptab$numberofparentsvec
   numparents<-ptab$numparents
-  plus1lists<-PLUS1(n,aliases,mainnodes,blacklistparents)
-  rowmapsallowed<-parentsmapping(parenttable,numberofparentsvec,n,mainnodes)
+  plus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
+  rowmapsallowed<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
   if (is.null(scoretable)) {
-    scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,mainnodes,rowmapsneeded,numparents,numberofparentsvec)
+    scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,
+                                           rowmapsallowed,numparents,numberofparentsvec)
     }
   scoretab<-list()
-  for (i in mainnodes) {
+  for (i in updatenodes) {
   scoretab[[i]]<-matrix(sapply(scoretable[[i]], unlist),nrow=nrow(scoretable[[i]][[1]]))}
-  posetparenttable<-poset(ptab$parenttable,ptab$numberofparentsvec,rowmapsallowed,n,updatenodes=mainnodes)
+  posetparenttable<-poset(ptab$parenttable,ptab$numberofparentsvec,rowmapsallowed,n,updatenodes=updatenodes)
   plus1allowedpart<-plus1allowed.partition(posetparenttable,scoretable,numberofparentsvec,rowmapsallowed,
-                                n,plus1lists=plus1lists,numparents,mainnodes)
-  needednodetable<-partitionlist(parenttable,ptab$numberofparentsvec,n,updatenodes=mainnodes)
+                                n,plus1lists=plus1lists,numparents,updatenodes)
+  needednodetable<-partitionlist(parenttable,ptab$numberofparentsvec,n,updatenodes=updatenodes)
   numberofpartitionparentsvec<-partitionlistnumberofparents(needednodetable,ptab$numberofparentsvec,
-                                                            n,mainnodes)
+                                                            n,updatenodes)
   needednodebannedrow<-partitionmapneedednodebannedrow(ptab$numparents,ptab$numberofparentsvec,n,
-                                                       mainnodes)
+                                                       updatenodes)
   rowmapsneeded<-neededparentsmapping(parenttable,ptab$numberofparentsvec,needednodetable,
-                                       numberofpartitionparentsvec,needednodebannedrow,n,mainnodes)
+                                       numberofpartitionparentsvec,needednodebannedrow,n,updatenodes)
   neededposetparents<-needed.poset(ptab$parenttable,ptab$numberofparentsvec,
-                                   needednodebannedrow,rowmapsneeded,n,mainnodes)
+                                   needednodebannedrow,rowmapsneeded,n,updatenodes)
   neededposetparenttable<-lapply(neededposetparents,function(x)x$table)
   neededposetparentsvec<-lapply(neededposetparents,function(x)x$sizes)
   plus1neededpart<-plus1needed.partition(ptab$numparents,parenttable,neededposetparenttable,neededposetparentsvec,
                                            ptab$numberofparentsvec,rowmapsallowed,needednodebannedrow,scoretable,
-                                           plus1lists,n,mainnodes)
+                                           plus1lists,n,updatenodes)
   if(verbose){print("score tables calculated, partition MCMC starts")}
-    partresult<-partitionMCMCplus1(n,param$nsmall,permy,party,numit,stepsave,parenttable,scoretable,scoretab,
+    partres<-partitionMCMCplus1(n,param$nsmall,permy,party,numit,stepsave,parenttable,scoretable,scoretab,
                                  aliases,plus1neededpart,plus1allowedpart,plus1lists,rowmapsneeded,rowmapsallowed,
                                  needednodetable,ptab$numberofparentsvec,
                                  numberofpartitionparentsvec,needednodebannedrow,
-                                 neededposetparentsvec,moveprobs,param$bgnodes,bglogscore)
+                                 neededposetparentsvec,moveprobs,param$bgnodes,matsize=matsize)
   endtime<-Sys.time()
   if(verbose){print(endtime-starttime)}
+  
+  
+  
+    if(param$DBN) {
+      MCMCchain<-lapply(partres$incidence,function(x)DBNtransform(x,param=param))
+      MCMCtraces$incidence<-MCMCchain
+    } else {
+      MCMCtraces$incidence<-lapply(partres$incidence,function(x)assignLabels(x,param$labels))
+    }
+    MCMCtraces$DAGscores<-partres$DAGscores
+    MCMCtraces$partitionscores<-partres$partitionscores
+    MCMCtraces$order<-partres$order
+    MCMCtraces$partition<-partres$partition
+    
+   
+  
+  maxobj<-storemaxMCMC(partres,param)
+  maxN<-which.max(unlist(partres[[2]]))
+  maxobj$reach<-maxN
+  
+  
+  
   result<-list()
-  result$chain<-partresult
-  attr(result$chain,"class")<-"MCMCtracepartr"
+  result$chain<-MCMCtraces
+  attr(result$chain,"class")<-"MCMCtrace"
+  result$max<-maxobj
+  attr(result$max,"class")<-"MCMCmax"
+  attr(result,"class")<-"MCMCres"
   return(result)
 }

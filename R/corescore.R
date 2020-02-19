@@ -23,7 +23,11 @@ detthreebythree <- function(D){
 # The log of the BGe/BDe score, but simplified as much as possible
 # see arXiv:1402.6863 
 DAGcorescore<-function(j,parentnodes,n,param) {
-  if(param$type=="bge"){
+  if(param$DBN){
+    internalparents <- parentnodes[which(parentnodes<=param$nsmall)]
+    corescore <- DAGcorescore(j,parentnodes,param$n+param$nsmall,param$otherslices)+
+    DAGcorescore(j,internalparents,param$n,param$firstslice) 
+  } else if(param$type=="bge"){
     TN<-param$TN
     awpN<-param$awpN
     scoreconstvec<-param$scoreconstvec
@@ -31,7 +35,6 @@ DAGcorescore<-function(j,parentnodes,n,param) {
     lp<-length(parentnodes) #number of parents
     awpNd2<-(awpN-n+lp+1)/2
     A<-TN[j,j]
-    
     switch(as.character(lp),
            "0"={# just a single term if no parents
              corescore <- scoreconstvec[lp+1] -awpNd2*log(A)
@@ -148,15 +151,7 @@ DAGcorescore<-function(j,parentnodes,n,param) {
     
   } else if(param$type=="usr"){
     corescore <- usrDAGcorescore(j,parentnodes,n,param)
-  } else if(param$type=="dbn"){
-    internalparents <- parentnodes[which(parentnodes<=param$bgn)]
-    #print(DAGcorescore(j,parentnodes,n,param$otherslices))
-    #print(DAGcorescore(j,internalparents,param$bgn,param$firstslice))
-    #print(parentnodes)
-    #print(internalparents)
-    corescore <- DAGcorescore(j,parentnodes,n,param$otherslices)+
-    DAGcorescore(j,internalparents,param$bgn,param$firstslice)
-  }
+  } 
   
   return(corescore)
 }

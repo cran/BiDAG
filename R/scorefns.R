@@ -127,7 +127,8 @@ PLUS1<-function(n,aliases,updatenodes=c(1:n),blacklistparents=NULL) {
   return(listz)
 }
 
-scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes=c(1:n),parentmaps=NULL,numparents=NULL,numberofparentsvec=NULL){
+scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes,
+                                     parentmaps,numparents,numberofparentsvec){
 
   listy<-vector("list",n)
   aliases<-plus1lists$aliases
@@ -150,9 +151,9 @@ scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes=
   return(listy)
 }
 
-bgNodeScore<-function(n,bgnodes,param) {
+bgNodeScore<-function(n,param) {
   totscores<-vector()
-  for(i in bgnodes) {
+  for(i in param$bgnodes) {
     totscores[i]<-DAGcorescore(i,NULL,n,param)
   }
   return(totscores)

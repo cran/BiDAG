@@ -8,8 +8,95 @@ weightedcatCItest <- function(x,y,S,suffStat) {
   CIcatcoretest(x, y, S, suffStat)
 }
 
-# this version uses the C code and runs through the data 4 times
+#user defined CI test
+usrCItest <- function(x,y,S,suffStat) {
+  ## p-value:
+  #insert test here (I have inserted categorical data CI test)
+  CIcatcoretest(x, y, S, suffStat)
+}
 
+#user defined core CI test
+CIusrcoretest<-function(j,k,parentnodes,suffStat) {
+  #insert core function here (I have inserted categorical data CI test)
+  lp <- length(parentnodes) # number of parents
+  
+  Cj <- suffStat$Cvec[j] # number of levels of j
+  Ck <- suffStat$Cvec[k] # number of levels of k
+  
+  switch(as.character(lp),
+         "0"={# no parents
+           Cp <- 1 # effectively 1 parent level
+           summys <- rep(0, nrow(suffStat$data))
+         },
+         "1"={# one parent
+           Cp <- suffStat$Cvec[parentnodes] # number of parent levels
+           summys <- suffStat$data[,parentnodes]
+         },     
+         { # more parents
+           Cp <- prod(suffStat$Cvec[parentnodes])
+           # use mixed radix mapping to unique parent states
+           summys<-colSums(cumprod(c(1,suffStat$Cvec[parentnodes[-lp]]))*t(suffStat$data[,parentnodes]))
+         })
+  
+  datasummy <- colSums(c(1,Cj)*t(suffStat$data[,c(j,k)]))
+  
+  # tabulate the observed counts
+  
+  if(!is.null(suffStat$weightvector)){
+    Ns <- collectCcatwt(summys, datasummy, suffStat$weightvector, Cp, Cj*Ck)
+  } else{
+    Ns <- collectCcat(summys, datasummy, Cp, Cj*Ck)
+  }
+  
+  ### We could run over the data again for the marginals  
+  # margj <- collectCcat(summys, suffStat$data[,j], Cp, Cj)
+  # margk <- collectCcat(summys, suffStat$data[,k], Cp, Ck) 
+  
+  ### instead we combine the sums already  
+  
+  margj <- Ns[,1:Cj] + Ns[,Cj+1:Cj]
+  if(Ck>2){
+    for(ii in 3:Ck-1){
+      margj <- margj + Ns[,ii*Cj+1:Cj]
+    }
+  }
+  
+  margk <- Ns[,Cj*(1:Ck-1)+1] + Ns[,Cj*(1:Ck-1)+2]
+  if(Cj>2){
+    for(ii in 3:Cj-1){
+      margk <- margk + Ns[,Cj*(1:Ck-1)+ii+1]
+    }
+  }
+  
+  if(lp==0){# then we have vectors!
+    Es <- c(margj*margk[1],margj*margk[2])
+    if(Ck>2){
+      for(ii in 3:Ck){
+        Es <- c(Es,margj*margk[ii])
+      }
+    }
+  } else {
+    Es <- cbind(margj*margk[,1],margj*margk[,2])
+    if(Ck>2){
+      for(ii in 3:Ck){
+        Es <- cbind(Es,margj*margk[,ii])
+      }
+    }
+  }
+  Es <- Es/rowSums(Ns) # normalise
+  
+  G2 <- 2*Ns*log(Ns/Es)
+  G2[is.nan(G2)] <- 0
+  
+  Gsquared <- sum(G2)
+  df <- Cp*(Cj-1)*(Ck-1)
+  
+  pvally<-pchisq(Gsquared, df, lower.tail = FALSE)
+  
+  return(pvally)
+}
+
+# this version uses the C code and runs through the data 4 times
 CIbincoretest<-function(j,k,parentnodes,suffStat){
   
   lp<-length(parentnodes) # number of parents
@@ -238,5 +325,7 @@ CIcatcoretest<-function(j,k,parentnodes,suffStat){
   
   return(pvally)
 }
+
+
 
 

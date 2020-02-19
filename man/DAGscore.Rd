@@ -4,12 +4,10 @@
 \alias{DAGscore}
 \title{Calculating the BGe/BDe score of a single DAG}
 \usage{
-DAGscore(n, scoreparam, incidence)
+DAGscore(scorepar, incidence)
 }
 \arguments{
-\item{n}{number of nodes in the Bayesian network}
-
-\item{scoreparam}{an object of class \code{scoreparameters}, containing the data and
+\item{scorepar}{an object of class \code{scoreparameters}, containing the data and
 scoring parameters; see constructor function \code{\link{scoreparameters}}}
 
 \item{incidence}{a square matrix of dimensions equal to the number of nodes, representing the adjacency matrix of a DAG;  the matrix entries are in \code{\{0,1\}} such that \code{incidence[i,j]} equals 1 if there is a directed edge from node \code{i} to node \code{j} in the DAG and 
@@ -25,11 +23,8 @@ continuous, binary or categorical.  The BGe score is evaluated in the case of
 continuous data and the BDe score is evaluated for binary and categorical variables.
 }
 \examples{
-myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
-myData<-pcalg::rmvDAG(200, myDAG) 
-adjacency<-dag2adjacencymatrix(myDAG)
-myScore<-scoreparameters(20,"bge",myData)
-DAGscore(20,myScore, adjacency)
+myScore<-scoreparameters(8, "bde", Asia)
+DAGscore(myScore, Asiamat)
 }
 \references{
 Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.

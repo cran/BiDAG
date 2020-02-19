@@ -1,38 +1,90 @@
+#this script contains definition of classes in BiDAG
+#and all SUMMARY AND PRINT functions for these classes
+
+setClass("MCMCmax",
+         slots = c(DAG = "matrix",
+                   score = "numeric",
+                   reach = "integer",
+                   order= "vector"))
 setClass("MCMCtrace",
          slots = c(incidence = "list",
                    DAGscores = "list",
-                   orderscores = "list",
-                   orders= "list"))
-setClass("MCMCmult",
-         slots = c(incidence = "list",
-                   DAGscores = "list",
-                   orderscores = "list",
-                   orders= "list"))
-
-setClass("MCMCtracepart",
-         slots = c(incidence = "list",
-                   DAGscores = "list",
                    partitionscores = "list",
+                   orderscores = "list",
                    order= "list",
                    partiton="list"))
-#'@export
-#
-print.MCMCmult <-function(x,...){
-  cat("number of plus1 iterations", length(x), "\n")
-  cat("number of saved DAGs", length(x)*length(x[[1]][[1]]), "\n")
-  
-}
+setClass("MCMCspace",
+         slots = c(adjacency = "matrix",
+                   scoretables = "list"))
 
-#'@export
-#
-print.MCMCspace <-function(x,...){
-  cat("Number of edges in the search space: ", sum(x$adjacency), "\n")
-  if (all(lapply(x$scoretable,length)==1)) {
-    cat("Search space is not extended\n")
-  } else {
-    cat("Search space is extended (plus1)\n")
-  }
-}
+setClass("MCMCres",
+         slots = c(max = "MCMCmax",
+                   trace = "MCMCtrace",
+                   space = "MCMCspace",
+                   info="list"))
+setClass("MCMCmult",
+         slots = c(max = "MCMCmax",
+                   maxtrace = "list",
+                   trace = "MCMCtrace",
+                   space = "MCMCspace",
+                   info="list"))
+
+#SUMMARY METHODS
+
+setMethod("summary", "MCMCres",
+          function(object, ...) {
+            cat(paste("algorithm:",object$info$algo,"\n"))
+            cat(paste("number of MCMC iterations:",object$info$iterations,"\n"))
+            cat(paste("initial search space:",object$info$spacealgo,"\n"))
+            cat(paste("sample/MAP: ",object$info$sampletype,"\n"))
+            cat(paste("number of sampling steps:",object$info$samplesteps,"\n"))
+            cat(paste("score of the maximum score DAG:",round(object$max$score,2),"\n"))
+            cat(paste("maximum reached at:",object$max$reach, "step out of", object$info$samplesteps,"\n"))
+            
+            if(is.null(object$chain)) {
+              cat("MCMC trace was not saved","\n")
+            } else {
+              cat(paste("MCMC trace contains:",length(object$chain$incidence),"saved steps","\n"))
+            }
+            if(!is.null(object$space)) {
+              cat("additional objects returned: the search space and the score tables","\n")
+            }
+          })
+
+
+setMethod("summary", "MCMCmult",
+          function(object, ...) {
+            cat("    MCMC settings\n")
+            cat(paste("algorithm:",object$info$algo,"\n"))
+            cat(paste("sample/MAP: ",object$info$sampletype,"\n"))
+            cat(paste("initial search space:",object$info$spacealgo,"\n"))
+            cat(paste("number of MCMC iterations:",object$info$iterations,"\n"))
+            cat(paste("number of sample steps:",object$info$samplesteps,"\n"))
+            cat("\n")
+            
+            cat("   Search space optimization\n")
+            cat(paste("number of space expansion steps:",length(object$maxtrace),"\n"))
+            cat(paste("number of edges in the intial search space:",sum(object$startspace),"\n"))
+            cat(paste("number of added edges:",sum(object$endspace)-sum(object$startspace),"\n"))
+            cat("\n")
+            
+            cat("   MAP estimate\n")
+            cat(paste("score of the maximum score DAG:",round(object$max$score,2),"\n"))
+            cat("\n")
+            
+            cat("   Additional objects\n")
+            if(is.null(object$chain)) {
+            } else {
+              cat(paste("MCMC trace, contains ",length(object$maxtrace)," x ",length(object$chain$incidence[[1]]),"saved steps","\n"))
+            }
+            if(!is.null(object$scoretable)) {
+              cat("score tables","\n")
+            }
+          })
+
+
+#PRINT methods
+
 
 
 #'@export
@@ -44,32 +96,6 @@ print.MCMCmax <-function(x,...){
   cat("Order: ", x$order, "\n")
   
 }
-
-
-setMethod("plot", signature(x = "MCMCmult"),
-          function(x, y, ...){
-            nchains<-length(x$DAGscores)
-            scorevecmin<-unlist(x$DAGscores[[1]])
-            scorevecprevmax<-unlist(x$DAGscores[[nchains-1]])
-            minprev<-min(scorevecprevmax)
-            scorevecmax<-unlist(x$DAGscores[[nchains]])
-            vecl<-length(scorevecmin)
-            # burnin<-ceiling(vecl*0.2)
-            # score20<-min(scorevecmax[burnin:vecl])
-            scoremax<-max(scorevecmax)
-            scoremin<-min(scorevecmin)
-            scoremaxmin<-min(scorevecmax)
-            par(mfrow=c(1,2))
-            plot(scorevecmin,type="l",col=1,xlab="iteration",ylab="logscore",
-                 ylim=c(scoremin,scoremax),main="DAG scores: all plus iterations",cex.main=0.7)
-            for(i in 2:nchains) {
-              lines(unlist(x$DAGscores[[i]]),col=i)
-            }
-            plot(c(scorevecprevmax,scorevecmax),type="l",col="blue",xlab="iteration",ylab="logscore",
-                 ylim=c(minprev,scoremax),main="last 2 plus1 iterations",cex.main=0.7)
-            
-          })
-
 
 #'@export
 #a generic method (does not need description) print for scoreparameters class
@@ -101,9 +127,11 @@ print.scoreparameters <-function(x,...){
 #'@export
 #a standard print method for function compareDAGs
 print.compDAGs<-function(x,...) {
-  cat("SHD: ", x[1], "\n")
   cat("TP: ", x[2], "\n")
+  cat("TPR: ", x[5], "\n")
+  cat("SHD: ", x[1], "\n")
   cat("FP: ", x[3], "\n")
+  cat("FN: ", x[4], "\n")
 }
 
 #'@export
@@ -113,17 +141,6 @@ print.MCMCtrace <-function(x,...){
 }
 
 
-#'@export
-#a standard print method for function MCMCtrace
-print.MCMCres <-function(x,...){
-print(x$max)
-if(!is.null(x$chain)) {
-  print(x$chain)
-}
 
-if(!is.null(x$space)) {
-  print(x$space)
-}
-  
-}
+
 

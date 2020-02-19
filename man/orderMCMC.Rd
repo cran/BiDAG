@@ -4,16 +4,14 @@
 \alias{orderMCMC}
 \title{Structure learning with the order MCMC algorithm}
 \usage{
-orderMCMC(n, scoreparam, MAP = TRUE, plus1 = TRUE, startspace = NULL,
-  blacklist = NULL, startorder = c(1:n), scoretable = NULL,
+orderMCMC(scorepar, MAP = TRUE, plus1 = TRUE, startspace = NULL,
+  blacklist = NULL, startorder = NULL, scoretable = NULL,
   moveprobs = NULL, iterations = NULL, stepsave = NULL,
-  alpha = NULL, cpdag = FALSE, gamma = 1, chainout = FALSE,
-  scoreout = FALSE, verbose = FALSE)
+  alpha = 0.05, cpdag = FALSE, gamma = 1, hardlimit = ifelse(plus1,
+  15, 22), chainout = TRUE, scoreout = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{n}{number of nodes in the Bayesian network}
-
-\item{scoreparam}{an object of class \code{scoreparameters}, containing the data and score parameters, see constructor function \code{\link{scoreparameters}}}
+\item{scorepar}{an object of class \code{scoreparameters}, containing the data and score parameters, see constructor function \code{\link{scoreparameters}}}
 
 \item{MAP}{logical, if TRUE (default) the search targets the MAP DAG (a DAG with maximum score),
 if FALSE at each MCMC step a DAG is sampled from the order proportionally to its score}
@@ -26,9 +24,9 @@ if FALSE at each MCMC step a DAG is sampled from the order proportionally to its
 
 \item{startorder}{(optional) integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is \code{c(1:n)}}
 
-\item{scoretable}{(optional) list of score tables calculated for example by the last iteration of the iterativeMCMCsearch function, to avoid their recomputation  The score tables must match the permissible parents in the search space defined by the startspace parameter.}
+\item{scoretable}{(optional) list of score tables calculated for example by the last iteration of the function \code{iterativeMCMC}, to avoid their recomputation  The score tables must match the permissible parents in the search space defined by the startspace parameter.}
 
-\item{moveprobs}{(optional) a numerical vector of 3 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space
+\item{moveprobs}{(optional) a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space
 \itemize{
 \item exchanging 2 random nodes in the order
 \item exchanging 2 adjacent nodes in the order
@@ -47,7 +45,9 @@ space, if FALSE (default) the full undirected skeleton will be used as the searc
 
 \item{gamma}{(optional) tuning parameter which transforms the score by raising it to this power, 1 by default}
 
-\item{chainout}{logical, if TRUE the saved MCMC steps are returned, FALSE by default}
+\item{hardlimit}{(optional) integer, limit on the size of parent sets in the search space}
+
+\item{chainout}{logical, if TRUE the saved MCMC steps are returned, TRUE by default}
 
 \item{scoreout}{logical, if TRUE the search space and score tables are returned, FALSE by default}
 
@@ -89,10 +89,12 @@ Also implemented is the possibility to expand the default or input search space,
 \dontrun{
 #find a MAP DAG with search space defined by PC and plus1 neighbourhood
 Bostonscore<-scoreparameters(14,"bge",Boston)
-orderMAPfit<-orderMCMC(14,Bostonscore)
-orderMAPfit$max$score
-#sample DAGs with order MCMC
-ordersamplefit<-orderMCMC(14,Bostonscore,MAP=FALSE,chainout=TRUE)
+#estimate MAP DAG
+orderMAPfit<-orderMCMC(Bostonscore)
+summary(orderMAPfit)
+#sample DAGs from the posterior distribution
+ordersamplefit<-orderMCMC(Bostonscore,MAP=FALSE,chainout=TRUE)
+plot(ordersamplefit)
 }
 
 }

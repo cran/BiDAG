@@ -7,7 +7,8 @@
 edges.posterior(MCMCchain, pdag = FALSE, burnin = 0.2, endstep = 1)
 }
 \arguments{
-\item{MCMCchain}{list of square matrices with elements in \code{\{0,1\}} and representing adjacency matrices of a sample of DAGs obtained via an MCMC scheme}
+\item{MCMCchain}{list of square matrices with elements in \code{\{0,1\}} and representing adjacency matrices of a sample of DAGs obtained via an MCMC scheme
+(objects of classes 'MCMCtrace' or 'MCMCres' are also valid data types)}
 
 \item{pdag}{logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging}
 
@@ -25,9 +26,7 @@ obtained via an MCMC scheme.
 \examples{
 Bostonscore<-scoreparameters(14, "bge", Boston)
 \dontrun{
-samplefit<-orderMCMC(14, Bostonscore, iterations=25000,chainout=TRUE)
-MCMCchain<-samplefit$chain$incidence
-edgesposterior<-edges.posterior(MCMCchain, burnin=0.2)
-edgesposterior<-edges.posterior(MCMCchain, pdag=TRUE, burnin=0.2)
+samplefit<-orderMCMC(Bostonscore, iterations=25000,chainout=TRUE)
+edgesposterior<-edges.posterior(samplefit, pdag=TRUE, burnin=0.2)
 }
 }

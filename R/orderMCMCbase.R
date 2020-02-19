@@ -1,17 +1,22 @@
 #implements order MCMC on a defined search space, sampling version
 orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,scoretable,aliases,numparents,
-                        rowmaps,scoresmatrices,numberofparentsvec,gamma=1,bgnodes,bglogscore=0) {
+                        rowmaps,scoresmatrices,numberofparentsvec,gamma=1,bgnodes,matsize) {
   
-  if(nsmall<n) {
-    mainnodes<-c(1:n)[-bgnodes]
-  } else {mainnodes<-c(1:n)}
+  #n - number of nodes (background included)
+  #nsmall - number of nodes excluding background
+  #matsize - number of rows/columns in adjacency matrix 
+  
+  
+  if(!is.null(bgnodes)) {
+    mainnodes<-c(1:matsize)[-bgnodes]
+  } else {mainnodes<-c(1:matsize)}
   
   currentpermy<-startorder #starting order represented as a permutation
-  currentorderscores<-orderscoreBase(n,startorder[1:nsmall],c(1:nsmall),parenttable,aliases,numparents,
+  currentorderscores<-orderscoreBase(matsize,currentpermy[1:nsmall],c(1:nsmall),parenttable,aliases,numparents,
                                      rowmaps,scoretable,scoresmatrices,currentpermy) #starting score
-  currenttotallogscore<-sum(currentorderscores$totscores[mainnodes],bglogscore) #log total score of all DAGs in the starting order
-  currentDAG<-samplescoreplus1(n,mainnodes,currentorderscores,plus1lists=NULL,scoretable,
-                               scoresmatrices,parenttable,numberofparentsvec,aliases,bglogscore) #score of a single DAG sampled from the starting order
+  currenttotallogscore<-sum(currentorderscores$totscores[mainnodes]) #log total score of all DAGs in the starting order
+  currentDAG<-samplescoreplus1(matsize,mainnodes,currentorderscores,plus1lists=NULL,scoretable,
+                               scoresmatrices,parenttable,numberofparentsvec,aliases) #score of a single DAG sampled from the starting order
 
   L1 <- list() # stores the adjacency matrix of a DAG sampled from the orders
   L2 <- list() # stores its log BGe score
@@ -27,7 +32,7 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
   L1[[1]]<-currentDAG$incidence #starting DAG adjacency matrix
   L2[[1]]<-currentDAG$logscore #starting DAG score
   L3[[1]]<-currenttotallogscore #starting order score
-  L4[[1]]<-currentpermy #starting order
+  L4[[1]]<-currentpermy[1:nsmall] #starting order
 
   moveprobsstart<-moveprobs
 
@@ -61,7 +66,7 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
           proposedpermy[sampledelements]<-currentpermy[rev(sampledelements)] #proposed new order ???
           scorepositions<-c(min(sampledelements):max(sampledelements))
           rescorenodes<-proposedpermy[scorepositions] #we only need to rescore these nodes between the swapped elements to speed up the calculation
-          proposedorderrescored<-orderscoreBase(n,rescorenodes,scorepositions,parenttable,aliases,numparents,rowmaps,
+          proposedorderrescored<-orderscoreBase(matsize,rescorenodes,scorepositions,parenttable,aliases,numparents,rowmaps,
                                                 scoretable,scoresmatrices,proposedpermy)
           proposedtotallogscore<-currenttotallogscore-sum(currentorderscores$totscores[rescorenodes])+sum(proposedorderrescored$totscores[rescorenodes]) #and the new log total score by updating only the necessary nodes
           scoreratio<-exp((proposedtotallogscore-currenttotallogscore)*gamma) #acceptance probability
@@ -76,21 +81,21 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
           }
         } else {
           
-              neworder<-positionscorebase(n,nsmall,currentorderscores,sampledpos,currentpermy,aliases,
+              neworder<-positionscorebase(matsize,nsmall,currentorderscores,sampledpos,currentpermy,aliases,
                                            rowmaps,numparents,scoretable,scoresmatrices)
               currentpermy<-neworder$order
               currentorderscores<-neworder$score
-              currenttotallogscore<-neworder$totscores
+              currenttotallogscore<-sum(neworder$totscores)
           }
 
       }
     }
-    currentDAG<-samplescoreplus1(n,mainnodes,currentorderscores,plus1lists=NULL,scoretable,scoresmatrices,
-                                 parenttable,numberofparentsvec,aliases,bglogscore)
+    currentDAG<-samplescoreplus1(matsize,mainnodes,currentorderscores,plus1lists=NULL,scoretable,scoresmatrices,
+                                 parenttable,numberofparentsvec,aliases)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
     L2[[z]]<-currentDAG$logscore #and log score of a sampled DAG
     L3[[z]]<-currenttotallogscore #and the current order score
-    L4[[z]]<-currentpermy #and store current order
+    L4[[z]]<-currentpermy[1:nsmall] #and store current order
   }
   result<-list()
   result$incidence<-L1

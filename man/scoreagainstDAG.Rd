@@ -4,17 +4,15 @@
 \alias{scoreagainstDAG}
 \title{Calculating the score of a sample against a DAG}
 \usage{
-scoreagainstDAG(n, scoreparam, incidence, datatoscore = NULL,
+scoreagainstDAG(scorepar, incidence, datatoscore = NULL,
   marginalise = FALSE)
 }
 \arguments{
-\item{n}{number of nodes in the Bayesian network}
-
-\item{scoreparam}{an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}}
+\item{scorepar}{an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}}
 
 \item{incidence}{a square matrix of dimensions equal to the number of variables with entries in \code{\{0,1\}}, representing the adjacency matrix of the DAG against which the score is calculated}
 
-\item{datatoscore}{(optional) a matrix (vector) containing binary (for BDe score) or continuous (for the BGe score) observations (or just one observation)  to be scored; the number of columns should be equal to the number of variables in the Bayesian network, the number of rows should be equal to the number of observations; by default all data from \code{scoreparam} parameter is used}
+\item{datatoscore}{(optional) a matrix (vector) containing binary (for BDe score) or continuous (for the BGe score) observations (or just one observation)  to be scored; the number of columns should be equal to the number of variables in the Bayesian network, the number of rows should be equal to the number of observations; by default all data from \code{scorepar} parameter is used}
 
 \item{marginalise}{(optional for continuous data), whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)}
 }
@@ -26,11 +24,7 @@ This function calculates the score of a given sample against a DAG represented b
 }
 \examples{
 \dontrun{
-myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
-myData<-pcalg::rmvDAG(200, myDAG) 
-adjacency<-dag2adjacencymatrix(myDAG)
-param<-scoreparameters()
-scoreagainstDAG(20, myData, adjacency)
+scoreagainstDAG(param, Asiamat) #score of the ground truth Asia DAG
 }
 }
 \references{

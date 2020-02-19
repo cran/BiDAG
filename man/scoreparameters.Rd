@@ -4,15 +4,15 @@
 \alias{scoreparameters}
 \title{Initialising score object}
 \usage{
-scoreparameters(n, scoretype = c("bge", "bde", "bdecat", "dbn", "usr"),
-  data, weightvector = NULL, bgnodes = NULL, bgepar = list(am = 1, aw
-  = NULL), bdepar = list(chi = 0.5, edgepf = 2), bdecatpar = list(chi =
-  0.5, edgepf = 2), dbnpar = list(dbnscoretype = c("bge", "bde",
-  "bdecat"), slices = 2), usrpar = list(pctesttype = c("bge", "bde",
-  "bdecat")), edgepmat = NULL, nodeslabels = NULL)
+scoreparameters(n, scoretype = c("bge", "bde", "bdecat"), data,
+  weightvector = NULL, bgnodes = NULL, bgepar = list(am = 1, aw =
+  NULL), bdepar = list(chi = 0.5, edgepf = 2), bdecatpar = list(chi =
+  0.5, edgepf = 2), dbnpar = list(slices = 2, equalstruct = TRUE,
+  repeatstatic = TRUE), usrpar = list(pctesttype = c("bge", "bde",
+  "bdecat")), edgepmat = NULL, nodeslabels = NULL, DBN = FALSE)
 }
 \arguments{
-\item{n}{number of nodes (variables) in the Bayesian network (excluding background nodes)}
+\item{n}{number of nodes (variables) in the Bayesian network; for DBN n represents the number of nodes per one time slice (including static variables)}
 
 \item{scoretype}{the score to be used to assess the DAG structure:
 "bge" for Gaussian data, "bde" for binary data, 
@@ -23,7 +23,7 @@ scoreparameters(n, scoretype = c("bge", "bde", "bdecat", "dbn", "usr"),
 
 \item{weightvector}{(optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data}
 
-\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network}
+\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables which do not change over time}
 
 \item{bgepar}{a list which contains parameters for BGe score:
 \itemize{
@@ -45,18 +45,23 @@ scoreparameters(n, scoretype = c("bge", "bde", "bdecat", "dbn", "usr"),
 
 \item{dbnpar}{which type of score to use for the slices
 \itemize{
-\item dbnscoretype (optional) "bge" for continuous data, "bde" for binary data or "bdecat" for categorical
+\item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure in all other time slices
+\item staticfirst logical, when TRUE the static variables (background nodes) are assumed to have impact only on variables in the first time slice but not on variables in later time slices 
 \item slices the number of time slices
 }}
 
 \item{usrpar}{a list which contains parameters for the user defined score
 \itemize{
-\item pctesttype (optional) "bde" to use the independence test for binary data, "bge" for continuous data
+\item pctesttype (optional) conditional independence test ("bde","bge","bdecat","usrCItest")
+\item suffStat (optional)  a list containing sufficient statistics for  the CI test
+\item otherpars (optional) a list containing other parameters needed for score evaluation
 }}
 
 \item{edgepmat}{(optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default}
 
-\item{nodeslabels}{(optional) a vector of characters which denote the names of nodes in the Bayesian network}
+\item{nodeslabels}{(optional) a vector of characters which denote the names of nodes in the Bayesian network; by default column names of the data will be taken}
+
+\item{DBN}{logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default}
 }
 \value{
 an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score

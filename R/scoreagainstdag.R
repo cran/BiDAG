@@ -1,46 +1,44 @@
 #'Calculating the score of a sample against a DAG
 #'
 #'This function calculates the score of a given sample against a DAG represented by its incidence matrix. 
-#'@param n number of nodes in the Bayesian network
-#'@param scoreparam an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}
+#'@param scorepar an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}
 #'@param incidence a square matrix of dimensions equal to the number of variables with entries in \code{\{0,1\}}, representing the adjacency matrix of the DAG against which the score is calculated
-#'@param datatoscore (optional) a matrix (vector) containing binary (for BDe score) or continuous (for the BGe score) observations (or just one observation)  to be scored; the number of columns should be equal to the number of variables in the Bayesian network, the number of rows should be equal to the number of observations; by default all data from \code{scoreparam} parameter is used
+#'@param datatoscore (optional) a matrix (vector) containing binary (for BDe score) or continuous (for the BGe score) observations (or just one observation)  to be scored; the number of columns should be equal to the number of variables in the Bayesian network, the number of rows should be equal to the number of observations; by default all data from \code{scorepar} parameter is used
 #'@param marginalise (optional for continuous data), whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)
 #'@return the log of the BDe/BGe score of given observations against a DAG
 #'@references Heckerman D and Geiger D, (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284, 1995.
 #'@examples
 #'\dontrun{
-#' myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
-#' myData<-pcalg::rmvDAG(200, myDAG) 
-#' adjacency<-dag2adjacencymatrix(myDAG)
-#' param<-scoreparameters()
-#' scoreagainstDAG(20, myData, adjacency)
+#' scoreagainstDAG(param, Asiamat) #score of the ground truth Asia DAG
 #' }
 #'@export
-scoreagainstDAG <- function(n, scoreparam, incidence, datatoscore=NULL, marginalise=FALSE){
+scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=FALSE){
+  
+  n<-scorepar$n
+  
   if (is.null(datatoscore)) {
-    datatoscore<-scoreparam$data
+    datatoscore<-scorepar$data
   }
   
   if(is.vector(datatoscore)){ # if input is a vector
     datatoscore <- matrix(datatoscore, nrow=1) # cast it as a matrix
   }
   
-  if (scoreparam$type=="bge") {
+  if (scorepar$type=="bge") {
     if(marginalise==FALSE){
-      datatoscore <- t(t(datatoscore) - scoreparam$muN) # recentre around posterior mean
+      datatoscore <- t(t(datatoscore) - scorepar$muN) # recentre around posterior mean
     } else {
-      datatoscore <- t(t(datatoscore) - scoreparam$means) # recentre about data mean
+      datatoscore <- t(t(datatoscore) - scorepar$means) # recentre about data mean
     }
   }
   
-  if (scoreparam$type=="bge" && marginalise!=FALSE){
-    return(scoreagainstDAGmargBGe(n, scoreparam, incidence, datatoscore))
+  if (scorepar$type=="bge" && marginalise!=FALSE){
+    return(scoreagainstDAGmargBGe(n, scorepar, incidence, datatoscore))
   } else {
     samplescores <- matrix(0,nrow=nrow(datatoscore),ncol=n)  
     for (j in 1:n)  {
       parentnodes <- which(incidence[,j]==1)
-      samplescores[,j]<-scoreagainstDAGcore(j,parentnodes,n,scoreparam,datatoscore)
+      samplescores[,j]<-scoreagainstDAGcore(j,parentnodes,n,scorepar,datatoscore)
     }
     
     return(rowSums(samplescores))
@@ -131,29 +129,29 @@ scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
 # This is equivalent to the difference in scores of the DAG with
 # and without the extra data vector
 
-scoreagainstDAGmargBGe <- function(n, scoreparam, incidence, datatoscore){
+scoreagainstDAGmargBGe <- function(n, scorepar, incidence, datatoscore){
   
-  baselinescore <- DAGscore(n, scoreparam, incidence)
+  baselinescore <- DAGscore(scorepar, incidence)
   
-  scoreparam2 <- scoreparam # store updated scoring components
-  scoreparam2$N <- scoreparam$N + 1 # updated size
-  scoreparam2$awpN <- scoreparam$awpN + 1 # updated parameter
+  scorepar2 <- scorepar # store updated scoring components
+  scorepar2$N <- scorepar$N + 1 # updated size
+  scorepar2$awpN <- scorepar$awpN + 1 # updated parameter
   
   # update the constant part of the score
-  scoreparam2$scoreconstvec <- scoreparam$scoreconstvec - 
-    log(pi)/2 + log(scoreparam2$am+scoreparam2$N-1)/2 - log(scoreparam2$am+scoreparam2$N)/2 + 
-    lgamma((1:n-n+scoreparam2$awpN)/2) - lgamma((1:n-n-1+scoreparam2$awpN)/2)
+  scorepar2$scoreconstvec <- scorepar$scoreconstvec - 
+    log(pi)/2 + log(scorepar2$am+scorepar2$N-1)/2 - log(scorepar2$am+scorepar2$N)/2 + 
+    lgamma((1:n-n+scorepar2$awpN)/2) - lgamma((1:n-n-1+scorepar2$awpN)/2)
   
   # we store part of the score including the T0 matrix and the data covariance matrix
-  T0cov <- scoreparam$TN - ((scoreparam$am*scoreparam$N)/(scoreparam$am+scoreparam$N))* (scoreparam$means)%*%t(scoreparam$means)
+  T0cov <- scorepar$TN - ((scorepar$am*scorepar$N)/(scorepar$am+scorepar$N))* (scorepar$means)%*%t(scorepar$means)
   
   samplescores <- rep(0, nrow(datatoscore))
   
   for(ii in 1:nrow(datatoscore)){
     xs <- as.numeric(datatoscore[ii,]) # this has been recentered by subtracting the data means
-    scoreparam2$means <- scoreparam$means + xs/(scoreparam$N+1) # update the mean and posterior matrix
-    scoreparam2$TN <- T0cov + xs%*%t(xs)*scoreparam$N/(scoreparam$N+1) + (((scoreparam2$am)*scoreparam2$N)/(scoreparam2$am+scoreparam2$N)) * (scoreparam2$means)%*%t(scoreparam2$means)
-    samplescores[ii] <- DAGscore(n, scoreparam2, incidence)
+    scorepar2$means <- scorepar$means + xs/(scorepar$N+1) # update the mean and posterior matrix
+    scorepar2$TN <- T0cov + xs%*%t(xs)*scorepar$N/(scorepar$N+1) + (((scorepar2$am)*scorepar2$N)/(scorepar2$am+scorepar2$N)) * (scorepar2$means)%*%t(scorepar2$means)
+    samplescores[ii] <- DAGscore(scorepar2, incidence)
   }
   
   return(samplescores-baselinescore)

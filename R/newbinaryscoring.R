@@ -168,4 +168,3 @@ DAGbinarytablescoreplus1<-function(j,parentnodes,additionalparent,n,param,parent
   
   return(corescores)
 }
-

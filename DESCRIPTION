@@ -1,8 +1,8 @@
 Package: BiDAG
 Type: Package
 Title: Bayesian Inference for Directed Acyclic Graphs
-Version: 1.2.0
-Date: 2019-07-24
+Version: 1.3.0
+Date: 2020-02-14
 Author: Polina Suter [aut, cre], Jack Kuipers [aut]
 Maintainer: Polina Suter <polina.minkina@bsse.ethz.ch>
 Description: Implementation of a collection of MCMC methods for Bayesian structure learning
@@ -16,7 +16,7 @@ Description: Implementation of a collection of MCMC methods for Bayesian structu
     The BGe score is implemented for continuous data and the BDe score is implemented
     for binary data or categorical data. The algorithms may provide the maximum a posteriori 
     (MAP) graph or a sample (a collection of DAGs) from the posterior distribution given the data.
-    All algorithms are also applicable to structure learning of dynamic Bayesian networks.
+    All algorithms are also applicable for structure learning and sampling for dynamic Bayesian networks.
     References:
     J. Kuipers, P. Suter and G. Moffa (2018) <arXiv:1803.07859v2>,
     N. Friedman and D. Koller (2003) <doi:10.1023/A:1020249912095>, 
@@ -26,13 +26,13 @@ Description: Implementation of a collection of MCMC methods for Bayesian structu
 Acknowledgments: We would like to thank Giusi Moffa for discussion and
         comments on the package and its manual.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.7), methods, pcalg
-Depends: graphics
+Imports: Rcpp (>= 0.12.7), methods, pcalg, Rgraphviz, graph
+Depends: R (>= 3.5.0), graphics
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1
 Encoding: UTF-8
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2019-08-19 07:08:00 UTC; me664
+Packaged: 2020-02-19 10:22:42 UTC; me664
 Repository: CRAN
-Date/Publication: 2019-08-19 08:00:04 UTC
+Date/Publication: 2020-02-19 13:40:02 UTC

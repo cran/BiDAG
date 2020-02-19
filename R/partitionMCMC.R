@@ -4,13 +4,18 @@
 partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,parenttable,scoretable,scoretab,
                              aliases,scoresneeded,scoresallowed,plus1lists, rowmapsneeded,rowmapsallowed,
                              needednodetable,numberofparentsvec,numberofpartitionparentsvec,needednodebannedrow,
-                             neededparentsvec,moveprobs,bgnodes,bglogscore) {
+                             neededparentsvec,moveprobs,bgnodes,matsize) {
   
-  if(nsmall<n) {
-    mainnodes<-c(1:n)[-bgnodes]
-  } else {mainnodes<-c(1:n)}
+  #n - number of nodes (background included)
+  #nsmall - number of nodes excluding background
+  #matsize - number of rows/columns in adjacency matrix 
   
-  currentpermy<-startpermy #starting permutation
+  if(!is.null(bgnodes)) {
+    mainnodes<-c(1:matsize)[-bgnodes]
+  } else {mainnodes<-c(1:matsize)}
+  
+  
+  currentpermy<-startpermy[1:nsmall] #starting permutation
   currentparty<-startparty #starting partition
   currentposy<-parttolist(nsmall,currentparty) #create a list of which nodes are in which partition element
 
@@ -18,13 +23,13 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                                               rowmapsallowed,scoresneeded,scoresallowed,
                                               currentpermy,currentparty,currentposy) #starting score of all DAGs compatible with the starting permutation and partition
 
-  currenttotallogscore<-sum(currentpartitionscores$totscores[mainnodes],bglogscore) #log total score of all DAGs in the starting partition and permutation
+  currenttotallogscore<-sum(currentpartitionscores$totscores[mainnodes]) #log total score of all DAGs in the starting partition and permutation
 
-  currentDAG<-samplescore.partition.plus1(n,mainnodes,currentpartitionscores,scoretable,
+  currentDAG<-samplescore.partition.plus1(matsize,mainnodes,currentpartitionscores,scoretable,
                                           scoresallowed,scoresneeded,scoretab,
                                           parenttable,needednodetable,
                                           numberofparentsvec,needednodebannedrow,
-                                          numberofpartitionparentsvec,plus1lists,bglogscore) #log score of a single sampled DAG from the partition and permutation
+                                          numberofpartitionparentsvec,plus1lists) #log score of a single sampled DAG from the partition and permutation
 
   L1 <- list() #stores the adjacency matrix of a DAG sampled from the partition and permutation
   L2 <- list() #stores the log BGe score of a DAG sampled from the partition and permutation
@@ -205,13 +210,13 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
         }
         }
     }
-    currentDAG<-samplescore.partition.plus1(n,mainnodes,currentpartitionscores,
+    currentDAG<-samplescore.partition.plus1(matsize,mainnodes,currentpartitionscores,
                                             scoretable,scoresallowed,scoresneeded,scoretab,parenttable,needednodetable,numberofparentsvec,
-                                            needednodebannedrow,numberofpartitionparentsvec,plus1lists,bglogscore)
+                                            needednodebannedrow,numberofpartitionparentsvec,plus1lists)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG
     L2[[z]]<-currentDAG$logscore #and its log score
     L3[[z]]<-currenttotallogscore #store the current total partition score
-    L4[[z]]<-currentpermy #store current permutation each 'stepsave'
+    L4[[z]]<-currentpermy[1:nsmall] #store current permutation each 'stepsave'
     L5[[z]]<-currentparty #store current partition each 'stepsave'
   }
 

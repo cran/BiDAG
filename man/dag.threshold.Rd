@@ -4,12 +4,11 @@
 \alias{dag.threshold}
 \title{Estimating a graph corresponding to a posterior probability threshold}
 \usage{
-dag.threshold(n, MCMCchain, pbarrier, pdag = FALSE, burnin = 0.2)
+dag.threshold(MCMCchain, pbarrier, pdag = FALSE, burnin = 0.2)
 }
 \arguments{
-\item{n}{number of nodes in the Bayesian network}
-
-\item{MCMCchain}{list of adjacency matrices with dimensions equal to n and elements in \code{\{0,1\}}, representing a sample of DAGs from an MCMC scheme}
+\item{MCMCchain}{list of adjacency matrices with dimensions equal to n and elements in \code{\{0,1\}}, representing a sample of DAGs from an MCMC scheme 
+(objects of classes 'MCMCtrace' or 'MCMCres' are also valid data types)}
 
 \item{pbarrier}{threshold such that only edges with a higher posterior probability will be retained in the directed graph summarising the sample of DAGs}
 
@@ -26,8 +25,7 @@ This function constructs a directed graph (not necessarily acyclic) including al
 \examples{
 Bostonscore<-scoreparameters(14, "bge", Boston)
 \dontrun{
-orderfit<-orderMCMC(14, Bostonscore, MAP=FALSE, iterations=25000, chainout=TRUE)
-MCMCchain<-orderfit$chain$incidence
-hdag<-dag.threshold(MCMCchain, pbarrier=0.9)
+orderfit<-orderMCMC(Bostonscore, MAP=FALSE, iterations=25000, chainout=TRUE)
+hdag<-dag.threshold(orderfit, pbarrier=0.9)
 }
 }

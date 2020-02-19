@@ -119,11 +119,191 @@ is.subset<-function(v1,v2){
   return(issubset)
 }
 
-orderbgn<-function(permy,bgn) {
-  movenodes<-which(permy%in%bgn)
-  newpermy<-permy[-movenodes]
-  return(c(newpermy,bgn))
+orderbgn<-function(permy,bgnodes) {
+  if(!is.null(bgnodes)) {
+    movenodes<-which(permy%in%bgnodes)
+    newpermy<-permy[-movenodes]
+    return(c(newpermy,bgnodes))
+  } else {
+    return(permy)
+  }
 }
+
+storemaxMCMC<-function(MCMCres,param) {
+  maxobj<-list()
+  maxN<-which.max(unlist(MCMCres[[2]]))
+  if(param$DBN) {
+    maxobj$DAG<-DBNtransform(MCMCres[[1]][[maxN]],param)
+    maxobj$DAGorig<-MCMCres[[1]][[maxN]]
+    maxobj$order<-order2var(MCMCres[[4]][[maxN]],param$firstslice$labels)
+  } else {
+    maxobj$DAG<-MCMCres[[1]][[maxN]]
+    colnames(maxobj$DAG)<-param$labels
+    rownames(maxobj$DAG)<-param$labels
+    maxobj$order<-order2var(MCMCres[[4]][[maxN]],param$labels)
+  }
+  maxobj$score<-MCMCres[[2]][[maxN]]
+  attr(maxobj,"class")<-"MCMCmax"
+  return(maxobj)
+}
+assignLabels<-function(adjacency,nodelabels){
+  colnames(adjacency)<-nodelabels
+  rownames(adjacency)<-nodelabels
+  return(adjacency)
+}
+
+defcolrange<-function(value) {
+  if(value>0.8) {
+    return(5)
+  } else if (value>0.6) {
+    return(4)
+  } else if (value>0.4) {
+    return(3)
+  } else if (value>0.2) {
+    return(2)
+  } else {
+    return(1)
+  }
+}
+
+
+#checking startorder, if NULL generating random order of right length
+checkstartorder<-function(order,varnames,mainnodes,bgnodes,DBN=FALSE, split=FALSE) {
+  
+  matsize<-length(varnames) #maximum length of the startorder
+  nsmall<-length(mainnodes)#minimum length of the startorder
+  errortext<-"ok"
+  errorflag<-0
+  bgn<-length(bgnodes)
+  n<-nsmall+bgn
+  lo<-length(order)
+  
+  error1<-"startorder should contain either variable names or their respective indices in the data object!"
+  
+  error2<-"the variables (or indices) in the startorder should be similar to variable names (or their indices in the data object)!"
+  
+  error3<-"DBN samestruct=FALSE should have following format: vector of length equal to
+  at 2*nsmall or 2*nsmall+bgn, where nsmall=number of dynamic variables and bgn=number of static variables.
+  The first half of the order should contain indices (bgn+1):(nsmall+bgn) representing the order of 
+  variables in the initial time slice, the second half represents the order of variables
+  in any other time slice should contain indices (nsmall+bgn+1):(2*nsmall+bgn)"
+  
+
+  if(!DBN) { #usual BN
+    if(is.null(order)) {
+      order<-c(sample(mainnodes,nsmall,replace=FALSE),bgnodes)
+    } else {
+      
+      if(all(is.character(order))) {#convert to indices
+        order<-match(order,varnames)
+      }
+      if(any(is.na(order))) {
+        errortext<-error2
+        errorflag<-2
+      } else if(!all(is.numeric(order)))  {
+        errortext<-error1
+        errorflag<-1
+      } else if (!setequal(order,mainnodes) & !setequal(order,c(1:n))) {
+        errortext<-error2
+        errorflag<-2
+      } else {#startorder is defined correctly
+        if(lo==n) {
+          order<-orderbgn(order,bgnodes)#need to put bgnodes to the end
+        }
+        else {
+          order<-c(order,bgnodes)#or attach them if they are missing
+        }
+      }
+    }
+  } else {#DBN
+    if(split) {#DBN: initial and transition structure (internal edges) are different
+      
+      if(is.null(order)) {#need to define initial and transition order
+        
+        order<-list()
+        
+        #we change indices of variables turning into internal representation for DBNs
+        order$init<-c(sample(mainnodes-bgn,nsmall,replace=FALSE),bgnodes+nsmall)
+        order$trans<-c(sample(mainnodes-bgn,nsmall,replace=FALSE),1:n+nsmall)
+        
+      } else {
+        
+        if(all(is.character(order))) {#convert to indices
+          order<-match(order,varnames)
+        }
+        
+        mainall<-c(mainnodes,mainnodes+nsmall)
+        
+        if(any(is.na(order))) {
+            errortext<-error2
+            errorflag<-2
+          } else if(!all(is.numeric(order)))  {
+            errortext<-error1
+            errorflag<-1
+          } else if (!setequal(order,c(1:matsize)) & !setequal(order,mainall)) {
+            errortext<-error2
+            errorflag<-2
+           } else { 
+            
+            order.init<-order[1:nsmall]-bgn #get order for initial structure
+            order.trans<-order[1:nsmall+nsmall]-nsmall-bgn #get order for transition structure
+            if(!setequal(order.init,c(1:nsmall)) | !setequal(order.trans,c(1:nsmall))) {
+              errortext<-error3
+              errorflag<-3
+             } else {#startorder is defined correctly
+                order<-list()
+                order$init<-c(order.init,bgnodes+nsmall)
+                order$trans<-c(order.trans,1:n+nsmall)
+            }
+        }
+      }
+    }  else {#DBN: initial and transition structure (internal edges) are the same
+      if(is.null(order)) {
+        
+        #we change indices of variables turning into internal representation
+        order<-c(sample(mainnodes,nsmall,replace=FALSE)-bgn,bgnodes+nsmall)
+        
+      } else {
+        
+        if(all(is.character(order)))  {
+          errortext<-error1
+          errorflag<-1
+        } else if (!setequal(order,mainnodes) & !setequal(order,c(1:n))) {
+          errortext<-error2
+          errorflag<-2
+        } else {#startorder is defined correctly
+            if(lo==n) {
+              order<-orderbgn(order,bgnodes)
+              print(order)
+              #we change indices of variables turning into internal representation
+              if(bgn>0) {
+                order<-c(order[1:nsmall]-bgn,order[1:bgn+nsmall]+nsmall)
+              }
+            } else {
+              order<-c(order-bgn,bgnodes+nsmall)
+            }
+        }
+      }
+    }
+    
+  }
+  
+  res<-list()
+  res$errorflag<-errorflag
+  res$order<-order
+  res$errortext<-errortext
+  
+  return(res)
+}
+
+
+#transform numeric order into varnames
+order2var<-function(order,varnames) {
+  return(varnames[order])
+}
+
+
+
 
 
 

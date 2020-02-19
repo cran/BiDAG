@@ -1,9 +1,9 @@
 #samples maximum scoring DAG from a given order, returns incidence matrix of this DAG
 #added samplenodes for background nodes, so we sample only for nodes which can have parents
-samplescoreplus1.max<-function(n,samplenodes,scores,plus1lists,maxmatrices,scoretable,parenttable,
-                               numberofparentsvec,aliases,bglogscore) {
-  incidence<-matrix(numeric(n*n),nrow=n) # store the adjacency matrix
-  sampledscore<-bglogscore
+samplescoreplus1.max<-function(matsize,samplenodes,scores,plus1lists,maxmatrices,scoretable,parenttable,
+                               numberofparentsvec,aliases) {
+  incidence<-matrix(0,ncol=matsize,nrow=matsize) # store the adjacency matrix
+  sampledscore<-0
   for (i in samplenodes){
     if(is.null(plus1lists)) {
       krow<-maxmatrices$maxrow[[i]][scores$therow[i]]
@@ -27,10 +27,10 @@ samplescoreplus1.max<-function(n,samplenodes,scores,plus1lists,maxmatrices,score
 }
 
 #samples a DAG from a given order, returns incidence matrix of this DAG
-samplescoreplus1<-function(n,samplenodes,scores,plus1lists,scoretable,bannedscores,parenttable,
-                           numberofparentsvec,aliases,bglogscore) {
-  incidence<-matrix(numeric(n*n),nrow=n) # store the adjacency matrix
-  sampledscore<-bglogscore
+samplescoreplus1<-function(matsize,samplenodes,scores,plus1lists,scoretable,bannedscores,parenttable,
+                           numberofparentsvec,aliases) {
+  incidence<-matrix(numeric(matsize*matsize),nrow=matsize) # store the adjacency matrix
+  sampledscore<-0
   for (i in samplenodes){
     if (scores$therow[i]==1) {
       allowedrows<-c(1:nrow(parenttable[[i]]))
@@ -39,16 +39,16 @@ samplescoreplus1<-function(n,samplenodes,scores,plus1lists,scoretable,bannedscor
           tablesize<-dim(parenttable[[i]]) # just to remove some arguments
           if(tablesize[1]==1||length(bannednodes)==tablesize[2]){ # no parents are allowed
           allowedrows<-c(1) # there is only one score
-      } else {
-        allowedrows<-c(2:tablesize[1])
-        for (j in 1:tablesize[2]) {
-          # working columnwise allows R to speed up
-          bannedrows<-which(parenttable[[i]][allowedrows,j]%in%bannednodes)
-          if(length(bannedrows)>0) { allowedrows<-allowedrows[-bannedrows] }
+            } else {
+              allowedrows<-c(2:tablesize[1])
+              for (j in 1:tablesize[2]) {
+                # working columnwise allows R to speed up
+                bannedrows<-which(parenttable[[i]][allowedrows,j]%in%bannednodes)
+                if(length(bannedrows)>0) { allowedrows<-allowedrows[-bannedrows] }
+              }
+            allowedrows<-c(1,allowedrows)
         }
-        allowedrows<-c(1,allowedrows)
       }
-    }
     if(is.null(plus1lists)) {
       
       allowedscores<-matrix(scoretable[[i]][allowedrows,1],nrow=length(allowedrows))
@@ -80,13 +80,13 @@ samplescoreplus1<-function(n,samplenodes,scores,plus1lists,scoretable,bannedscor
 }
 
 #samples a DAG from a given partition, returns incidence matrix of this DAG
-samplescore.partition.plus1<-function(n,samplenodes,scores,scoretable,scoresallowed,scoresneeded,scoretab,parenttable,
+samplescore.partition.plus1<-function(matsize,samplenodes,scores,scoretable,scoresallowed,scoresneeded,scoretab,parenttable,
                                       needednodetable,numberofparentsvec,
                                       needednodebannedrow,numberofpartitionparentsvec,
-                                      plus1lists,bglogscore) {
-  incidence<-matrix(numeric(n*n),nrow=n) # store the adjacency matrix
-  sampledscore<-bglogscore
-  logscorevec<-vector(length=n)
+                                      plus1lists) {
+  incidence<-matrix(numeric(matsize*matsize),nrow=matsize) # store the adjacency matrix
+  sampledscore<-0
+  logscorevec<-vector(length=matsize)
   for (i in samplenodes) {
     tablesize<-dim(parenttable[[i]]) # just to remove some arguments
     if (scores$neededrow[i]==0&&scores$allowedrow[i]==0){ #no parents are allowed

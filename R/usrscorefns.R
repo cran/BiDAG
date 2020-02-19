@@ -1,4 +1,3 @@
-
 ### This function returns the objects needed to evaluate the user defined score
 
 # edgepf is the factor to penalise each edge
@@ -6,8 +5,8 @@
 # chi is the general number of pseudo count
 # delta is a scaling factor for zero pseudo counts when the parents are not all on
 # eta is a scaling factor for zero pseudo counts when the node has no parents 
-
-usrscoreparameters <- function(initparam, usrpar=list(pctesttype="bde", edgepf=2, edgepmat=NULL, chi=0.5, delta=NULL, eta=NULL)){
+usrscoreparameters <- function(initparam, usrpar=list(pctesttype="usrCItest", edgepf=2, edgepmat=NULL, 
+                                                      chi=0.5, delta=NULL, eta=NULL)){
   
   if(is.null(usrpar$chi)) {usrpar$chi <- 0.5}
   if(is.null(usrpar$edgepf)) {usrpar$edgepf <- 2}
@@ -47,29 +46,7 @@ usrscoreparameters <- function(initparam, usrpar=list(pctesttype="bde", edgepf=2
   
 }
 
-
-
-### This function prints out the user defined score objects
-
-usrprint.scoreparameters <- function (x,...){
-  
-  cat("CBN mimic score is being used","\n")
-  cat("Prior pseudo counts:", x$chi,"\n")
-  cat("Edge penalization factor:", x$pf,"\n")
-  cat("Prior pseudo count scaling with 1 parent:", x$delta,"\n")
-  cat("Prior pseudo count scaling with no parent:", x$eta,"\n")
-  if(is.null(x$weightvector)) {
-    cat("Data is not weighted\n")
-  } else {
-    "Data is weighted according to the weight vector"
-  }
-  cat("Score constant vector:", x$scoreconstvec,"\n")
-}
-
-
-
 ### This function evaluates the log score of a node given its parents
-
 usrDAGcorescore <- function (j,parentnodes,n,param) {
   
   lp<-length(parentnodes) # number of parents
@@ -115,6 +92,25 @@ usrDAGcorescore <- function (j,parentnodes,n,param) {
   
   corescore 
   
+}
+
+
+
+### This function prints out the user defined score objects
+
+usrprint.scoreparameters <- function (x,...){
+  
+  cat("CBN mimic score is being used","\n")
+  cat("Prior pseudo counts:", x$chi,"\n")
+  cat("Edge penalization factor:", x$pf,"\n")
+  cat("Prior pseudo count scaling with 1 parent:", x$delta,"\n")
+  cat("Prior pseudo count scaling with no parent:", x$eta,"\n")
+  if(is.null(x$weightvector)) {
+    cat("Data is not weighted\n")
+  } else {
+    "Data is weighted according to the weight vector"
+  }
+  cat("Score constant vector:", x$scoreconstvec,"\n")
 }
 
 

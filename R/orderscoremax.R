@@ -36,7 +36,7 @@ orderscoreBasemax<-function(n,scorenodes,scorepositions,parenttable,aliases,nump
 #returns BGe/BDe logscore of an order (maximum version, plus1 neighbourhood)
 
 orderscorePlus1max<-function(n,scorenodes,scorepositions,parenttable,aliases,numparents,plus1lists,rowmaps,scoretable,
-                               maxmatrices,permy) {
+                               maxmatrices,permy,verbose=FALSE) {
 #score nodes should be in the right order
   orderscores<-vector("double",n)
   allowedscorelists<-vector("list",n)
@@ -77,11 +77,12 @@ orderscorePlus1max<-function(n,scorenodes,scorepositions,parenttable,aliases,num
 #returns an order and its BGe/BDe logscore such that this order's score is maximal of all orders, obtained via
 #putting a given node in every position from 1 to n with all other nodes fixed  (plus1 neighbourhood)
 
-positionscorePlus1max<-function(n,nsmall,currentscore,positionx,permy,aliases,rowmaps,plus1lists,numparents,scoretable,maxmatrices) {
+positionscorePlus1max<-function(n,nsmall,currentscore,positionx,permy,aliases,rowmaps,plus1lists,
+                                numparents,scoretable,maxmatrices) {
   vectorx<-vector(length=nsmall) #scores of node in each place in the order
   vectorall<-vector(length=nsmall) #scores for each node when x takes its position
   base<-currentscore$totscores
-  totalall<-vector(length=n) #result vector with log scores of all orders
+  totalall<-vector(length=nsmall) #result vector with log scores of all orders
   totalall[positionx]<-sum(base)
   x<-permy[positionx] #node for which we search max/sample position
   vectorx[positionx]<-base[x] #its score in current permy
@@ -91,7 +92,9 @@ positionscorePlus1max<-function(n,nsmall,currentscore,positionx,permy,aliases,ro
   therowy<-vector()
 
   if (positionx>1) {
+    
   rightpart<-permy[-positionx]
+  
     for (i in (positionx-1):1) {
       nodey<-permy[i]
       if (numparents[x]==0||i==1) {
@@ -173,11 +176,19 @@ positionscorePlus1max<-function(n,nsmall,currentscore,positionx,permy,aliases,ro
     }
   }
 
-  maxall<-max(totalall)
+  maxall<-max(totalall[1:nsmall])
+  
   maxis<-which(totalall==maxall)
-  maxi<-maxis[sample.int(length(maxis),1)]
+  if(length(maxis)==1) {
+    maxi<-maxis
+  } else {
+    maxi<-sample(maxis,1)
+  }
+  
   res<-list()
-
+  res$totalall<-totalall
+  
+  
   if (maxi==positionx) {
     res$score<-currentscore
     res$order<-permy

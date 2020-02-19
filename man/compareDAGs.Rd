@@ -7,23 +7,21 @@
 compareDAGs(eDAG, trueDAG)
 }
 \arguments{
-\item{eDAG}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the DAG which should be compared to a ground truth DAG}
+\item{eDAG}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the DAG which should be compared to a ground truth DAG or an ajacency matrix corresponding to the DAG}
 
-\item{trueDAG}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth DAG}
+\item{trueDAG}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth DAG or an ajacency matrix corresponding to the DAG}
 }
 \value{
-a vector of 3: SHD, number of true positive edges and number of false positive edges
+a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
 }
 \description{
 This function compares one (estimated) DAG to another DAG (true DAG), returning a vector of 3 values: structural Hamming distance,
 number of true positive edges and number of false positive edges.
 }
 \examples{
-myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2)
-myData<-pcalg::rmvDAG(200, myDAG) 
-myScore<-scoreparameters(20,"bge",myData)
+Asiascore<-scoreparameters(8,"bde",Asia)
 \dontrun{
-eDAG<-orderMCMC(20,myScore)
-compareDAGs(adjacency2dag(eDAG$max$DAG),myDAG)
+eDAG<-orderMCMC(myScore)
+compareDAGs(edag$max$DAG,Asiamat)
 }
 }

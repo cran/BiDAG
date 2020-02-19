@@ -8,12 +8,11 @@
 #'(using the functions \code{\link[pcalg]{skeleton}} and \code{\link[pcalg]{pc}} from the `pcalg' package [Kalisch et al, 2012]).
 #'It is also possible to define an arbitrary search space by inputting an adjacency matrix, for example estimated by partial correlations or other network algorithms.
 #'Also implemented is the possibility to expand the default or input search space, by allowing each node in the network to have one additional parent.  This offers improvements in the learning and sampling of Bayesian networks. 
-#' @param n number of nodes in the Bayesian network
-#' @param scoreparam an object of class \code{scoreparameters}, containing the data and score parameters, see constructor function \code{\link{scoreparameters}}
+#' @param scorepar an object of class \code{scoreparameters}, containing the data and score parameters, see constructor function \code{\link{scoreparameters}}
 #' @param MAP logical, if TRUE (default) the search targets the MAP DAG (a DAG with maximum score),
 #' if FALSE at each MCMC step a DAG is sampled from the order proportionally to its score
 #' @param plus1 logical, if TRUE (default) the search is performed on the extended search space
-#' @param moveprobs (optional) a numerical vector of 3 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space
+#' @param moveprobs (optional) a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space
 #' \itemize{
 #' \item exchanging 2 random nodes in the order
 #' \item exchanging 2 adjacent nodes in the order
@@ -26,11 +25,12 @@
 #' @param gamma (optional) tuning parameter which transforms the score by raising it to this power, 1 by default
 #' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.
 #' @param blacklist (optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space. If \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space.
-#' @param scoretable (optional) list of score tables calculated for example by the last iteration of the iterativeMCMCsearch function, to avoid their recomputation  The score tables must match the permissible parents in the search space defined by the startspace parameter.
+#' @param scoretable (optional) list of score tables calculated for example by the last iteration of the function \code{iterativeMCMC}, to avoid their recomputation  The score tables must match the permissible parents in the search space defined by the startspace parameter.
 #' @param startorder (optional) integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is \code{c(1:n)}
 #' @param cpdag (optional) logical, if TRUE the CPDAG returned by the PC algorithm will be used as the search
 #'space, if FALSE (default) the full undirected skeleton will be used as the search space
-#' @param chainout logical, if TRUE the saved MCMC steps are returned, FALSE by default
+#' @param hardlimit (optional) integer, limit on the size of parent sets in the search space
+#' @param chainout logical, if TRUE the saved MCMC steps are returned, TRUE by default
 #' @param scoreout logical, if TRUE the search space and score tables are returned, FALSE by default
 #' @param verbose logical, if TRUE messages about the algorithm's progress will be printed, FALSE by default
 #' @return Depends on the logical parameters \code{chainout} and \code{scoreout}.
@@ -62,54 +62,138 @@
 #'\dontrun{
 #'#find a MAP DAG with search space defined by PC and plus1 neighbourhood
 #'Bostonscore<-scoreparameters(14,"bge",Boston)
-#'orderMAPfit<-orderMCMC(14,Bostonscore)
-#'orderMAPfit$max$score
-#'#sample DAGs with order MCMC
-#'ordersamplefit<-orderMCMC(14,Bostonscore,MAP=FALSE,chainout=TRUE)
+#'#estimate MAP DAG
+#'orderMAPfit<-orderMCMC(Bostonscore)
+#'summary(orderMAPfit)
+#'#sample DAGs from the posterior distribution
+#'ordersamplefit<-orderMCMC(Bostonscore,MAP=FALSE,chainout=TRUE)
+#'plot(ordersamplefit)
 #'}
 #'
 #'@export
 
-orderMCMC<-function(n, scoreparam, MAP=TRUE, plus1=TRUE,
-                    startspace=NULL, blacklist=NULL,startorder=c(1:n), scoretable=NULL,  
-                    moveprobs=NULL, iterations=NULL, stepsave=NULL, alpha=NULL, cpdag=FALSE, gamma=1,
-                    chainout=FALSE, scoreout=FALSE, verbose=FALSE) {
+orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,
+                    startspace=NULL, blacklist=NULL,startorder=NULL, scoretable=NULL,  
+                    moveprobs=NULL, iterations=NULL, stepsave=NULL, alpha=0.05, cpdag=FALSE, gamma=1,
+                    hardlimit=ifelse(plus1,15,22),
+                    chainout=TRUE, scoreout=FALSE, verbose=FALSE) {
   if (is.null(moveprobs)) { 
     prob1<-99
-    if(n>3){ prob1<-round(6*99*n/(n^2+10*n-24)) }
+    if(scorepar$nsmall>3){ prob1<-round(6*99*scorepar$nsmall/(scorepar$nsmall^2+10*scorepar$nsmall-24)) }
     prob1<-prob1/100
     moveprobs<-c(prob1,0.99-prob1,0.01)
     moveprobs<-moveprobs/sum(moveprobs)
     moveprobs<-c(moveprobs[c(1,2)],0,moveprobs[3])
   }
   if(is.null(iterations)){
-    if(n<26){
+    if(scorepar$nsmall<26){
       iterations<-30000
     } else {
-      iterations<-(5*n*n*log(n))-(5*n*n*log(n)) %% 1000
+      iterations<-(5*scorepar$nsmall*scorepar$nsmall*log(scorepar$nsmall))-(5*scorepar$nsmall*scorepar$nsmall*log(scorepar$nsmall)) %% 1000
     }
   }
   if(is.null(stepsave)){
     stepsave<-floor(iterations/1000)
   }
   
-  result<-iterativeMCMCplus1(n,param=scoreparam,iterations,stepsave,plus1it=1,startorder=startorder,
-                             moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
-                             plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
-                             startspace=startspace,blacklist=blacklist,gamma=gamma,verbose=verbose)
+  ordercheck<-checkstartorder(startorder,varnames=scorepar$labels.short,mainnodes=scorepar$mainnodes,
+                              bgnodes=scorepar$static,DBN=scorepar$DBN,split=scorepar$split)
+  
+  if(ordercheck$errorflag) {
+    stop(ordercheck$message)
+  } else {
+    startorder<-ordercheck$order
+  }
+
+  if(scorepar$DBN) { #flag for DBN structure learning with different initial and transition structures
+    
+    if(!is.null(blacklist)) {
+      blacklist<-DBNbacktransform(blacklist,scorepar)
+    } 
+    
+    if(!is.null(startspace)) {
+      startspace<-DBNbacktransform(startspace,scorepar)
+    } 
+    
+   # if(!is.null(addspace)) {
+  #    addspace<-DBNbacktransform(addspace,scorepar)
+  #  }
+  
+    
+    if(scorepar$split) { #we learn initial and transition structures separately
+      
+      if(scoreout | !is.null(scoretable)) {
+        print("option scoreout always equals FALSE for DBNs with samestruct=FALSE, scoretable parameter is ignored")
+      }    
+      result.init<-orderMCMCmain(param=scorepar$firstslice,iterations,stepsave,startorder=startorder$init,
+                               moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
+                               plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
+                               startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,verbose=verbose,
+                               hardlimit=hardlimit)
+    
+      result.trans<-orderMCMCmain(param=scorepar$otherslices,iterations,stepsave,startorder=startorder$trans,
+                                moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
+                                plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
+                                startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,verbose=verbose,
+                                hardlimit=hardlimit)
+    
+      result<-mergeDBNres(result.init,result.trans,scorepar,algo="order")
+    
+    } else {
+      
+      result<-orderMCMCmain(param=scorepar,iterations,stepsave,startorder=startorder,
+                            moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
+                            plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
+                            startspace=startspace,blacklist=blacklist,gamma=gamma,verbose=verbose,
+                            hardlimit=hardlimit)
+    }
+    
+   } else {
+     result<-orderMCMCmain(param=scorepar,iterations,stepsave,startorder=startorder,
+                        moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
+                        plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
+                        startspace=startspace,blacklist=blacklist,gamma=gamma,verbose=verbose,
+                        hardlimit=hardlimit)
+      }
+
+  
+  result$info<-list()
+  if(plus1) {
+  result$info$algo<-"plus1 order MCMC"
+  } else {
+    result$info$algo<-"base order MCMC"
+  }
+  result$info$DBN<-scorepar$DBN
+  if(scorepar$DBN) {
+    result$info$nsmall<-scorepar$nsmall
+    result$info$bgn<-scorepar$bgn
+    result$info$split<-scorepar$split
+  }
+  if(is.null(startspace)) {
+    result$info$spacealgo<-"PC"
+  } else {
+    result$info$spacealgo<-"user defined matrix"
+  }
+  result$info$iterations<-iterations
+  result$info$samplesteps<-ceiling(iterations/stepsave)
+  if(MAP) {
+    result$info$sampletype<-"MAP"
+  } else {
+    result$info$sampletype<-"sample"
+  }
   return(result)
   
 }
 
 #'DAG structure sampling with partition MCMC
 #'
-#'This function implements the partition MCMC algorithm for the structure learning of Bayesian networks.  This procedure provides an unbiased sample from the posterior distribution of DAGs given the data. The search space can be defined either by a preliminary run of the iterativeMCMCsearch function or by a given adjacency matrix (which can be the full matrix with zero on the diagonal, to consider the entire space of DAGs, feasible only for a limited number of nodes). 
+#'This function implements the partition MCMC algorithm for the structure learning of Bayesian networks.  This procedure provides an unbiased sample from the posterior distribution of DAGs given the data. 
+#'The search space can be defined either by a preliminary run of the function \code{iterativeMCMC} or by a given adjacency matrix (which can be the full matrix with zero on the diagonal, to consider the entire space of DAGs, feasible only for a limited number of nodes). 
 #'
-#' @param n number of nodes in the Bayesian network
-#' @param scoreparam an object of class \code{scoreparameters}, containing the data and scoring parameters;  see constructor function \code{\link{scoreparameters}}.
+#' @param scorepar an object of class \code{scoreparameters}, containing the data and scoring parameters;  see constructor function \code{\link{scoreparameters}}.
 #' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.
 #' @param blacklist (optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]=1} it means that the edge from node \code{i} to node \code{j} is excluded from the search space
-#' @param scoretable (optional) list of score tables calculated for example by the last iteration of the iterativeMCMCsearch function, to avoid their recomputation; the score tables must match the permissible parents in the search space defined by the startspace parameter
+#' @param scoretable (optional) list of score tables; for example calculated at the last iteration of the function \code{iterativeMCMC}, to avoid their recomputation; the score tables must match the permissible parents in the search space defined by the startspace parameter
 #' @param startDAG (optional) an adjacency matrix of dimensions equal to the number of nodes, representing a DAG in the search space defined by startspace.  If startspace is defined but \code{startDAG} is not, an empty DAG will be used by default
 #' @param moveprobs (optional) a numerical vector of 5 values in \code{\{0,1\}} corresponding to the following MCMC move probabilities in the space of partitions:
 #' \itemize{
@@ -139,44 +223,115 @@ orderMCMC<-function(n, scoreparam, MAP=TRUE, plus1=TRUE,
 #'@references Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian directed acyclic graphical models. The Annals of Statistics 42, 1689-1691.
 #'@examples
 #'\dontrun{
-#'myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
-#'myData<-pcalg::rmvDAG(200, myDAG) 
-#'myScore<-scoreparameters(20, "bge", myData)
-#'partfit<-partitionMCMC(20,myScore)
-#'sample.check(20,partfit$chain$incidence,myDAG)
+#'myScore<-scoreparameters(14, "bge", Boston)
+#'partfit<-partitionMCMC(myScore)
+#'plot(partfit)
 #'}
 #'@import pcalg
 #'@export
-partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretable=NULL, startDAG=NULL, 
+partitionMCMC<-function(scorepar, startspace=NULL, blacklist=NULL,scoretable=NULL, startDAG=NULL, 
                         moveprobs=NULL, iterations=NULL,  stepsave=NULL,gamma=1,verbose=TRUE) {
   if (is.null(moveprobs)) {
     prob1start<-40/100
     prob1<-prob1start*100
-    if(n>3){ prob1<-round(6*prob1*n/(n^2+10*n-24)) }
+    if(scorepar$nsmall>3){ prob1<-round(6*prob1*scorepar$nsmall/(scorepar$nsmall^2+10*scorepar$nsmall-24)) }
     prob1<-prob1/100
     prob2start<-99/100-prob1start
     prob2<-prob2start*100
-    if(n>3){ prob2<-round(6*prob2*n/(n^2+10*n-24)) }
+    if(scorepar$nsmall>3){ prob2<-round(6*prob2*scorepar$nsmall/(scorepar$nsmall^2+10*scorepar$nsmall-24)) }
     prob2<-prob2/100
     moveprobs.partition<-c(prob1,prob1start-prob1,prob2start-prob2,prob2,0.01)
-    moveprobs.partition<-moveprobs.partition/sum(moveprobs.partition) # normalisation
-  }
+    moveprobs<-moveprobs.partition/sum(moveprobs.partition) # normalisation
+  } 
   if(is.null(iterations)){
-    if(n<26){
+    if(scorepar$nsmall<26){
       iterations<-30000
     } else {
-      iterations<-(8*n*n*log(n))-(8*n*n*log(n)) %% 1000
+      iterations<-(8*scorepar$nsmall*scorepar$nsmall*log(scorepar$nsmall))-(8*scorepar$nsmall*scorepar$nsmall*log(scorepar$nsmall)) %% 1000
     }
   }
   if(is.null(stepsave)){
     stepsave<-floor(iterations/1000)
   }
-  partres<-partitionMCMCplus1sample(n,param=scoreparam,startspace=startspace,blacklist=blacklist,
-                                    moveprobs=moveprobs.partition,numit=iterations,DAG=startDAG,
-                                    stepsave=stepsave,startorder=NULL,scoretable=scoretable,verbose=verbose,
-                                    gamma=gamma)
-  return(partres)
   
+  #no startorder needed for partitionMCMC
+  # ordercheck<-checkstartorder(startorder,varnames=scorepar$labels.short,mainnodes=scorepar$mainnodes,
+  #                             bgnodes=scorepar$static,DBN=scorepar$DBN,split=scorepar$split)
+  # 
+  # if(ordercheck$errorflag) {
+  #   stop(ordercheck$message)
+  # } else {
+  #   startorder<-ordercheck$order
+  # }
+  # 
+  
+  if(scorepar$DBN) { #flag for DBN structure learning with different initial and transition structures
+    
+    if(!is.null(blacklist)) {
+      blacklist<-DBNbacktransform(blacklist,scorepar)
+    } 
+    
+    if(!is.null(startspace)) {
+      startspace<-DBNbacktransform(startspace,scorepar)
+    } 
+    
+    if(!is.null(startDAG)) {
+      startDAG<-DBNbacktransform(startDAG,scorepar)
+    } 
+    
+    if(scorepar$split) { #we learn initial and transition structures separately
+      
+      if(!is.null(scoretable)) {
+        print("for DBNs with samestruct=FALSE 'scoretable' parameter is ignored")
+      }  
+        
+      result.init<-partitionMCMCplus1sample(param=scorepar$firstslices,startspace=startspace$init,
+                                            blacklist=blacklist$init,moveprobs=moveprobs,
+                                            numit=iterations,DAG=startDAG$init,stepsave=stepsave,
+                                            scoretable=NULL,
+                                            verbose=verbose,gamma=gamma)
+      
+      result.trans<-partitionMCMCplus1sample(param=scorepar$otherslices,startspace=startspace$trans,
+                                             blacklist=blacklist$trans,moveprobs=moveprobs,
+                                             numit=iterations,DAG=startDAG$trans,stepsave=stepsave,
+                                             scoretable=NULL,
+                                             verbose=verbose,gamma=gamma)
+      
+      result<-mergeDBNres(result.init,result.trans,scorepar,algo="partition")
+      
+    } else {
+      
+      result<-partitionMCMCplus1sample(param=scorepar,startspace=startspace,blacklist=blacklist,
+                                       moveprobs=moveprobs,numit=iterations,DAG=startDAG,
+                                       stepsave=stepsave,scoretable=scoretable,verbose=verbose,
+                                       gamma=gamma)
+    }
+    
+  } else {
+    result<-partitionMCMCplus1sample(param=scorepar,startspace=startspace,blacklist=blacklist,
+                                     moveprobs=moveprobs,numit=iterations,DAG=startDAG,
+                                     stepsave=stepsave,scoretable=scoretable,verbose=verbose,
+                                     gamma=gamma)
+  }
+  
+  
+  result$info<-list()
+  result$info$DBN<-scorepar$DBN
+  if(scorepar$DBN) {
+    result$info$nsmall<-scorepar$nsmall
+    result$info$bgn<-scorepar$bgn
+    result$info$split<-scorepar$split
+  }
+  result$info$algo<-"plus1 partition MCMC"
+  if(is.null(startspace)) {
+    result$info$spacealgo<-"PC + iterative plus1 order MCMC"
+  } else {
+    result$info$spacealgo<-"user defined matrix"
+  }
+  result$info$iterations<-iterations
+  result$info$samplesteps<-ceiling(iterations/stepsave)
+  result$info$sampletype<-"sample"
+  return(result)
 }
 
 
@@ -192,8 +347,7 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #'further score improvements can be achieved by expanding the search space.  
 #'The final search space may be used for the sampling versions of \code{\link{orderMCMC}} and \code{\link{partitionMCMC}}.
 #'
-#' @param n number of nodes in the Bayesian network
-#' @param scoreparam an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}
+#' @param scorepar an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}
 #' @param plus1it (optional) integer, a number of iterations of search space expansion; by default the algorithm iterates until no score improvement can be achieved by further expanding the search space
 #' @param moveprobs (optional) a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space:
 #' \itemize{
@@ -222,6 +376,7 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #' @param cpdag logical, if set to TRUE the equivalence class (CPDAG) found by the PC algorithm is used as a search
 #'  space, when FALSE (default) the undirected skeleton used as a search space
 #' @param mergetype defines which edges are added to the search space at each expansion iteration; if set to 
+#' @param accum logical, when TRUE at each search step expansion new edges are added to the current search space; when FALSE (default) the new edges are added to the starting space
 #' \itemize{
 #' \item "dag", then edges from maximum scoring DAG are added;
 #' \item "cpdag", then the maximum scoring DAG is first converted to the CPDAG, from which all edges are added to the search space;
@@ -258,15 +413,15 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #'@examples
 #'\dontrun{
 #'Bostonpar<-scoreparameters(14,"bge",Boston)
-#'itfit<-iterativeMCMCsearch(14,Bostonpar, scoreout=TRUE)
-#'sp<-itfit$space$adjacency 
-#'scores<-itfit$space$scoretable
-#'ordersample<-orderMCMC(14, Bostonpar, MAP=FALSE, startspace=sp, scoretable=scores)
+#'itfit<-iterativeMCMC(Bostonpar, chainout=TRUE, scoreout=TRUE)
+#'plot(itfit)
 #'}
 #'@import pcalg
 #'@importFrom methods new
 #'@importFrom graphics lines
 #'@importFrom graphics par
+#'@importFrom graphics layout
+#'@importFrom graphics legend
 #'@importFrom stats cor 
 #'@importFrom stats cov 
 #'@importFrom stats cov.wt
@@ -275,6 +430,11 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 #'@importFrom stats rnorm 
 #'@importFrom utils data
 #'@importFrom utils flush.console
+#'@importFrom Rgraphviz makeNodeAttrs
+#'@importFrom graph subGraph
+#'@importFrom graph nodes
+#'@importFrom graph nodeRenderInfo
+#'@importFrom graph graph.par
 #'@importFrom Rcpp evalCpp
 #'@useDynLib BiDAG, .registration=TRUE
 # pcalg pc
@@ -282,34 +442,118 @@ partitionMCMC<-function(n, scoreparam, startspace=NULL, blacklist=NULL,scoretabl
 # pcalg shd
 # pcalg dag2cpdag
 #'@export
-iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=TRUE, posterior=0.5,
-                              iterations=NULL, stepsave=NULL, softlimit=9, hardlimit=12, alpha=NULL, gamma=1, 
+iterativeMCMC<-function(scorepar, plus1it=NULL, moveprobs=NULL, MAP=TRUE, posterior=0.5,
+                              iterations=NULL, stepsave=NULL, softlimit=9, hardlimit=12, alpha=0.05, gamma=1, 
                               startspace=NULL, blacklist=NULL,verbose=TRUE, chainout=FALSE, scoreout=FALSE, cpdag=FALSE, 
-                              mergetype="skeleton",addspace=NULL,scoretable=NULL,startorder=c(1:n)) {
+                              mergetype="skeleton",addspace=NULL,scoretable=NULL,startorder=NULL,
+                              accum=FALSE) {
   
   if (is.null(moveprobs)) {
     prob1<-99
-    if(n>3){ prob1<-round(6*99*n/(n^2+10*n-24)) }
+    if(scorepar$nsmall>3){ prob1<-round(6*99*scorepar$nsmall/(scorepar$nsmall^2+10*scorepar$nsmall-24)) }
     prob1<-prob1/100
     moveprobs<-c(prob1,0.99-prob1,0.01)
     moveprobs<-moveprobs/sum(moveprobs) # normalisation
     moveprobs<-c(moveprobs[c(1,2)],0,moveprobs[3])
   }
   if(is.null(iterations)) {
-    if(n<26){
+    if(scorepar$nsmall<26){
       iterations<-25000
     } else {
-      iterations<-(3.5*n*n*log(n))-(3.5*n*n*log(n)) %% 1000
+      iterations<-(3.5*scorepar$nsmall*scorepar$nsmall*log(scorepar$nsmall))-(3.5*scorepar$nsmall*scorepar$nsmall*log(scorepar$nsmall)) %% 1000
     }
   }
   if(is.null(stepsave)) {
     stepsave<-floor(iterations/1000)
   }
-  result<-iterativeMCMCplus1(n,param=scoreparam,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
+  
+  ordercheck<-checkstartorder(startorder,varnames=scorepar$labels.short,mainnodes=scorepar$mainnodes,
+                              bgnodes=scorepar$static,DBN=scorepar$DBN,split=scorepar$split)
+  
+  #checkstartorder(NULL,dbnsplit$labels.short,dbnsplit$mainnodes,c(1:3),DBN=TRUE, split=TRUE) 
+  
+  if(ordercheck$errorflag) {
+    stop(ordercheck$message)
+  } else {
+    startorder<-ordercheck$order
+  }
+  
+  if(scorepar$DBN) { #flag for DBN structure learning with different initial and transition structures
+    
+    if(!is.null(blacklist)) {
+      blacklist<-DBNbacktransform(blacklist,scorepar)
+    } 
+    
+    if(!is.null(startspace)) {
+      startspace<-DBNbacktransform(startspace,scorepar)
+    } 
+    
+    if(!is.null(addspace)) {
+      addspace<-DBNbacktransform(addspace,scorepar)
+    }
+    
+    if(scorepar$split) { #we learn initial and transition structures separately
+      
+      if(scoreout | !is.null(scoretable)) {
+        print("option scoreout always equals FALSE for DBNs with samestruct=FALSE, scoretable parameter is ignored")
+      }
+      
+      #print(startorder$init)
+      #print(startorder$trans)
+      print("learning initial structure...")
+      result.init<-iterativeMCMCplus1(param=scorepar$firstslice,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
+                                      moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
+                                      startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,
+                                      verbose=verbose, chainout=chainout,scoreout=FALSE,mergecp=mergetype,
+                                      addspace=addspace$init,scoretable=NULL,startorder=startorder$init,accum=accum)
+      print("learning transition structure...")
+      result.trans<-iterativeMCMCplus1(param=scorepar$otherslices,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
+                                       moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
+                                       startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,
+                                       verbose=verbose, chainout=chainout,scoreout=FALSE,mergecp=mergetype,
+                                       addspace=addspace$trans,scoretable=NULL,startorder=startorder$trans,accum=accum)
+      
+      result<-mergeDBNres.it(result.init,result.trans,scorepar)
+      
+    } else {
+      
+      result<-iterativeMCMCplus1(param=scorepar,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
+                                 moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
+                                 startspace=startspace,blacklist=blacklist,gamma=gamma,
+                                 verbose=verbose, chainout=chainout,scoreout=scoreout,mergecp=mergetype,
+                                 addspace=addspace,scoretable=scoretable,startorder=startorder,accum=accum)
+    }
+    
+  } else {
+      result<-iterativeMCMCplus1(param=scorepar,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
                              moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
-                             plus1=TRUE,startspace=startspace,blacklist=blacklist,gamma=gamma,
+                             startspace=startspace,blacklist=blacklist,gamma=gamma,
                              verbose=verbose, chainout=chainout,scoreout=scoreout,mergecp=mergetype,
-                             addspace=addspace,scoretable=scoretable,startorder=startorder)
+                             addspace=addspace,scoretable=scoretable,startorder=startorder,accum=accum)
+      }
+  result$info<-list()
+  result$info$DBN<-scorepar$DBN
+  if(scorepar$DBN) {
+    result$info$nsmall<-scorepar$nsmall
+    result$info$bgn<-scorepar$bgn
+    result$info$split<-scorepar$split
+    
+  }
+  result$info$algo<-"iterative plus1 order MCMC"
+  if(is.null(startspace)) {
+    result$info$spacealgo<-"PC"
+  } else {
+    result$info$spacealgo<-"user defined matrix"
+  }
+  result$info$iterations<-iterations
+  result$info$plus1it<-length(result$max)
+  result$info$samplesteps<-floor(iterations/stepsave)+1
+  if(MAP) {
+    result$info$sampletype<-"MAP"
+  } else {
+    result$info$sampletype<-"sample"
+    result$info$threshold<-posterior
+  }
   return(result)
   
 }
@@ -321,8 +565,7 @@ iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=T
 #'continuous, binary or categorical.  The BGe score is evaluated in the case of 
 #'continuous data and the BDe score is evaluated for binary and categorical variables.
 #'
-#' @param n number of nodes in the Bayesian network
-#' @param scoreparam an object of class \code{scoreparameters}, containing the data and
+#' @param scorepar an object of class \code{scoreparameters}, containing the data and
 #'  scoring parameters; see constructor function \code{\link{scoreparameters}}
 #' @param incidence a square matrix of dimensions equal to the number of nodes, representing the adjacency matrix of a DAG;  the matrix entries are in \code{\{0,1\}} such that \code{incidence[i,j]} equals 1 if there is a directed edge from node \code{i} to node \code{j} in the DAG and 
 #' \code{incidence[i,j]} equals 0 otherwise
@@ -331,21 +574,80 @@ iterativeMCMCsearch<-function(n, scoreparam, plus1it=NULL, moveprobs=NULL, MAP=T
 #' @references Heckerman D and Geiger D (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284.
 #' @references Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian directed acyclic graphical models. The Annals of Statistics 42, 1689-1691.
 #' @examples
-#' myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
-#' myData<-pcalg::rmvDAG(200, myDAG) 
-#' adjacency<-dag2adjacencymatrix(myDAG)
-#' myScore<-scoreparameters(20,"bge",myData)
-#' DAGscore(20,myScore, adjacency)
+#' myScore<-scoreparameters(8, "bde", Asia)
+#' DAGscore(myScore, Asiamat)
 #' @import pcalg
 #' @export
-#' 
-DAGscore <- function(n,scoreparam, incidence){ 
-  n<-ncol(scoreparam$data)
+DAGscore <- function(scorepar, incidence){ 
+  if(scorepar$DBN) {
+    stop("To calculate DBN score DBNscore should be used!")
+  }
+  n<-ncol(scorepar$data)
+  if(scorepar$bgn==0) {
+    mainnodes<-c(1:scorepar$n)
+  } else {
+    mainnodes<-c(1:n)[-scorepar$bgnodes]
+  }
   P_local <- numeric(n)
-  for (j in 1:n)  { #j is a node at which scoring is done
+  for (j in mainnodes)  { #j is a node at which scoring is done
     parentnodes <- which(incidence[,j]==1)
-    P_local[j]<-DAGcorescore(j,parentnodes,n,scoreparam)
+    P_local[j]<-DAGcorescore(j,parentnodes,scorepar$n,scorepar)
   }
   #print(P_local)
   return(sum(P_local))
+}
+
+
+#'Calculating the BGe/BDe score of a single DBN
+#'
+#'This function calculates the score of a DBN defined by its compact adjacency matrix. 
+#'Acceptable data matrices are homogeneous with all variables of the same type: continuous,
+#'binary or categorical.  The BGe score is evaluated in the case of continuous data and the BDe score is evaluated for binary and categorical variables.
+#'
+#' @param scorepar an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}
+#' @param incidence a square matrix, representing initial and transitional structure of a DBN; the size of matrix is 2*nsmall+bgn, where nsmall is the number of variables per time slice excluding static nodes and bgn is the number of static variables
+#'  the matrix entries are in \code{\{0,1\}} such that \code{incidence[i,j]} equals
+#'   1 if there is a directed edge from node \code{i} to node \code{j} in the DAG and 
+#' \code{incidence[i,j]} equals 0 otherwise
+#' @return the log of the BGe or BDe score of the DBN
+#' @examples
+#' testscore<-scoreparameters(15, "bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
+#'                         dbnpar=list(slices=5))
+#' DBNscore(testscore, DBNmat)
+#'
+#' @export
+DBNscore<-function(scorepar,incidence) {
+  
+  if(nrow(incidence)==ncol(incidence) & ncol(incidence)==(2*scorepar$nsmall+scorepar$bgn)) {
+    
+    incidence<-DBNbacktransform(incidence,scorepar)
+    
+    if(!scorepar$split) {
+        P_local <- numeric(scorepar$nsmall)
+        for (j in 1:scorepar$nsmall)  { #j is a node at which scoring is done
+          parentnodes <- which(incidence[,j]==1)
+          P_local[j]<-DAGcorescore(j,parentnodes,scorepar$n,scorepar)
+        }
+    
+        return(sum(P_local))
+      } else {
+        P_local <- numeric(2*scorepar$nsmall)
+        
+        for (j in 1:scorepar$nsmall)  { #j is a node at which scoring is done
+          parentnodes <- which(incidence$init[,j]==1)
+          P_local[j]<-DAGcorescore(j,parentnodes,scorepar$n,scorepar$firstslice)
+        }
+        
+        for (j in 1:scorepar$nsmall)  { #j is a node at which scoring is done
+          parentnodes <- which(incidence$trans[,j]==1)
+          P_local[j+scorepar$nsmall]<-DAGcorescore(j,parentnodes,scorepar$otherslices$n,scorepar$otherslices)
+        }
+        
+        return(sum(P_local))
+      
+     }
+    
+    } else {
+        stop("wrong dimensions of the adjacency matrix!")
+      }
 }

@@ -4,20 +4,18 @@
 \alias{partitionMCMC}
 \title{DAG structure sampling with partition MCMC}
 \usage{
-partitionMCMC(n, scoreparam, startspace = NULL, blacklist = NULL,
+partitionMCMC(scorepar, startspace = NULL, blacklist = NULL,
   scoretable = NULL, startDAG = NULL, moveprobs = NULL,
   iterations = NULL, stepsave = NULL, gamma = 1, verbose = TRUE)
 }
 \arguments{
-\item{n}{number of nodes in the Bayesian network}
-
-\item{scoreparam}{an object of class \code{scoreparameters}, containing the data and scoring parameters;  see constructor function \code{\link{scoreparameters}}.}
+\item{scorepar}{an object of class \code{scoreparameters}, containing the data and scoring parameters;  see constructor function \code{\link{scoreparameters}}.}
 
 \item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.}
 
 \item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]=1} it means that the edge from node \code{i} to node \code{j} is excluded from the search space}
 
-\item{scoretable}{(optional) list of score tables calculated for example by the last iteration of the iterativeMCMCsearch function, to avoid their recomputation; the score tables must match the permissible parents in the search space defined by the startspace parameter}
+\item{scoretable}{(optional) list of score tables; for example calculated at the last iteration of the function \code{iterativeMCMC}, to avoid their recomputation; the score tables must match the permissible parents in the search space defined by the startspace parameter}
 
 \item{startDAG}{(optional) an adjacency matrix of dimensions equal to the number of nodes, representing a DAG in the search space defined by startspace.  If startspace is defined but \code{startDAG} is not, an empty DAG will be used by default}
 
@@ -49,15 +47,14 @@ an object of class \code{MCMCtrace}, which contains a list of 5 elements (each l
 }
 }
 \description{
-This function implements the partition MCMC algorithm for the structure learning of Bayesian networks.  This procedure provides an unbiased sample from the posterior distribution of DAGs given the data. The search space can be defined either by a preliminary run of the iterativeMCMCsearch function or by a given adjacency matrix (which can be the full matrix with zero on the diagonal, to consider the entire space of DAGs, feasible only for a limited number of nodes).
+This function implements the partition MCMC algorithm for the structure learning of Bayesian networks.  This procedure provides an unbiased sample from the posterior distribution of DAGs given the data. 
+The search space can be defined either by a preliminary run of the function \code{iterativeMCMC} or by a given adjacency matrix (which can be the full matrix with zero on the diagonal, to consider the entire space of DAGs, feasible only for a limited number of nodes).
 }
 \examples{
 \dontrun{
-myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
-myData<-pcalg::rmvDAG(200, myDAG) 
-myScore<-scoreparameters(20, "bge", myData)
-partfit<-partitionMCMC(20,myScore)
-sample.check(20,partfit$chain$incidence,myDAG)
+myScore<-scoreparameters(14, "bge", Boston)
+partfit<-partitionMCMC(myScore)
+plot(partfit)
 }
 }
 \references{
