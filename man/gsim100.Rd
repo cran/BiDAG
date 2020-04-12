@@ -4,7 +4,9 @@
 \name{gsim100}
 \alias{gsim100}
 \title{A simulated data set from a Gaussian continuous Bayesian network}
-\format{A data frame with 100 rows representing observations of 100 continuous variables: V1, ..., V100}
+\format{
+A data frame with 100 rows representing observations of 100 continuous variables: V1, ..., V100
+}
 \usage{
 gsim100
 }

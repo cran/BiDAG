@@ -4,12 +4,21 @@
 \alias{scoreparameters}
 \title{Initialising score object}
 \usage{
-scoreparameters(n, scoretype = c("bge", "bde", "bdecat"), data,
-  weightvector = NULL, bgnodes = NULL, bgepar = list(am = 1, aw =
-  NULL), bdepar = list(chi = 0.5, edgepf = 2), bdecatpar = list(chi =
-  0.5, edgepf = 2), dbnpar = list(slices = 2, equalstruct = TRUE,
-  repeatstatic = TRUE), usrpar = list(pctesttype = c("bge", "bde",
-  "bdecat")), edgepmat = NULL, nodeslabels = NULL, DBN = FALSE)
+scoreparameters(
+  n,
+  scoretype = c("bge", "bde", "bdecat"),
+  data,
+  weightvector = NULL,
+  bgnodes = NULL,
+  bgepar = list(am = 1, aw = NULL),
+  bdepar = list(chi = 0.5, edgepf = 2),
+  bdecatpar = list(chi = 0.5, edgepf = 2),
+  dbnpar = list(samestruct = TRUE, slices = 2),
+  usrpar = list(pctesttype = c("bge", "bde", "bdecat")),
+  edgepmat = NULL,
+  nodeslabels = NULL,
+  DBN = FALSE
+)
 }
 \arguments{
 \item{n}{number of nodes (variables) in the Bayesian network; for DBN n represents the number of nodes per one time slice (including static variables)}
@@ -45,9 +54,8 @@ scoreparameters(n, scoretype = c("bge", "bde", "bdecat"), data,
 
 \item{dbnpar}{which type of score to use for the slices
 \itemize{
-\item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure in all other time slices
-\item staticfirst logical, when TRUE the static variables (background nodes) are assumed to have impact only on variables in the first time slice but not on variables in later time slices 
-\item slices the number of time slices
+\item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure of all other time slices
+\item slices integer representing the number of time slices in a DBN
 }}
 
 \item{usrpar}{a list which contains parameters for the user defined score

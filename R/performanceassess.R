@@ -136,11 +136,18 @@ iterations.check<-function(MCMCmult, truedag, cpdag=TRUE, pbarrier=0.5,trans=TRU
           MCMCmult$init$maxtrace<-NULL
         }
       } else {
+          newtrace<-lapply(MCMCmult$maxtrace,function(x)x$DAG)
           if(trans) {
-            MCMCmult$maxtrace<-lapply(MCMCmult$maxtrace,DBNcut,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn)
+            newtrace<-lapply(newtrace,DBNcut,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn)
+            for(i in 1:length(newtrace)) {
+              MCMCmult$maxtrace[[i]]$DAG<-newtrace[[i]]
+            }
           } else {
-            MCMCmult$maxtrace<-lapply(MCMCmult$maxtrace,DBNinit,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn)
-          }
+            newtrace<-lapply(newtrace,DBNinit,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn)
+            for(i in 1:length(newtrace)) {
+              MCMCmult$maxtrace[[i]]$DAG<-newtrace[[i]]
+            }
+            }
       }
     } else {
       if(is.matrix(truedag)) truedag<-m2graph(truedag)
@@ -151,8 +158,8 @@ iterations.check<-function(MCMCmult, truedag, cpdag=TRUE, pbarrier=0.5,trans=TRU
   chainl<-length(MCMCmult$maxtrace)
   
     for (j in  1:chainl) {
-      SC[j]<-MCMCmult$maxtrace[[j]][[3]]
-      maxadj<-MCMCmult$maxtrace[[j]][[1]]
+      SC[j]<-MCMCmult$maxtrace[[j]]$score
+      maxadj<-MCMCmult$maxtrace[[j]]$DAG
       estskelmcmc<-graph2skeleton(maxadj) #output is an upper triangular matrix, so works for DBNs too
       diffmcmc<-estskelmcmc-trueskeleton
       mc.dag<-m2graph(maxadj)

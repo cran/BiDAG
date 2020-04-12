@@ -101,7 +101,7 @@ compareDAGs<-function(eDAG,trueDAG) {
 #'
 #'@param eDBN an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the DBN which should be compared to a ground truth DBN 
 #'@param trueDBN an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the ground truth DBN 
-#'@param struct option used to determine if the initial or the transitional structure should be plotted; accaptable values are init or trans
+#'@param struct option used to determine if the initial or the transitional structure should be compared; accaptable values are init or trans
 #'@param n.dynamic number of dynamic variables in one time slice of a DBN
 #'@param n.static number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix
 #'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate

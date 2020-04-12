@@ -4,8 +4,14 @@
 \alias{sample.check}
 \title{Performance assessment of sampling algorithms against a known Bayesian network}
 \usage{
-sample.check(MCMCchain, truedag, pbarrier = c(0.99, 0.95, 0.9, 0.8, 0.7,
-  0.6, 0.5, 0.4, 0.3, 0.2), pdag = TRUE, burnin = 0.2, trans = TRUE)
+sample.check(
+  MCMCchain,
+  truedag,
+  pbarrier = c(0.99, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2),
+  pdag = TRUE,
+  burnin = 0.2,
+  trans = TRUE
+)
 }
 \arguments{
 \item{MCMCchain}{an object of class MCMCres, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE)}

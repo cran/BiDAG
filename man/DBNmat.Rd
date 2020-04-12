@@ -4,7 +4,9 @@
 \name{DBNmat}
 \alias{DBNmat}
 \title{An adjacency matrix of a dynamic Bayesian network}
-\format{A binary matrix with 27 rows and 27 columns representing an adjacency matrix of a DBN. Rows and columns of the matrix correspond to 15 variables of a DBN across 2 time slices.}
+\format{
+A binary matrix with 27 rows and 27 columns representing an adjacency matrix of a DBN. Rows and columns of the matrix correspond to 15 variables of a DBN across 2 time slices.
+}
 \usage{
 DBNmat
 }

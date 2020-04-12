@@ -1,11 +1,11 @@
 TableDAGscore.alias <- function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,
                                 numberofparentsvec=NULL) {
   
-  if (param$type=="bde") {
+  if (param$type=="bde" & !param$DBN) {
     nrows<-nrow(parentrows)
     parentnodes<- alias[parentrows[nrows,!is.na(parentrows[nrows,])]]
     P_local<-DAGbinarytablescore(j,parentnodes,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
-  } else if (param$type=="bdecat") {
+  } else if (param$type=="bdecat" & !param$DBN) {
     nrows<-nrow(parentrows)
     parentnodes<- alias[parentrows[nrows,!is.na(parentrows[nrows,])]]
     P_local<-DAGcattablescore(j,parentnodes,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
@@ -22,13 +22,13 @@ TableDAGscore.alias <- function(parentrows, j, n,alias,param,parentmaps=NULL,num
 }
 
 TableDAGscore.alias.plus1<-function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,numberofparentsvec=NULL) {
-  
-  if (param$type=="bde") {
+
+  if (param$type=="bde" & !param$DBN) {
     nrows <- nrow(parentrows)
     parentnodes <- alias[parentrows[nrows,!is.na(parentrows[nrows,])]+1]
     addpar <- alias[1]
     P_local <- DAGbinarytablescoreplus1(j,parentnodes,addpar,n,param,parentrows,parentmaps,numparents,numberofparentsvec)
-  } else if (param$type=="bdecat") {
+  } else if (param$type=="bdecat" & !param$DBN) {
     nrows <- nrow(parentrows)
     parentnodes <- alias[parentrows[nrows,!is.na(parentrows[nrows,])]+1]
     addpar <- alias[1]
@@ -36,7 +36,6 @@ TableDAGscore.alias.plus1<-function(parentrows, j, n,alias,param,parentmaps=NULL
   } else { 
     nrows<-nrow(parentrows)
     P_local <- numeric(nrows)
-    
     for (i in 1:nrows)  {
       parentnodes <- alias[c(1,parentrows[i,!is.na(parentrows[i,])]+1)]
       P_local[i] <- DAGcorescore(j,parentnodes,n,param)
@@ -144,7 +143,7 @@ scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes,
                                        numberofparentsvec[[i]])
       } else {
         scoretemp<-TableDAGscore.alias.plus1(parenttable[[i]], i, n,aliases[[i]][j,],param,parentmaps[[i]],numparents[i],numberofparentsvec[[i]])}
-       listz[[j]] <- as.matrix(scoretemp)
+        listz[[j]] <- as.matrix(scoretemp)
     }
     listy[[i]]<-listz
   }

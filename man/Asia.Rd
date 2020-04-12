@@ -4,7 +4,8 @@
 \name{Asia}
 \alias{Asia}
 \title{Asia dataset}
-\format{A data frame with 5000 rows and 8 binary variables:
+\format{
+A data frame with 5000 rows and 8 binary variables:
 \itemize{
 \item D (dyspnoea), binary 1/0 corresponding to "yes" and "no"
 \item T (tuberculosis), binary 1/0 corresponding to "yes" and "no"
@@ -14,7 +15,8 @@
 \item S (smoking), binary 1/0 corresponding to "yes" and "no"
 \item X (chest X-ray), binary 1/0 corresponding to "yes" and "no"
 \item E (tuberculosis versus lung cancer/bronchitis), binary 1/0 corresponding to "yes" and "no"
-}}
+}
+}
 \source{
 \url{http://www.bnlearn.com/bnrepository/}
 }

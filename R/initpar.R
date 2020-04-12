@@ -29,9 +29,8 @@
 #' }
 #' @param dbnpar which type of score to use for the slices
 #' \itemize{
-#' \item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure in all other time slices
-#' \item staticfirst logical, when TRUE the static variables (background nodes) are assumed to have impact only on variables in the first time slice but not on variables in later time slices 
-#' \item slices the number of time slices
+#' \item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure of all other time slices
+#' \item slices integer representing the number of time slices in a DBN
 #' }
 #' @param usrpar a list which contains parameters for the user defined score
 #' \itemize{
@@ -58,7 +57,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
                           bgepar=list(am=1, aw=NULL),
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(slices=2,equalstruct=TRUE,repeatstatic=TRUE), 
+                          dbnpar=list(samestruct=TRUE,slices=2), 
                           usrpar=list(pctesttype=c("bge","bde","bdecat")), 
                           edgepmat=NULL, nodeslabels=NULL,DBN=FALSE) {
   
@@ -83,12 +82,12 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
   
   if (!is.null(weightvector)) {
     if (length(weightvector)!=nrow(data)) {
-      stop("Length of the weightvector does not match the number of columns (observations) in data")
+      stop("Length of the weightvector does not match the number of rows (observations) in data")
     }
   }
   
   if (scoretype=="bde") {
-    if (!all(sapply(data,function(x)x%in%c(0,1)))) {
+    if (!all(sapply(data,function(x)x%in%c(0,1,NA)))) {
       stop("Dataset contains non-binary values")  
     }
   }
@@ -140,7 +139,9 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
   
   if(DBN) {
     initparam$bgnodes<-c(1:n+nsmall)
-    initparam$static<-c(1:bgn)
+    if(bgn>0) {
+      initparam$static<-c(1:bgn)
+    }
     initparam$mainnodes<-c(1:nsmall+bgn)
   } else {
     initparam$bgnodes<-bgnodes
@@ -165,6 +166,8 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
   }
   if(DBN) {
     
+    initparam$slices<-dbnpar$slices
+    
     if (!is.null(dbnpar$samestruct)) {
       initparam$split<-!dbnpar$samestruct
     } else {
@@ -173,20 +176,26 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
     
     # other slices we layer the data, 
     datalocal <- data[,1:(2*nsmall+bgn)]
+    collabels<-colnames(datalocal)
       if (bgn>0){
         bgdata<-data[,bgnodes]
          if(dbnpar$slices > 2){ # layer on later time slices
             for(jj in 1:(dbnpar$slices-2)){
-              datalocal <- rbind(datalocal,cbind(bgdata,data[,nsmall*jj+1:(2*nsmall)+bgn]))
+              datatobind<-cbind(bgdata,data[,nsmall*jj+1:(2*nsmall)+bgn])
+              colnames(datatobind)<-collabels
+              datalocal <- rbind(datalocal,datatobind)
             }
-          }
-      newbgnodes<-bgnodes+nsmall #since we change data columns bgnodes change indices
+         }
+        newbgnodes<-bgnodes+nsmall #since we change data columns bgnodes change indices
     } else {
       if(dbnpar$slices > 2){ # layer on later time slices
         for(jj in 1:(dbnpar$slices-2)){
-          datalocal <- rbind(datalocal,data[,n*jj+1:(2*n)])
+          datatobind<-data[,n*jj+1:(2*n)]
+          colnames(datatobind)<-collabels
+          datalocal <- rbind(datalocal,datatobind)
         }
       }
+      newbgnodes<-bgnodes
     }
     
     # and have earlier times on the right hand side! (bgnodes if present go between two time slices)
@@ -223,6 +232,11 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
     initparam$trans$cols<-c(1:nsmall)
   
     
+    if(!is.null(weightvector)) {
+      weightvector.other<-rep(weightvector,dbnpar$slices-1)
+    } else {
+      weightvector.other<-weightvector
+    }
     
     #removing rows containing missing data
     lNA<-0
@@ -230,10 +244,13 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
       NArows<-which(apply(datalocal,1,anyNA)==TRUE)
       lNA<-length(NArows)
       datalocal<-datalocal[-NArows,]
+      if(!is.null(weightvector)) {
+        weightvector.other<-weightvector.other[-NArows]
+      } 
     }
     
     initparam$otherslices <- scoreparameters(n=n+nsmall, scoretype=scoretype, 
-                                             datalocal, weightvector=weightvector, 
+                                             datalocal, weightvector=weightvector.other, 
                                              bgnodes=initparam$bgnodes,
                                              bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
                                              edgepmat=edgepmat, DBN=FALSE)
@@ -252,11 +269,14 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
       NArows<-which(apply(datalocal,1,anyNA)==TRUE)
       lNA<-lNA+length(NArows)
       datalocal<-datalocal[-NArows,]
+      if(!is.null(weightvector)) {
+        weightvector<-weightvector[-NArows]
+      }
     }
     if(lNA>0) {
       print(paste(lNA, "rows were removed due to missing data"))
     }
-    
+
     initparam$firstslice <- scoreparameters(n=n, scoretype=scoretype, 
                                             datalocal, weightvector=weightvector, bgnodes=newbgnodes,
                                             bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 

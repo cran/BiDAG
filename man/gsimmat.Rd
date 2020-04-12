@@ -4,7 +4,9 @@
 \name{gsimmat}
 \alias{gsimmat}
 \title{An adjacency matrix of a simulated dataset}
-\format{A binary matrix with 100 rows and 100 columns representing an adjacency matrix of a DAG with 100 nodes: V1, ..., V100}
+\format{
+A binary matrix with 100 rows and 100 columns representing an adjacency matrix of a DAG with 100 nodes: V1, ..., V100
+}
 \usage{
 gsimmat
 }

@@ -4,9 +4,18 @@
 \alias{partitionMCMC}
 \title{DAG structure sampling with partition MCMC}
 \usage{
-partitionMCMC(scorepar, startspace = NULL, blacklist = NULL,
-  scoretable = NULL, startDAG = NULL, moveprobs = NULL,
-  iterations = NULL, stepsave = NULL, gamma = 1, verbose = TRUE)
+partitionMCMC(
+  scorepar,
+  startspace = NULL,
+  blacklist = NULL,
+  scoretable = NULL,
+  startDAG = NULL,
+  moveprobs = NULL,
+  iterations = NULL,
+  stepsave = NULL,
+  gamma = 1,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{scorepar}{an object of class \code{scoreparameters}, containing the data and scoring parameters;  see constructor function \code{\link{scoreparameters}}.}

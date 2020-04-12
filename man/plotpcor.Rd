@@ -4,8 +4,15 @@
 \alias{plotpcor}
 \title{Comparing posterior probabilitites of single edges based on two samples}
 \usage{
-plotpcor(edgepmat1, edgepmat2, highlight = 0.3, cut = 0.05,
-  main = "", xlab = "sample 1", ylab = "sample 2")
+plotpcor(
+  edgepmat1,
+  edgepmat2,
+  highlight = 0.3,
+  cut = 0.05,
+  main = "",
+  xlab = "sample 1",
+  ylab = "sample 2"
+)
 }
 \arguments{
 \item{edgepmat1}{binary matrix, representing posterior probabilities of single edges in a Bayesian network}

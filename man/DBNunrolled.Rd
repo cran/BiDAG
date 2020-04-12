@@ -4,7 +4,9 @@
 \name{DBNunrolled}
 \alias{DBNunrolled}
 \title{An unrolled adjacency matrix of a dynamic Bayesian network}
-\format{A binary matrix with 63 rows and 63 columns representing an adjacency matrix of a DBN. Rows and columns of the matrix correspond to 15 variables (s1, s2, s3, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12) of a DBN across 5 time slices.}
+\format{
+A binary matrix with 63 rows and 63 columns representing an adjacency matrix of a DBN. Rows and columns of the matrix correspond to 15 variables (s1, s2, s3, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12) of a DBN across 5 time slices.
+}
 \usage{
 DBNunrolled
 }

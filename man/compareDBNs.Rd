@@ -4,15 +4,14 @@
 \alias{compareDBNs}
 \title{Comparing two DBNs}
 \usage{
-compareDBNs(eDBN, trueDBN, struct = c("init", "trans"), n.dynamic,
-  n.static)
+compareDBNs(eDBN, trueDBN, struct = c("init", "trans"), n.dynamic, n.static)
 }
 \arguments{
 \item{eDBN}{an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the DBN which should be compared to a ground truth DBN}
 
 \item{trueDBN}{an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the ground truth DBN}
 
-\item{struct}{option used to determine if the initial or the transitional structure should be plotted; accaptable values are init or trans}
+\item{struct}{option used to determine if the initial or the transitional structure should be compared; accaptable values are init or trans}
 
 \item{n.dynamic}{number of dynamic variables in one time slice of a DBN}
 

@@ -4,7 +4,8 @@
 \name{Boston}
 \alias{Boston}
 \title{Boston housing data}
-\format{A data frame with 506 rows and 14 variables:
+\format{
+A data frame with 506 rows and 14 variables:
 \itemize{
 \item CRIM - per capita crime rate by town
 \item ZN - proportion of residential land zoned for lots over 25,000 sq.ft.
@@ -20,7 +21,8 @@
 \item B - 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town
 \item LSTAT - percentage lower status of the population
 \item MEDV - Median value of owner-occupied homes in $1000's
-}}
+}
+}
 \source{
 \url{http://lib.stat.cmu.edu/datasets/boston}
 }

@@ -4,8 +4,7 @@
 \alias{iterations.check}
 \title{Performance assessment of iterative MCMC scheme against a known Bayesian network}
 \usage{
-iterations.check(MCMCmult, truedag, cpdag = TRUE, pbarrier = 0.5,
-  trans = TRUE)
+iterations.check(MCMCmult, truedag, cpdag = TRUE, pbarrier = 0.5, trans = TRUE)
 }
 \arguments{
 \item{MCMCmult}{an object which of class \code{MCMCmult} (output of the function \code{\link{iterativeMCMC}})}

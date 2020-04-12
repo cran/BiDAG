@@ -165,13 +165,11 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   
   switch(as.character(output),
          "1"={ # return only maximum DAG and order
-           attr(result,"class")<-"MCMCres"
            return(result)
          },
          "2"={ # return all MCMC all saved MCMC steps: incidence, DAGscore, orderscore and order and max result
            result$chain<-MCMCtraces
            attr(result$chain,"class")<-"MCMCtrace"
-           attr(result,"class")<-"MCMCres"
            attr(result,"class")<-"MCMCres"
          },
          "3"={ # return max DAG, order, last search space incidence and all scoretables
@@ -179,7 +177,6 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
            result$space$adjacency<-startskel
            result$space$scoretable<-scoretable
            attr(result$space,"class")<-"MCMCspace"
-           attr(result,"class")<-"MCMCres"
          },
          "4"={ # return all MCMC all saved MCMC steps,max result,last search space and scoretables
            result$space<-list()
@@ -188,7 +185,6 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
            attr(result$space,"class")<-"MCMCspace"
            result$chain<-MCMCtraces
            attr(result$chain,"class")<-"MCMCtrace"
-           attr(result,"class")<-"MCMCres"
          }
   )
   return(result)

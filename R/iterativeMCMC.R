@@ -256,7 +256,6 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
              }
            }
     )
-    
-    attr(result,"class")<-"MCMCmult"
+  
     return(result)
 }

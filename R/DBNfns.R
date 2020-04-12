@@ -133,7 +133,7 @@ DBNbacktransform<-function(DBNmat,param) {
   }
 }
 DBNcut<-function(adj,n.dynamic,n.static){
-  adj[,1:(n.static+n.dynamic)]<-0
+  adj[,1:(n.dynamic+n.static)]<-0
   return(adj)
 }
 DBNinit<-function(adj,n.dynamic,n.static){

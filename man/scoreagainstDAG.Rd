@@ -4,8 +4,7 @@
 \alias{scoreagainstDAG}
 \title{Calculating the score of a sample against a DAG}
 \usage{
-scoreagainstDAG(scorepar, incidence, datatoscore = NULL,
-  marginalise = FALSE)
+scoreagainstDAG(scorepar, incidence, datatoscore = NULL, marginalise = FALSE)
 }
 \arguments{
 \item{scorepar}{an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}}

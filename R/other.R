@@ -168,7 +168,8 @@ defcolrange<-function(value) {
 
 
 #checking startorder, if NULL generating random order of right length
-checkstartorder<-function(order,varnames,mainnodes,bgnodes,DBN=FALSE, split=FALSE) {
+checkstartorder<-function(order,varnames,mainnodes,bgnodes,
+                          DBN=FALSE, split=FALSE) {
   
   matsize<-length(varnames) #maximum length of the startorder
   nsmall<-length(mainnodes)#minimum length of the startorder
@@ -266,9 +267,10 @@ checkstartorder<-function(order,varnames,mainnodes,bgnodes,DBN=FALSE, split=FALS
       } else {
         
         if(all(is.character(order)))  {
-          errortext<-error1
-          errorflag<-1
-        } else if (!setequal(order,mainnodes) & !setequal(order,c(1:n))) {
+          order<-match(order,varnames)
+        }
+        
+        if (!setequal(order,mainnodes) & !setequal(order,c(1:n))) {
           errortext<-error2
           errorflag<-2
         } else {#startorder is defined correctly

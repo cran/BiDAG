@@ -181,6 +181,9 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,
   } else {
     result$info$sampletype<-"sample"
   }
+  
+  attr(result,"class")<-"MCMCres"
+  
   return(result)
   
 }
@@ -430,11 +433,14 @@ partitionMCMC<-function(scorepar, startspace=NULL, blacklist=NULL,scoretable=NUL
 #'@importFrom stats rnorm 
 #'@importFrom utils data
 #'@importFrom utils flush.console
-#'@importFrom Rgraphviz makeNodeAttrs
+#'@importFrom utils tail
+#@importFrom Rgraphviz makeNodeAttrs
 #'@importFrom graph subGraph
 #'@importFrom graph nodes
 #'@importFrom graph nodeRenderInfo
 #'@importFrom graph graph.par
+#'@importFrom graph plot
+#'@importFrom graph numNodes
 #'@importFrom Rcpp evalCpp
 #'@useDynLib BiDAG, .registration=TRUE
 # pcalg pc
@@ -554,6 +560,9 @@ iterativeMCMC<-function(scorepar, plus1it=NULL, moveprobs=NULL, MAP=TRUE, poster
     result$info$sampletype<-"sample"
     result$info$threshold<-posterior
   }
+  
+  attr(result,"class")<-"MCMCmult"
+  
   return(result)
   
 }

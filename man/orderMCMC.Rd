@@ -4,11 +4,25 @@
 \alias{orderMCMC}
 \title{Structure learning with the order MCMC algorithm}
 \usage{
-orderMCMC(scorepar, MAP = TRUE, plus1 = TRUE, startspace = NULL,
-  blacklist = NULL, startorder = NULL, scoretable = NULL,
-  moveprobs = NULL, iterations = NULL, stepsave = NULL,
-  alpha = 0.05, cpdag = FALSE, gamma = 1, hardlimit = ifelse(plus1,
-  15, 22), chainout = TRUE, scoreout = FALSE, verbose = FALSE)
+orderMCMC(
+  scorepar,
+  MAP = TRUE,
+  plus1 = TRUE,
+  startspace = NULL,
+  blacklist = NULL,
+  startorder = NULL,
+  scoretable = NULL,
+  moveprobs = NULL,
+  iterations = NULL,
+  stepsave = NULL,
+  alpha = 0.05,
+  cpdag = FALSE,
+  gamma = 1,
+  hardlimit = ifelse(plus1, 15, 22),
+  chainout = TRUE,
+  scoreout = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{scorepar}{an object of class \code{scoreparameters}, containing the data and score parameters, see constructor function \code{\link{scoreparameters}}}

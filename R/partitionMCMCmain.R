@@ -10,7 +10,6 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   nsmall<-param$nsmall
   matsize<-ifelse(param$DBN,n+nsmall,n)
   
-  
   if(!param$DBN) {
     if(param$bgn!=0) {
       updatenodes<-c(1:n)[-param$bgnodes]
@@ -19,21 +18,6 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
     }
   } else {
     updatenodes<-c(1:nsmall)
-  }
-  
-  if (is.null(blacklist)) {
-    blacklist<-matrix(0,nrow=matsize,ncol=matsize)
-  }
-  
-  diag(blacklist)<-1
-  if(!is.null(param$bgnodes)) {
-    for(i in param$bgnodes) {
-      blacklist[,i]<-1
-    }
-  }
-  blacklistparents<-list()
-  for  (i in 1:matsize) {
-    blacklistparents[[i]]<-which(blacklist[,i]==1)
   }
   
   
@@ -50,11 +34,48 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
       maxDAG<-searchspace$max$DAG
     }
     startspace<-searchspace$endspace
-    scoretable<-searchspace$scoretable
-    forpart<-DAGtopartition(n,maxDAG,param$bgnodes)
+
+    if(!is.null(param$bgnodes)) {
+      forpart<-DAGtopartition(param$nsmall,maxDAG[updatenodes,updatenodes])
+    } else {
+      forpart<-DAGtopartition(n,maxDAG)
+    }
+    
+    if (is.null(blacklist)) {
+      blacklist<-matrix(0,nrow=matsize,ncol=matsize)
+    }
+    
+    diag(blacklist)<-1
+    if(!is.null(param$bgnodes)) {
+      for(i in param$bgnodes) {
+        blacklist[,i]<-1
+      }
+    }
+    blacklistparents<-list()
+    for  (i in 1:matsize) {
+      blacklistparents[[i]]<-which(blacklist[,i]==1)
+    }
     
   } else {
+
+    if (is.null(blacklist)) {
+      blacklist<-matrix(0,nrow=matsize,ncol=matsize)
+    }
+    
+    diag(blacklist)<-1
+    if(!is.null(param$bgnodes)) {
+      for(i in param$bgnodes) {
+        blacklist[,i]<-1
+      }
+    }
+    blacklistparents<-list()
+    for  (i in 1:matsize) {
+      blacklistparents[[i]]<-which(blacklist[,i]==1)
+    }
+    
+    
     startspace<-1*(startspace&!blacklist)
+    
     if (is.null(DAG)) {
       forpart<-list()
       if(is.null(param$bgnodes)) {
@@ -74,7 +95,9 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
         forpart<-DAGtopartition(n,DAG)
       }
       }
-    }
+  }
+  
+  
   if(verbose){print("search space identified, score tables to be calculated")}
   permy<-forpart$permy
   party<-forpart$party

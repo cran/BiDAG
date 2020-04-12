@@ -4,13 +4,30 @@
 \alias{iterativeMCMC}
 \title{Structure learning with an iterative order MCMC algorithm on an expanded search space}
 \usage{
-iterativeMCMC(scorepar, plus1it = NULL, moveprobs = NULL, MAP = TRUE,
-  posterior = 0.5, iterations = NULL, stepsave = NULL,
-  softlimit = 9, hardlimit = 12, alpha = 0.05, gamma = 1,
-  startspace = NULL, blacklist = NULL, verbose = TRUE,
-  chainout = FALSE, scoreout = FALSE, cpdag = FALSE,
-  mergetype = "skeleton", addspace = NULL, scoretable = NULL,
-  startorder = NULL, accum = FALSE)
+iterativeMCMC(
+  scorepar,
+  plus1it = NULL,
+  moveprobs = NULL,
+  MAP = TRUE,
+  posterior = 0.5,
+  iterations = NULL,
+  stepsave = NULL,
+  softlimit = 9,
+  hardlimit = 12,
+  alpha = 0.05,
+  gamma = 1,
+  startspace = NULL,
+  blacklist = NULL,
+  verbose = TRUE,
+  chainout = FALSE,
+  scoreout = FALSE,
+  cpdag = FALSE,
+  mergetype = "skeleton",
+  addspace = NULL,
+  scoretable = NULL,
+  startorder = NULL,
+  accum = FALSE
+)
 }
 \arguments{
 \item{scorepar}{an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}}
