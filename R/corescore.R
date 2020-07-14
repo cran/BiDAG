@@ -24,9 +24,17 @@ detthreebythree <- function(D){
 # see arXiv:1402.6863 
 DAGcorescore<-function(j,parentnodes,n,param) {
   if(param$DBN){
-    internalparents <- parentnodes[which(parentnodes<=param$nsmall)]
-    corescore <- DAGcorescore(j,parentnodes,param$n+param$nsmall,param$otherslices)+
-    DAGcorescore(j,internalparents,param$n,param$firstslice) 
+    if(param$stationary) {
+      internalparents <- parentnodes[which(parentnodes<=param$nsmall)]
+      corescore <- DAGcorescore(j,parentnodes,param$n+param$nsmall,param$otherslices)+
+      DAGcorescore(j,internalparents,param$n,param$firstslice) 
+    } else {
+      corescore<-0
+      for(i in 1:length(param$paramsets)) {
+        corescore<-corescore+DAGcorescore(j,parentnodes,param$n+param$nsmall,
+                                          param$paramsets[[i]])
+      }
+    }
   } else if(param$type=="bge"){
     TN<-param$TN
     awpN<-param$awpN

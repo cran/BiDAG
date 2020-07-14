@@ -115,12 +115,20 @@ definestartspace<-function(alpha,param,cpdag=FALSE,algo="pc") {
   }
   
   if(param$DBN){
-    
+    if(param$stationary) {
     othersliceskel <- definestartspace(alpha,param$otherslices,cpdag=FALSE,algo="pc")
     firstsliceskel <- definestartspace(alpha,param$firstslice,cpdag=FALSE,algo="pc")
     startspace <- othersliceskel
     startspace[param$intstr$rows,param$intstr$cols] <- 1*(startspace[param$intstr$rows,param$intstr$cols] | firstsliceskel[param$intstr$rows,param$intstr$cols])
-
+    } else {
+      skels<-list()
+      skels[[1]]<-definestartspace(alpha,param$paramsets[[1]],cpdag=FALSE,algo="pc")
+      startspace<-skels[[1]]
+      for(i in 2:length(param$paramsets)) {
+        skels[[i]]<-definestartspace(alpha,param$paramsets[[i]],cpdag=FALSE,algo="pc")
+        startspace<-1*(skels[[i]]|startspace)
+      }
+}
   } else { # otherwise use old versions
     
     if(local_type=="bde") {

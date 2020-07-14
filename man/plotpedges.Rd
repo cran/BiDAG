@@ -24,9 +24,11 @@ sampling algorithms order MCMC and partition MCMC.
 }
 \examples{
 score100<-scoreparameters(8, "bde", Asia[1:100,])
-orderfit100<-orderMCMC(score100,plus1=FALSE)
+orderfit100<-orderMCMC(score100,plus1=TRUE)
 score5000<-scoreparameters(8, "bde", Asia)
-orderfit5000<-orderMCMC(score5000,plus1=FALSE)
-plotpedges(orderfit100)
-plotpedges(orderfit5000)
+orderfit5000<-orderMCMC(score5000,plus1=TRUE)
+\dontrun{
+plotpedges(orderfit100, pdag=TRUE)
+plotpedges(orderfit5000, pdag=TRUE)
+}
 }

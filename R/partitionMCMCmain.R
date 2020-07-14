@@ -101,7 +101,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   if(verbose){print("search space identified, score tables to be calculated")}
   permy<-forpart$permy
   party<-forpart$party
-  starttime<-Sys.time()
+  starttable<-Sys.time()
   ptab<-listpossibleparents.PC.aliases(startspace,isgraphNEL=FALSE,n,updatenodes=updatenodes)
   parenttable<-ptab$parenttable
   aliases<-ptab$aliases
@@ -133,15 +133,15 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   plus1neededpart<-plus1needed.partition(ptab$numparents,parenttable,neededposetparenttable,neededposetparentsvec,
                                            ptab$numberofparentsvec,rowmapsallowed,needednodebannedrow,scoretable,
                                            plus1lists,n,updatenodes)
+  endtable<-Sys.time()
   if(verbose){print("score tables calculated, partition MCMC starts")}
     partres<-partitionMCMCplus1(n,param$nsmall,permy,party,numit,stepsave,parenttable,scoretable,scoretab,
                                  aliases,plus1neededpart,plus1allowedpart,plus1lists,rowmapsneeded,rowmapsallowed,
                                  needednodetable,ptab$numberofparentsvec,
                                  numberofpartitionparentsvec,needednodebannedrow,
                                  neededposetparentsvec,moveprobs,param$bgnodes,matsize=matsize)
-  endtime<-Sys.time()
-  if(verbose){print(endtime-starttime)}
-  
+  endmcmc<-Sys.time()
+
   
   
     if(param$DBN) {
@@ -164,6 +164,16 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   
   
   result<-list()
+  result$info<-list()
+  tabletime<-endtable-starttable
+  if(units(tabletime)=="mins") {
+    tabletime<-as.numeric(tabletime*60)
+  }
+  mcmctime<-endmcmc-endtable
+  if(units(mcmctime)=="mins") {
+    mcmctime<-as.numeric(mcmctime*60)
+  }
+  result$info$times<-c(tabletime,mcmctime)
   result$chain<-MCMCtraces
   attr(result$chain,"class")<-"MCMCtrace"
   result$max<-maxobj

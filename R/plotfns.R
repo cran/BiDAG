@@ -9,11 +9,13 @@
 #'@return plots the graph which includes edges from edag and truedag, however edges which are different in edag compared to truedag are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
 #'@examples
 #'score100<-scoreparameters(8, "bde", Asia[1:100,])
-#'orderfit100<-orderMCMC(score100,plus1=FALSE)
+#'orderfit100<-orderMCMC(score100,plus1=TRUE)
 #'score5000<-scoreparameters(8, "bde", Asia)
-#'orderfit5000<-orderMCMC(score5000,plus1=FALSE)
-#'plotpedges(orderfit100)
-#'plotpedges(orderfit5000)
+#'orderfit5000<-orderMCMC(score5000,plus1=TRUE)
+#' \dontrun{
+#'plotpedges(orderfit100, pdag=TRUE)
+#'plotpedges(orderfit5000, pdag=TRUE)
+#'}
 #'@export
 plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL) {
   MCMCtrace<-MCMCtrace$chain$incidence

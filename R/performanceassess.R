@@ -193,7 +193,7 @@ iterations.check<-function(MCMCmult, truedag, cpdag=TRUE, pbarrier=0.5,trans=TRU
 #' \dontrun{
 #' mapest<-iterativeMCMC(gsim.score)
 #' ordersample<-orderMCMC(gsim.score, MAP=FALSE, startspace=mapest$endspace)
-#' sample.check(ordersample$chain, gsimmat)
+#' sample.check(ordersample, gsimmat)
 #' }
 #'@export
 sample.check<-function(MCMCchain, truedag, pbarrier=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2),

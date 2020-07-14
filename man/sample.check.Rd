@@ -38,6 +38,6 @@ gsim.score<-scoreparameters(100, "bge", gsim)
 \dontrun{
 mapest<-iterativeMCMC(gsim.score)
 ordersample<-orderMCMC(gsim.score, MAP=FALSE, startspace=mapest$endspace)
-sample.check(ordersample$chain, gsimmat)
+sample.check(ordersample, gsimmat)
 }
 }

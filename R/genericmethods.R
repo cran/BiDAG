@@ -203,6 +203,39 @@ print.MCMCtrace <-function(x,...){
 
 #plot functions
 
+# setMethod("plot", "MCMCmult",
+#           function(x, ...) {
+#             x<-x$chain
+#             if(is.null(x)) {
+#               stop("no saved MCMC steps found! set chainout=TRUE")
+#             }
+#             
+#             
+#             col5<-c("#7fcdbb","#41b6c4","#1d91c0","#225ea8","#0c2c84")
+#             ncol<-length(col5)
+#             nchains<-length(x$DAGscores)
+#             scorevecmin<-unlist(x$DAGscores[[1]])
+#             scorevecprevmax<-unlist(x$DAGscores[[nchains-1]])
+#             minprev<-min(scorevecprevmax)
+#             scorevecmax<-unlist(x$DAGscores[[nchains]])
+#             vecl<-length(scorevecmin)
+#             scoremax<-max(scorevecmax)
+#             scoremin<-min(scorevecmin)
+#             scoremaxmin<-min(scorevecmax)
+#             colvec<-assigncolor(nchains,ncol)
+#             par(mfrow=c(1,2))
+#             par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
+#             plot(scorevecmin,type="l",xlab="iteration",ylab="logscore",
+#                  ylim=c(scoremin,scoremax),main="DAG scores: all expansion iterations",cex.main=1.2,
+#                  col=col5[colvec[1]])
+#             for(i in 2:nchains) {
+#               lines(unlist(x$DAGscores[[i]]),col=col5[colvec[i]])
+#             }
+#             par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
+#             plot(c(scorevecprevmax,scorevecmax),type="l",xlab="iteration",ylab="logscore",
+#                  ylim=c(minprev,scoremax),main="last iterations",cex.main=1.2,col=col5[ncol])
+#           })
+
 setMethod("plot", "MCMCmult",
           function(x, ...) {
             x<-x$chain
@@ -211,8 +244,6 @@ setMethod("plot", "MCMCmult",
             }
             
             
-            col5<-c("#7fcdbb","#41b6c4","#1d91c0","#225ea8","#0c2c84")
-            ncol<-length(col5)
             nchains<-length(x$DAGscores)
             scorevecmin<-unlist(x$DAGscores[[1]])
             scorevecprevmax<-unlist(x$DAGscores[[nchains-1]])
@@ -222,20 +253,20 @@ setMethod("plot", "MCMCmult",
             scoremax<-max(scorevecmax)
             scoremin<-min(scorevecmin)
             scoremaxmin<-min(scorevecmax)
-            colvec<-assigncolor(nchains,ncol)
-            par(mfrow=c(1,2))
-            par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
-            plot(scorevecmin,type="l",xlab="iteration",ylab="logscore",
+            # Add extra space to right of plot area; change clipping to figure
+            par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+            
+            #par(mfrow=c(1,2))
+            #par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
+            plot(scorevecmin,type="l",xlab="iteration",ylab="DAG logscores",
                  ylim=c(scoremin,scoremax),main="DAG scores: all expansion iterations",cex.main=1.2,
-                 col=col5[colvec[1]])
+                 col=nchains)
             for(i in 2:nchains) {
-              lines(unlist(x$DAGscores[[i]]),col=col5[colvec[i]])
+              lines(unlist(x$DAGscores[[i]]),col=nchains-i+1)
             }
-            par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
-            plot(c(scorevecprevmax,scorevecmax),type="l",xlab="iteration",ylab="logscore",
-                 ylim=c(minprev,scoremax),main="last iterations",cex.main=1.2,col=col5[ncol])
+            legend("topright", inset=c(-0.2,0), legend=paste(1:nchains, " "), col=c(nchains:1), lty=rep(1,nchains), title="expansion \niteration:",bty="n")
+            
           })
-
 
 assigncolor<-function(nit,ncol) {
   colind<-1:(ncol-1)

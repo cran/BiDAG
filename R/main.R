@@ -157,7 +157,6 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,
       }
 
   
-  result$info<-list()
   if(plus1) {
   result$info$algo<-"plus1 order MCMC"
   } else {
@@ -318,7 +317,6 @@ partitionMCMC<-function(scorepar, startspace=NULL, blacklist=NULL,scoretable=NUL
   }
   
   
-  result$info<-list()
   result$info$DBN<-scorepar$DBN
   if(scorepar$DBN) {
     result$info$nsmall<-scorepar$nsmall
@@ -434,7 +432,7 @@ partitionMCMC<-function(scorepar, startspace=NULL, blacklist=NULL,scoretable=NUL
 #'@importFrom utils data
 #'@importFrom utils flush.console
 #'@importFrom utils tail
-#@importFrom Rgraphviz makeNodeAttrs
+#'@importFrom Rgraphviz makeNodeAttrs
 #'@importFrom graph subGraph
 #'@importFrom graph nodes
 #'@importFrom graph nodeRenderInfo
@@ -621,7 +619,7 @@ DAGscore <- function(scorepar, incidence){
 #' @return the log of the BGe or BDe score of the DBN
 #' @examples
 #' testscore<-scoreparameters(15, "bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
-#'                         dbnpar=list(slices=5))
+#'                         dbnpar=list(slices=5, stationary=TRUE))
 #' DBNscore(testscore, DBNmat)
 #'
 #' @export

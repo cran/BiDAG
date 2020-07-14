@@ -69,8 +69,8 @@ m2graph<-function(adj,nodes=NULL) {
 #'@examples
 #'Asiascore<-scoreparameters(8,"bde",Asia)
 #'\dontrun{
-#'eDAG<-orderMCMC(myScore)
-#'compareDAGs(edag$max$DAG,Asiamat)
+#'eDAG<-orderMCMC(Asiascore)
+#'compareDAGs(eDAG$max$DAG,Asiamat)
 #'}
 #'@export
 compareDAGs<-function(eDAG,trueDAG) {
@@ -107,9 +107,9 @@ compareDAGs<-function(eDAG,trueDAG) {
 #'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
 #'@examples
 #'testscore<-scoreparameters(15, "bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
-#'                           dbnpar=list(slices=5))
+#'                           dbnpar=list(slices=5, stationary=TRUE))
 #'\dontrun{
-#'DBNfit<-iterativeMCMC(testscore,moveprobs=c(0.2,0.79,0,0.01))
+#'DBNfit<-iterativeMCMC(testscore,moveprobs=c(0.11,0.84,0.04,0.01))
 #'compareDBNs(DBNfit$max$DAG,DBNmat,struct="trans",n.dynamic=12,n.static=3)
 #'}
 #'@export

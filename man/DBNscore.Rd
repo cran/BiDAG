@@ -24,7 +24,7 @@ binary or categorical.  The BGe score is evaluated in the case of continuous dat
 }
 \examples{
 testscore<-scoreparameters(15, "bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
-                        dbnpar=list(slices=5))
+                        dbnpar=list(slices=5, stationary=TRUE))
 DBNscore(testscore, DBNmat)
 
 }

@@ -21,7 +21,7 @@ number of true positive edges and number of false positive edges.
 \examples{
 Asiascore<-scoreparameters(8,"bde",Asia)
 \dontrun{
-eDAG<-orderMCMC(myScore)
-compareDAGs(edag$max$DAG,Asiamat)
+eDAG<-orderMCMC(Asiascore)
+compareDAGs(eDAG$max$DAG,Asiamat)
 }
 }

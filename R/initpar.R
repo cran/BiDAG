@@ -57,7 +57,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
                           bgepar=list(am=1, aw=NULL),
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(samestruct=TRUE,slices=2), 
+                          dbnpar=list(samestruct=TRUE,slices=2,stationary=TRUE), 
                           usrpar=list(pctesttype=c("bge","bde","bdecat")), 
                           edgepmat=NULL, nodeslabels=NULL,DBN=FALSE) {
   
@@ -75,8 +75,10 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
     stop("n and the number of columns in the data do not match")
   }
   } else {
+    if(dbnpar$stationary) {
     if (ncol(data)!=nsmall*dbnpar$slices+bgn) {
       stop("n, bgn and the number of columns in the data do not match")
+    }
     }
   } 
   
@@ -108,6 +110,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
       nodeslabels<-sapply(c(1:n), function(x)paste("v",x,sep=""))
     }
     } else {
+      if(dbnpar$stationary) {
       if(all(is.character(colnames(data)))){
         nodeslabels<-colnames(data)
       } else {
@@ -124,6 +127,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
           nodeslabels[1:nsmall+(i-1)*nsmall]<-paste(nodeslabels[1:nsmall+(i-1)*nsmall],".",i,sep="")
         }
         }
+      }
       }
     }
   }
@@ -154,10 +158,16 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
   initparam$n<-n
   initparam$nsmall<-nsmall
   if(DBN) {
+    if(dbnpar$stationary) {
     initparam$labels.short<-initparam$labels[1:(n+nsmall)]
-  } else {
+    } else {
+      nodeslabels<-colnames(data[[1]])
+      initparam$labels<-nodeslabels
+      initparam$labels.short<-colnames(data[[1]])
+  }} else {
     initparam$labels.short<-initparam$labels
   }
+  
   
   if (is.null(bdepar$edgepmat)) {
     initparam$logedgepmat <- NULL
@@ -166,6 +176,54 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
   }
   if(DBN) {
     
+    if(!dbnpar$stationary) {
+      
+      initparam$split=FALSE
+      
+      initparam$stationary<-FALSE
+      initparam$slices<-2
+      
+      initparam$intstr<-list()
+      initparam$trans<-list()
+      
+      initparam$usrinitstr<-list()
+      initparam$usrintstr<-list()
+      initparam$usrtrans<-list()
+      
+      initparam$usrinitstr$rows<-c(1:n)
+      initparam$usrinitstr$cols<-c(1:nsmall+bgn)
+      if(bgn==0) initparam$usrintstr$rows<-c(1:nsmall+n) else initparam$usrintstr$rows<-c(1:bgn,1:nsmall+n)
+      initparam$usrintstr$cols<-c(1:nsmall+n)
+      initparam$usrtrans$rows<-c(1:nsmall+bgn)
+      initparam$usrtrans$cols<-c(1:nsmall+n)
+      
+      if(bgn!=0) {
+        initparam$intstr$rows<-c(1:bgn+nsmall,1:nsmall)
+      } else {
+        initparam$intstr$rows<-c(1:nsmall)   
+      }
+      initparam$intstr$cols<-c(1:nsmall)
+      initparam$trans$rows<-c(1:nsmall+n)
+      initparam$trans$cols<-c(1:nsmall)
+      
+      initparam$paramsets<-list()
+      
+      for(i in 1:length(data)) {
+        datalocal<-data[[i]]
+        print(nsmall)
+        print(bgn)
+        datalocal <- datalocal[,c(1:nsmall+nsmall+bgn,1:bgn,1:nsmall+bgn)] 
+        initparam$paramsets[[i]]<-scoreparameters(n=n+nsmall, scoretype=scoretype, 
+                                                 datalocal, weightvector=NULL, 
+                                                 bgnodes=initparam$bgnodes,
+                                                 bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
+                                                 edgepmat=edgepmat, DBN=FALSE)
+      }
+      
+      
+    } else { 
+    
+    initparam$stationary<-TRUE
     initparam$slices<-dbnpar$slices
     
     if (!is.null(dbnpar$samestruct)) {
@@ -281,6 +339,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
                                             datalocal, weightvector=weightvector, bgnodes=newbgnodes,
                                             bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
                                             edgepmat=edgepmat, DBN=FALSE)
+  }
   } else if(scoretype=="bge") {
     if (is.null(weightvector)) {
       N<-nrow(data)

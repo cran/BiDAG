@@ -54,7 +54,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     stop("the size of maximal parent set is higher that the hardlimit; redifine the search space or increase the hardlimit!")
   }
   
-  
+  tablestart<-Sys.time()
   #computing score tables
   ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
   
@@ -77,17 +77,21 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   if(MAP==TRUE){
     maxmatrices<-posetscoremax(posetparenttable,scoretable,numberofparentsvec,rowmaps,
                                n,plus1lists=NULL,updatenodes)
+    tableend<-Sys.time()
     MCMCresult<-orderMCMCbasemax(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                  scoretable,aliases,numparents,rowmaps,maxmatrices,
                                  numberofparentsvec,gamma=gamma,bgnodes=param$bgnodes,matsize=matsize)
 
+    mcmcend<-Sys.time()
   } else {
     bannedscore<-poset.scores(posetparenttable,scoretable,numberofparentsvec,rowmaps,
                               n,plus1lists=NULL,ptab$numparents,updatenodes=updatenodes)
+    tableend<-Sys.time()
     MCMCresult<-orderMCMCbase(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                               scoretable,aliases,numparents,rowmaps,
                               bannedscore,numberofparentsvec,gamma=gamma,
                               bgnodes=param$bgnodes,matsize=matsize)
+    mcmcend<-Sys.time()
     
   }
   
@@ -117,6 +121,8 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     flush.console()
   }
 
+  tableend<-Sys.time()
+    
   #running MCMC scheme   
   if(MAP) {
     MCMCresult<-orderMCMCplus1max(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
@@ -130,6 +136,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
                                    bgnodes=param$bgnodes,matsize=matsize)
     }
     
+   mcmcend<-Sys.time()
   
 }
 
@@ -162,6 +169,16 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   
   result$max<-maxobj
   attr(result$max,"class")<-"MCMCmax"
+  result$info<-list()
+  tabletime<-tableend-tablestart
+  if(units(tabletime)=="mins") {
+    tabletime<-as.numeric(tabletime*60)
+  }
+  mcmctime<-mcmcend-tableend
+  if(units(mcmctime)=="mins") {
+    mcmctime<-as.numeric(mcmctime*60)
+  }
+  result$info$times<-c(tabletime,mcmctime)
   
   switch(as.character(output),
          "1"={ # return only maximum DAG and order
