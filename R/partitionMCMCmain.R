@@ -1,8 +1,9 @@
 #implements partition MCMC scheme for structure learning problem, searches in plus1 neighbourhood of a search space defined
 #by startspace or iterativeMCMC function
-
+#authors Polina Suter, Jack Kuipers, partly derived from <doi:10.1080/01621459.2015.1133426>
 partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
-                                   startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE){
+                                   startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE,
+                                   scoreout=FALSE){
 
   MCMCtraces<-list()
   
@@ -20,20 +21,21 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
     updatenodes<-c(1:nsmall)
   }
   
-  
-  if(is.null(startspace)) {
-    if(verbose) print("defining a search space with iterativeMCMC")
+  if(is.null(startspace) & is.null(scoretable)) {
+    if(verbose) cat("defining a search space with iterativeMCMC \n")
     searchspace<-iterativeMCMC(scorepar=param,moveprobs=NULL,plus1it=NULL,
                                      iterations=NULL,stepsave=NULL,softlimit=9,hardlimit=14,alpha=NULL,
                                      verbose=verbose,chainout=FALSE,scoreout=TRUE,
                                      gamma=gamma,cpdag=FALSE,mergetype="skeleton",
                                      blacklist=blacklist)
+    startspace<-searchspace$scoretable$adjacency
     if(param$DBN) {
-      maxDAG<-DBNbacktransform(searchspace$max$DAG,param)
+      maxDAG<-DBNbacktransform(searchspace$DAG,param)
     } else {
-      maxDAG<-searchspace$max$DAG
+      maxDAG<-searchspace$DAG
+      scoretable<-searchspace$scoretable$tables
     }
-    startspace<-searchspace$endspace
+
 
     if(!is.null(param$bgnodes)) {
       forpart<-DAGtopartition(param$nsmall,maxDAG[updatenodes,updatenodes])
@@ -58,23 +60,31 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
     
   } else {
 
-    if (is.null(blacklist)) {
-      blacklist<-matrix(0,nrow=matsize,ncol=matsize)
-    }
-    
-    diag(blacklist)<-1
-    if(!is.null(param$bgnodes)) {
-      for(i in param$bgnodes) {
-        blacklist[,i]<-1
+
+      if (is.null(blacklist)) {
+        blacklist<-matrix(0,nrow=matsize,ncol=matsize)
       }
-    }
-    blacklistparents<-list()
-    for  (i in 1:matsize) {
-      blacklistparents[[i]]<-which(blacklist[,i]==1)
+      
+      diag(blacklist)<-1
+      if(!is.null(param$bgnodes)) {
+        for(i in param$bgnodes) {
+          blacklist[,i]<-1
+        }
+      }
+     
+    if(is.null(scoretable)) { 
+      startspace<-1*(startspace&!blacklist)
+    } else {
+      startspace<-scoretable$adjacency
+      blacklist<-scoretable$blacklist
+      scoretable<-scoretable$tables
     }
     
-    
-    startspace<-1*(startspace&!blacklist)
+      blacklistparents<-list()
+      for  (i in 1:matsize) {
+        blacklistparents[[i]]<-which(blacklist[,i]==1)
+      }
+      
     
     if (is.null(DAG)) {
       forpart<-list()
@@ -98,7 +108,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   }
   
   
-  if(verbose){print("search space identified, score tables to be calculated")}
+  if(verbose) cat("search space identified, score tables to be calculated \n")
   permy<-forpart$permy
   party<-forpart$party
   starttable<-Sys.time()
@@ -134,7 +144,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
                                            ptab$numberofparentsvec,rowmapsallowed,needednodebannedrow,scoretable,
                                            plus1lists,n,updatenodes)
   endtable<-Sys.time()
-  if(verbose){print("score tables calculated, partition MCMC starts")}
+  if(verbose) cat("score tables calculated, partition MCMC starts \n")
     partres<-partitionMCMCplus1(n,param$nsmall,permy,party,numit,stepsave,parenttable,scoretable,scoretab,
                                  aliases,plus1neededpart,plus1allowedpart,plus1lists,rowmapsneeded,rowmapsallowed,
                                  needednodetable,ptab$numberofparentsvec,
@@ -159,8 +169,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   
   maxobj<-storemaxMCMC(partres,param)
   maxN<-which.max(unlist(partres[[2]]))
-  maxobj$reach<-maxN
-  
+
   
   
   result<-list()
@@ -174,10 +183,21 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
     mcmctime<-as.numeric(mcmctime*60)
   }
   result$info$times<-c(tabletime,mcmctime)
-  result$chain<-MCMCtraces
-  attr(result$chain,"class")<-"MCMCtrace"
-  result$max<-maxobj
-  attr(result$max,"class")<-"MCMCmax"
+  result$trace<-MCMCtraces$DAGscores
+  MCMCtraces$DAGscores<-NULL
+  result$traceadd<-MCMCtraces
+  result$DAG<-maxobj$DAG
+  result$CPDAG<-graph2m(dag2cpdag(m2graph(result$DAG)))
+  result$score<-maxobj$score
+  result$maxorder<-maxobj$order
+  if(scoreout) {
+    result$scoretable<-list()
+    result$scoretable$adjacency<-startspace
+    result$scoretable$tables<-scoretable
+    result$scoretable$blacklist<-blacklist
+    attr( result$scoretable,"class")<-"MCMCscoretab"
+  }
   attr(result,"class")<-"MCMCres"
+  
   return(result)
 }

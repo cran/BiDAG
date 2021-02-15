@@ -20,6 +20,50 @@ graph2m<-function(g) {
   return(t(adj))
 }
 
+#'Deriving connected subgraph 
+#'
+#'This function derives an adjacency matrix of a subgraph whose nodes are connected to at least one other node in a graph
+#'
+#'@param adj square adjacency matrix with elements in \code{\{0,1\}}, representing a graph
+#'@return adjacency matrix of a subgraph of graph represented by 'adj' whose nodes have at least one connection 
+#'@examples 
+#'dim(gsimmat) #full graph contains 100 nodes
+#'gconn<-connectedSubGraph(gsimmat) #removing disconnected nodes
+#'dim(gconn) #connected subgraph contains 93 nodes
+#'@export
+connectedSubGraph<-function(adj) {
+  n<-ncol(adj)
+  col2del<-vector()
+  for(i in 1:n) {
+    if(sum(adj[i,],adj[,i])==0) {
+      col2del<-c(col2del,i)
+    }
+  }
+  if(length(col2del)>0) {
+    adj<-adj[,-col2del]
+    adj<-adj[-col2del,]
+  }  
+  return(adj)
+}
+
+#'Deriving subgraph 
+#'
+#'This function derives an adjacency matrix of a subgraph based on the adjacency matrix of a full graph and a list of nodes
+#'
+#'@param adj square adjacency matrix with elements in \code{\{0,1\}}, representing a graph
+#'@param nodes vector of node names of the subgraph; should be a subset of column names of 'adj'
+#'@return adjacency matrix of a subgraph which includes all 'nodes'
+#'@examples 
+#'getSubGraph(Asiamat,c("E","B","D","X"))
+#'@export
+getSubGraph<-function(adj,nodes) {
+  if(!all(nodes%in%colnames(adj))) {
+    stop("some 'nodes' can't be found in column names of adj!")
+  }
+  adj<-adj[nodes,nodes]
+  return(adj)
+}
+
 
 #'Deriving a graph from an adjacancy matrix
 #'
@@ -67,7 +111,7 @@ m2graph<-function(adj,nodes=NULL) {
 #'@param trueDAG an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth DAG or an ajacency matrix corresponding to the DAG
 #'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
 #'@examples
-#'Asiascore<-scoreparameters(8,"bde",Asia)
+#'Asiascore<-scoreparameters("bde",Asia)
 #'\dontrun{
 #'eDAG<-orderMCMC(Asiascore)
 #'compareDAGs(eDAG$max$DAG,Asiamat)
@@ -85,13 +129,12 @@ compareDAGs<-function(eDAG,trueDAG) {
   numedges2<-sum(skeleton2)
   
   diff2<-skeleton2-skeleton1
-  res<-vector()
-  res[1]<-pcalg::shd(eDAG, trueDAG)
-  res[2]<-numedges1-sum(diff2<0) #TP
-  res[3]<-sum(diff2<0) #FP
-  res[4]<-sum(diff2>0)#FN
-  res[5]<-res[2]/numedges2 #TPR
-  attr(res, "class")<-"compDAGs"
+  res<-list()
+  res$SHD<-pcalg::shd(eDAG, trueDAG)
+  res$TP<-numedges1-sum(diff2<0) #TP
+  res$FP<-sum(diff2<0) #FP
+  res$FN<-sum(diff2>0)#FN
+  res$TPR<-res$TP/numedges2 #TPR
   return(res)
 }
 
@@ -106,7 +149,7 @@ compareDAGs<-function(eDAG,trueDAG) {
 #'@param n.static number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix
 #'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
 #'@examples
-#'testscore<-scoreparameters(15, "bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
+#'testscore<-scoreparameters("bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
 #'                           dbnpar=list(slices=5, stationary=TRUE))
 #'\dontrun{
 #'DBNfit<-iterativeMCMC(testscore,moveprobs=c(0.11,0.84,0.04,0.01))
@@ -172,6 +215,47 @@ compareDBNs<-function(eDBN,trueDBN,struct=c("init","trans"),n.dynamic,n.static) 
   return(res)
 }
 
+#'Deriving interactions matrix
+#'
+#'This transforms a list of possible interactions between proteins downloaded from STRING database
+#'into a matrix which can be used for blacklisting/penalization in BiDAG.
+#'
+#' @param curnames character vector with gene names which will be used in \code{BiDAG} learning function
+#' @param mapping data frame, representing a mapping between curnames and preferredNames used in interactions downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'queryItem' and 'preferredName'
+#' @param int data frame, representing a interactions between genes/proteins downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'node1' and 'node2'
+#'@return square matrix, whose entries equal 1 is interactions between i and j is found in the interaction list and 0 otherwise
+#'@examples
+#'curnames<-colnames(kirp)
+#'intmat<-string2mat(curnames,mapSTRING,intSTRING)
+#'@export
+string2mat<-function(curnames,mapping,int) {
+  rownames(mapping)<-mapping$queryItem
+  n<-length(curnames)
+  aliases<-as.character(mapping[curnames,]$preferredName)
+  nagenes<-which(is.na(aliases))
+  if(length(nagenes)>0) {
+    aliases[nagenes]<-curnames[nagenes]
+    warning(paste(curnames[nagenes], "were not found in mapping; no interactions inferred"))
+  }
+  space<-matrix(0,nrow=n,ncol=n)
+  rownames(space)<-aliases
+  colnames(space)<-aliases
+  for(i in 1:n) {
+    curnode<-colnames(space)[i]
+    nodz1<-intersect(int[which(int$node1==curnode),]$node2,aliases)
+    nodz2<-intersect(int[which(int$node2==curnode),]$node1,aliases)
+    if(length(nodz1)>0){
+      space[curnode,nodz1]<-1
+    }
+    if(length(nodz2)>0){
+      space[curnode,nodz2]<-1
+    }
+  }
+  colnames(space)<-curnames
+  rownames(space)<-curnames
+  return(space)
+}
+
 
 #returns a matrix of a CPDAG corresponding to a given DAG
 dagadj2cpadj<-function(adj) {
@@ -181,7 +265,7 @@ dagadj2cpadj<-function(adj) {
 }
 
 #returns a symmetric matrix of a skeleton corresponding to a given CPDAG
-#UPPER TRIANGULAR VERSION!!!!
+#UPPER TRIANGULAR VERSION!
 adjacency2skeleton<-function(adj) {
   skel<-1*(adj|t(adj))
   skel<-ifelse(upper.tri(skel)==TRUE,skel,0)
@@ -244,6 +328,5 @@ graph2skeleton<-function(g,upper=TRUE,outmat=TRUE) {
     return(m2graph(skel))
   }
 }
-
 
 

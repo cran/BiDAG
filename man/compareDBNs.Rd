@@ -24,7 +24,7 @@ a vector of 5: SHD, number of true positive edges, number of false positive edge
 This function compares one (estimated) DBN structure to another DBN (true DBN). Comparisons for initial and transitional structures are returned separately if \code{equalstruct} equals \code{TRUE}.
 }
 \examples{
-testscore<-scoreparameters(15, "bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
+testscore<-scoreparameters("bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
                           dbnpar=list(slices=5, stationary=TRUE))
 \dontrun{
 DBNfit<-iterativeMCMC(testscore,moveprobs=c(0.11,0.84,0.04,0.01))

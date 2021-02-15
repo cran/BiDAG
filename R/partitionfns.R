@@ -1,4 +1,5 @@
-# This function gives the sum of scores compatible with a given partition
+#The code is partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
+#This function gives the sum of scores compatible with a given partition
 partitionscore<-function(n,scorenodes,parenttable,scoretable,permy,party,posy) {
 
   partitionscores<-rep(0,n)

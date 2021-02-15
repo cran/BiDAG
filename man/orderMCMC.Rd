@@ -8,20 +8,20 @@ orderMCMC(
   scorepar,
   MAP = TRUE,
   plus1 = TRUE,
-  startspace = NULL,
-  blacklist = NULL,
-  startorder = NULL,
-  scoretable = NULL,
+  chainout = FALSE,
+  scoreout = FALSE,
   moveprobs = NULL,
   iterations = NULL,
   stepsave = NULL,
   alpha = 0.05,
   cpdag = FALSE,
   gamma = 1,
-  hardlimit = ifelse(plus1, 15, 22),
-  chainout = TRUE,
-  scoreout = FALSE,
-  verbose = FALSE
+  hardlimit = ifelse(plus1, 14, 20),
+  verbose = FALSE,
+  startspace = NULL,
+  blacklist = NULL,
+  startorder = NULL,
+  scoretable = NULL
 )
 }
 \arguments{
@@ -32,15 +32,11 @@ if FALSE at each MCMC step a DAG is sampled from the order proportionally to its
 
 \item{plus1}{logical, if TRUE (default) the search is performed on the extended search space}
 
-\item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.}
+\item{chainout}{logical, if TRUE the saved MCMC steps are returned, TRUE by default}
 
-\item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space. If \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space.}
+\item{scoreout}{logical, if TRUE the search space and score tables are returned, FALSE by default}
 
-\item{startorder}{(optional) integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is \code{c(1:n)}}
-
-\item{scoretable}{(optional) list of score tables calculated for example by the last iteration of the function \code{iterativeMCMC}, to avoid their recomputation  The score tables must match the permissible parents in the search space defined by the startspace parameter.}
-
-\item{moveprobs}{(optional) a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space
+\item{moveprobs}{a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space
 \itemize{
 \item exchanging 2 random nodes in the order
 \item exchanging 2 adjacent nodes in the order
@@ -48,46 +44,33 @@ if FALSE at each MCMC step a DAG is sampled from the order proportionally to its
 \item staying still
 }}
 
-\item{iterations}{(optional) integer, the number of MCMC steps, the default value is \eqn{5n^{2}\log{n}}}
+\item{iterations}{integer, the number of MCMC steps, the default value is \eqn{5n^{2}\log{n}}}
 
-\item{stepsave}{(optional) integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}}
+\item{stepsave}{integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}}
 
-\item{alpha}{(optional) numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})}
+\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})}
 
-\item{cpdag}{(optional) logical, if TRUE the CPDAG returned by the PC algorithm will be used as the search
+\item{cpdag}{logical, if TRUE the CPDAG returned by the PC algorithm will be used as the search
 space, if FALSE (default) the full undirected skeleton will be used as the search space}
 
-\item{gamma}{(optional) tuning parameter which transforms the score by raising it to this power, 1 by default}
+\item{gamma}{tuning parameter which transforms the score by raising it to this power, 1 by default}
 
-\item{hardlimit}{(optional) integer, limit on the size of parent sets in the search space}
-
-\item{chainout}{logical, if TRUE the saved MCMC steps are returned, TRUE by default}
-
-\item{scoreout}{logical, if TRUE the search space and score tables are returned, FALSE by default}
+\item{hardlimit}{integer, limit on the size of parent sets in the search space; by default 14 when MAP=TRUE and 20 when MAP=FALSE}
 
 \item{verbose}{logical, if TRUE messages about the algorithm's progress will be printed, FALSE by default}
+
+\item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.}
+
+\item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space. If \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space.}
+
+\item{startorder}{(optional) integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is random}
+
+\item{scoretable}{(optional) object of class \code{MCMCspace} containing list of score tables calculated for example by the last iteration of the function \code{iterativeMCMC}. When not NULL, parameter \code{startspace} is ignored.}
 }
 \value{
-Depends on the logical parameters \code{chainout} and \code{scoreout}.
- If both are FALSE (default), an object of class \code{MCMCmax}, containing a list of 3 elements:
-\itemize{
-\item {DAG -} {the adjacency matrix of the DAG with maximal score}
-\item {order -} {an order it belongs to}
-\item {score -} {the score of the reported DAG}
-}
-If \code{chainout} is TRUE an object of class \code{MCMCtrace} is additionally returned, contains 4 lists  (each of the 4 lists has length
-\code{iterations/stepsave}, i.e. the number of saved MCMC steps):
-\itemize{
-\item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC
-\item DAGscores - contains a list of scores of DAGs sampled at each step of MCMC
-\item orderscores - contains a list of scores of orders of DAGs sampled at each step of MCMC
-\item order - contains a list of permutations of the nodes of DAGs sampled at each step of MCMC
-}
-If \code{scoreout} is TRUE an object of class \code{MCMCspace} is additionally returned, contains a list of 2 elements:
-\itemize{
- \item adjacency - the adjacency matrix representing the search space
- \item scoretable - the list of score tables corresponding to this search space
-}
+Object of class \code{MCMCres}, which contains log-score trace of sampled DAGs as well 
+as adjacency matrix of the maximum scoring DAG, its score and the order score. See \code{\link{MCMCres}}.
+The output can optionally include DAGs sampled in MCMC iterations and the score tables. Optional output is regulated by the parameters \code{chainout} and \code{scoreout}.
 }
 \description{
 This function implements the order MCMC algorithm for the structure learning of Bayesian networks. This function can be used
@@ -102,7 +85,7 @@ Also implemented is the possibility to expand the default or input search space,
 \examples{
 \dontrun{
 #find a MAP DAG with search space defined by PC and plus1 neighbourhood
-Bostonscore<-scoreparameters(14,"bge",Boston)
+Bostonscore<-scoreparameters("bge",Boston)
 #estimate MAP DAG
 orderMAPfit<-orderMCMC(Bostonscore)
 summary(orderMAPfit)
@@ -110,7 +93,6 @@ summary(orderMAPfit)
 ordersamplefit<-orderMCMC(Bostonscore,MAP=FALSE,chainout=TRUE)
 plot(ordersamplefit)
 }
-
 }
 \references{
 Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.
@@ -122,4 +104,7 @@ Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical
 Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian acyclic graphical models. The Annals of Statistics 42, 1689-1691.
 
 Spirtes P, Glymour C and Scheines R (2000). Causation, Prediction, and Search, 2nd edition. The MIT Press.
+}
+\author{
+Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 }

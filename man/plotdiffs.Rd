@@ -4,26 +4,43 @@
 \alias{plotdiffs}
 \title{Plotting difference between two graphs}
 \usage{
-plotdiffs(edag, truedag, clusters = NULL)
+plotdiffs(
+  graph1,
+  graph2,
+  estimated = TRUE,
+  name1 = "graph1",
+  name2 = "graph2",
+  clusters = NULL
+)
 }
 \arguments{
-\item{edag}{object of class graphNEL (or its adjacency matrix), representing estimated structure (not necessarily acyclic) to be compared to the ground truth graph}
+\item{graph1}{object of class graphNEL or its adjacency matrix}
 
-\item{truedag}{object of class graphNEL (or its adjacency matrix), representing the ground truth structure (not necessarily acyclic)}
+\item{graph2}{object of class graphNEL or its adjacency matrix}
+
+\item{estimated}{logical, indicates if graph1 is estimated graph and graph2 is ground truth DAG, TRUE by default; this affects the legend and colouring of the edges}
+
+\item{name1}{character, custom name for 'graph1'}
+
+\item{name2}{character, custom name for 'graph2'}
 
 \item{clusters}{(optional) a list of nodes to be represented on the graph as clusters}
 }
 \value{
-plots the graph which includes edges from edag and truedag, however edges which are different in edag compared to truedag are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
+plots the graph which includes edges from graph1 and graph2, however edges which are different in graph1 compared to graph2 are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
 }
 \description{
-This function plots an estimated graph such that the edges which are different to the ground truth graph are highlighted.
+This function plots edges from two graphs in one and indicates similarities and differences between these graphs.
+It is also possible to use this function for plotting mistakes in estimated graph when the ground truth graph is known.
 }
 \examples{
-Asiascore<-scoreparameters(8,"bde",Asia)
+Asiascore<-scoreparameters("bde",Asia)
 Asiamap<-orderMCMC(Asiascore)
-plotdiffs(Asiamap$max$DAG,Asiamat)
+plotdiffs(Asiamap$DAG,Asiamat)
 Asiacp<-pcalg::dag2cpdag(m2graph(Asiamat))
-mapcp<-pcalg::dag2cpdag(m2graph(Asiamap$max$DAG))
+mapcp<-pcalg::dag2cpdag(m2graph(Asiamap$DAG))
 plotdiffs(mapcp,Asiacp)
+}
+\author{
+Polina Suter
 }

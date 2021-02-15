@@ -4,7 +4,7 @@
 #' Lauritzen and Spiegelhalter (1988) about lung
 #' diseases (tuberculosis, lung cancer or bronchitis) and visits to Asia.
 #' 
-#' @source \url{http://www.bnlearn.com/bnrepository/}
+#' @source \url{https://www.bnlearn.com/bnrepository/}
 #' @format A binary matrix with 8 rows and 8 columns representing an adjacency matrix of a DAG with 8 nodes:
 #' \itemize{
 #' \item D (dyspnoea), binary 1/0 corresponding to "yes" and "no"

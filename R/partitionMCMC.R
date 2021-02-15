@@ -8,7 +8,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
   
   #n - number of nodes (background included)
   #nsmall - number of nodes excluding background
-  #matsize - number of rows/columns in adjacency matrix 
+  #matsize - number of rows/columns in adjacency matrix, used for DBNs
   
   if(!is.null(bgnodes)) {
     mainnodes<-c(1:matsize)[-bgnodes]
@@ -30,10 +30,10 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                                           parenttable,needednodetable,
                                           numberofparentsvec,needednodebannedrow,
                                           numberofpartitionparentsvec,plus1lists) #log score of a single sampled DAG from the partition and permutation
-
+  
   L1 <- list() #stores the adjacency matrix of a DAG sampled from the partition and permutation
-  L2 <- list() #stores the log BGe score of a DAG sampled from the partition and permutation
-  L3 <- list() #stores the log BGe score of the entire partition following the permutation
+  L2 <- vector() #stores the log BGe score of a DAG sampled from the partition and permutation
+  L3 <- vector() #stores the log BGe score of the entire partition following the permutation
   L4 <- list() #stores the permutations
   L5 <- list() #stores the partitions
   zlimit<- floor(iterations/stepsave) + 1 # number of outer iterations
@@ -44,8 +44,8 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
   length(L5) <- zlimit
 
   L1[[1]]<-currentDAG$incidence #starting DAG adjacency matrix
-  L2[[1]]<-currentDAG$logscore #starting DAG score
-  L3[[1]]<-currenttotallogscore #starting partition score
+  L2[1]<-currentDAG$logscore #starting DAG score
+  L3[1]<-currenttotallogscore #starting partition score
   L4[[1]]<-currentpermy #starting permutation
   L5[[1]]<-currentparty #starting partition
 
@@ -85,12 +85,12 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                    scorepositions<-temp[[3]]
                  },
                  {# if neither is chosen, we have a problem
-                   print('The move sampling has failed!')
+                   cat("The move sampling has failed! \n")
                  })
 
           proposedpartitionrescored<-partitionscoreplus1(n,nsmall,rescorenodes,scorepositions,bgnodes,parenttable,aliases,scoretab,plus1lists,rowmapsneeded,rowmapsallowed,scoresneeded,scoresallowed,
                                                          proposedpermy,currentparty,currentposy) #their scores
-            proposedtotallogscore<-currenttotallogscore-sum(currentpartitionscores$totscores[rescorenodes])+sum(proposedpartitionrescored$totscores[rescorenodes]) #and the new log total score by updating only the necessary nodes
+          proposedtotallogscore<-currenttotallogscore-sum(currentpartitionscores$totscores[rescorenodes])+sum(proposedpartitionrescored$totscores[rescorenodes]) #and the new log total score by updating only the necessary nodes
             scoreratio<-exp(proposedtotallogscore-currenttotallogscore) #acceptance probability
             count<-count+1
             if(runif(1)<scoreratio){ #Move accepted then set the current permutation and scores to the proposal
@@ -140,7 +140,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                           temp<-holenode(nsmall,currentparty,currentposy,currentpermy,currentpartholeposs)
                         },
                         {# if nothing is chosen, we have a problem
-                          print('The move sampling has failed!')
+                          cat("The move sampling has failed! \n")
                         })
 
                  proposedparty<-temp[[1]]
@@ -156,7 +156,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                  proposedpartholenbhood<-sum(proposedpartholeposs)
                },
                {# if nothing is chosen, we have a problem
-                 print('The move sampling has failed!')
+                 cat("The move sampling has failed! \n")
                })
 
         proposedpartitionrescored<-partitionscoreplus1(n,nsmall,rescorenodes,scorepositions,bgnodes,parenttable,aliases,scoretab,plus1lists,rowmapsneeded,rowmapsallowed,scoresneeded,scoresallowed,
@@ -173,7 +173,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                  scoreratio<-scoreratio*((currentpartjoinnbhood+currentpartholenbhood)/(proposedpartjoinnbhood+proposedpartholenbhood)) # neighbourhood correction
                },
                {# if nothing is chosen, we have a problem
-                 print('The move sampling has failed!')
+                 cat("The move sampling has failed! \n")
                })
 
         if(runif(1)<scoreratio){ #Move accepted then set the current partition and scores to the proposal
@@ -205,7 +205,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                    currentpartholenbhood<-proposedpartholenbhood
                  },
                  {# if nothing is chosen, we have a problem
-                   print('The move sampling has failed!')
+                   cat("The move sampling has failed! \n")
                  })
         }
         }
@@ -214,8 +214,8 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
                                             scoretable,scoresallowed,scoresneeded,scoretab,parenttable,needednodetable,numberofparentsvec,
                                             needednodebannedrow,numberofpartitionparentsvec,plus1lists)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG
-    L2[[z]]<-currentDAG$logscore #and its log score
-    L3[[z]]<-currenttotallogscore #store the current total partition score
+    L2[z]<-currentDAG$logscore #and its log score
+    L3[z]<-currenttotallogscore #store the current total partition score
     L4[[z]]<-currentpermy[1:nsmall] #store current permutation each 'stepsave'
     L5[[z]]<-currentparty #store current partition each 'stepsave'
   }

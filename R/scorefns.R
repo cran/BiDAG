@@ -1,3 +1,4 @@
+#author Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 TableDAGscore.alias <- function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,
                                 numberofparentsvec=NULL) {
   
@@ -21,6 +22,7 @@ TableDAGscore.alias <- function(parentrows, j, n,alias,param,parentmaps=NULL,num
   return(P_local)
 }
 
+#author Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 TableDAGscore.alias.plus1<-function(parentrows, j, n,alias,param,parentmaps=NULL,numparents=NULL,numberofparentsvec=NULL) {
 
   if (param$type=="bde" & !param$DBN) {
@@ -45,6 +47,7 @@ TableDAGscore.alias.plus1<-function(parentrows, j, n,alias,param,parentmaps=NULL
   return(P_local)
 }
 
+#author Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 listpossibleparents.PC.aliases<-function(skeletonedges,isgraphNEL=FALSE,n,updatenodes=c(1:n)){
   if(isgraphNEL==FALSE){
     l1<-ncol(skeletonedges)
@@ -92,6 +95,7 @@ listpossibleparents.PC.aliases<-function(skeletonedges,isgraphNEL=FALSE,n,update
   return(listz)
 }
 
+#author Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 scorepossibleparents.alias<-function(parenttable,aliases,n,param,
                                      updatenodes=c(1:n),parentmaps=NULL,
                                      numparents=NULL,numberofparentsvec=NULL){
@@ -105,6 +109,7 @@ scorepossibleparents.alias<-function(parenttable,aliases,n,param,
   return(listz)
 }
 
+#authors Polina Suter, Jack Kuipers
 PLUS1<-function(n,aliases,updatenodes=c(1:n),blacklistparents=NULL) {
   listz<-list()
   plus1mask<-list()
@@ -126,6 +131,7 @@ PLUS1<-function(n,aliases,updatenodes=c(1:n),blacklistparents=NULL) {
   return(listz)
 }
 
+#authors Polina Suter, Jack Kuipers
 scorepossibleparents.PLUS1<-function(parenttable,plus1lists,n,param,updatenodes,
                                      parentmaps,numparents,numberofparentsvec){
 

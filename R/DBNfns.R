@@ -146,6 +146,7 @@ DBNinit<-function(adj,n.dynamic,n.static){
 
 #Combining initial and transition DBN structures in one matrix
 mergeDBNstr<-function(initStruct,transStruct) {
+  n<-ncol(initStruct)
   if(!is.matrix(initStruct)) {
     initStruct<-graph2m(initStruct)
   }
@@ -172,26 +173,26 @@ mergeDBNres<-function(result.init,result.trans,scorepar,algo) {
   
   res<-list()
   
-  maxtrans<-DBNtransform(result.trans$max$DAG,scorepar)
-  maxinit<-DBNtransform.init(result.init$max$DAG,scorepar)
-  res$max$DAG<-mergeDBNstr(maxinit,maxtrans)
-  res$max$order<-mergeDBNord(result.init$max$order,result.trans$max$order)
-  res$max$score<-mergeDBNscore(result.init$max$score,result.trans$max$score)
+  maxtrans<-DBNtransform(result.trans$DAG,scorepar)
+  maxinit<-DBNtransform.init(result.init$DAG,scorepar)
+  res$DAG<-mergeDBNstr(maxinit,maxtrans)
+  res$order<-mergeDBNord(result.init$order,result.trans$order)
+  res$score<-mergeDBNscore(result.init$score,result.trans$score)
   
-  if(!is.null(result.init$chain)) {
+  if(!is.null(result.init$traceadd)) {
     
-    result.init$chain$incidence<-lapply(result.init$chain$incidence,DBNtransform.init,param=scorepar)
-    result.trans$chain$incidence<-lapply(result.trans$chain$incidence,DBNtransform,param=scorepar)
-    result.trans$chain$incidence<-lapply(result.trans$chain$incidence,DBNcut,n.dynamic=scorepar$nsmall,n.static=scorepar$bgn)
-    res$chain$incidence<-mapply(mergeDBNstr,result.init$chain$incidence,result.trans$chain$incidence,SIMPLIFY = FALSE)
-    res$chain$DAGscores<-mapply(mergeDBNscore,result.init$chain$DAGscores,result.trans$chain$DAGscores)
+    result.init$traceadd$incidence<-lapply(result.init$traceadd$incidence,DBNtransform.init,param=scorepar)
+    result.trans$traceadd$incidence<-lapply(result.trans$traceadd$incidence,DBNtransform,param=scorepar)
+    result.trans$traceadd$incidence<-lapply(result.trans$traceadd$incidence,DBNcut,n.dynamic=scorepar$nsmall,n.static=scorepar$bgn)
+    res$traceadd$incidence<-mapply(mergeDBNstr,result.init$traceadd$incidence,result.trans$traceadd$incidence,SIMPLIFY = FALSE)
+    res$trace<-mapply(mergeDBNscore,result.init$trace,result.trans$trace)
     
   if(algo=="order"){
-    res$chain$orders<-mapply(mergeDBNord,result.init$chain$orders,result.trans$chain$orders,SIMPLIFY = FALSE)
-    res$chain$orderscores<-mapply(mergeDBNscore,result.init$chain$orderscores,result.trans$chain$orderscores)
+    res$traceadd$orders<-mapply(mergeDBNord,result.init$traceadd$orders,result.trans$traceadd$orders,SIMPLIFY = FALSE)
+    res$traceadd$orderscores<-mapply(mergeDBNscore,result.init$traceadd$orderscores,result.trans$traceadd$orderscores)
   } else if (algo=="partition") {
-    res$chain$order<-mapply(mergeDBNord,result.init$chain$order,result.trans$chain$order,SIMPLIFY = FALSE)
-    res$chain$partitionscores<-mapply(mergeDBNscore,result.init$chain$partitionscores,result.trans$chain$partitionscores)
+    res$traceadd$order<-mapply(mergeDBNord,result.init$traceadd$order,result.trans$traceadd$order,SIMPLIFY = FALSE)
+    res$traceadd$partitionscores<-mapply(mergeDBNscore,result.init$traceadd$partitionscores,result.trans$traceadd$partitionscores)
   }
   }
   
@@ -209,8 +210,8 @@ mergeDBNres.it<-function(result.init,result.trans,scorepar) {
   res$init<-result.init
   res$trans<-result.trans
   
-  maxtrans<-DBNtransform(result.trans$max$DAG,scorepar)
-  maxinit<-DBNtransform.init(result.init$max$DAG,scorepar)
+  maxtrans<-DBNtransform(result.trans$DAG,scorepar)
+  maxinit<-DBNtransform.init(result.init$DAG,scorepar)
   
   
   for(i in 1:length(res$trans$maxtrace)) {
@@ -223,9 +224,9 @@ mergeDBNres.it<-function(result.init,result.trans,scorepar) {
     res$init$maxtrace[[i]]$DAG<-DBNinit(res$init$maxtrace[[i]]$DAG,n.dynamic=scorepar$nsmall,n.static=scorepar$bgn)
   }
   
-  res$max$DAG<-mergeDBNstr(maxinit,maxtrans)
-  res$max$order<-mergeDBNord(result.init$max$order,result.trans$max$order)
-  res$max$score<-mergeDBNscore(result.init$max$score,result.trans$max$score)
+  res$DAG<-mergeDBNstr(maxinit,maxtrans)
+  res$order<-mergeDBNord(result.init$order,result.trans$order)
+  res$score<-mergeDBNscore(result.init$score,result.trans$score)
 
   endinit<-DBNtransform.init(result.init$endspace,scorepar)
   endtrans<-DBNtransform(result.trans$endspace,scorepar)

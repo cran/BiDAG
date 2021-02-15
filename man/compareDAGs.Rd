@@ -19,7 +19,7 @@ This function compares one (estimated) DAG to another DAG (true DAG), returning 
 number of true positive edges and number of false positive edges.
 }
 \examples{
-Asiascore<-scoreparameters(8,"bde",Asia)
+Asiascore<-scoreparameters("bde",Asia)
 \dontrun{
 eDAG<-orderMCMC(Asiascore)
 compareDAGs(eDAG$max$DAG,Asiamat)

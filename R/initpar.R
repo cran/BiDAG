@@ -1,17 +1,11 @@
-#started changing for background nodes
-
-
 #'Initialising score object
 #'
 #'This function returns an object of class scoreparameters containing the data and parameters needed for calculation of the BDe/BGe score, or a user defined score.
-#' @param n number of nodes (variables) in the Bayesian network; for DBN n represents the number of nodes per one time slice (including static variables)
 #' @param data the data matrix with n columns (the number of variables) and a number of rows equal to the number of observations
 #' @param scoretype the score to be used to assess the DAG structure:
 #'  "bge" for Gaussian data, "bde" for binary data, 
 #'  "bdecat" for categorical data, "dbn" for dynamic Bayesian networks,
 #'  "usr" for a user defined score
-#' @param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
-#' @param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables which do not change over time
 #' @param bgepar a list which contains parameters for BGe score:
 #' \itemize{
 #' \item am (optional) a positive numerical value, 1 by default
@@ -38,9 +32,13 @@
 #' \item suffStat (optional)  a list containing sufficient statistics for  the CI test
 #' \item otherpars (optional) a list containing other parameters needed for score evaluation
 #' }
+#'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
+#'@param MDAG logical, when TRUE the score is initialized for a multiple DAG models; FALSE by default
+#'@param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
+#'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables which do not change over time
 #'@param edgepmat (optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default
 #'@param nodeslabels (optional) a vector of characters which denote the names of nodes in the Bayesian network; by default column names of the data will be taken
-#'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
+#'@param multwv list(optional) of weightvectors for MDAG model
 #'@return an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
 #'@references Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian acyclic graphical models. The Annals of Statistics 42, 1689-1691.
@@ -49,21 +47,25 @@
 #'@examples
 #' myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
 #' myData<-pcalg::rmvDAG(200, myDAG) 
-#' myScore<-scoreparameters(20, "bge", myData)
+#' myScore<-scoreparameters("bge", myData)
+#'@author Polina Suter, Jack kuipers
 #'@export
 # a constructor function for the "scoreparameters" class
-scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvector=NULL,
-                          bgnodes=NULL,
+scoreparameters<-function(scoretype=c("bge","bde","bdecat"), data, 
                           bgepar=list(am=1, aw=NULL),
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(samestruct=TRUE,slices=2,stationary=TRUE), 
+                          dbnpar=list(samestruct=TRUE,slices=2), 
                           usrpar=list(pctesttype=c("bge","bde","bdecat")), 
-                          edgepmat=NULL, nodeslabels=NULL,DBN=FALSE) {
-  
+                          DBN=FALSE,MDAG=FALSE,
+                          weightvector=NULL,
+                          bgnodes=NULL, 
+                          edgepmat=NULL, nodeslabels=NULL,
+                          multwv=NULL) {
   bgn<-length(bgnodes)
+  if(DBN) {n<-(ncol(data)-bgn)/dbnpar$slices+bgn} else {n<-ncol(data)}
   nsmall<-n-bgn #number of nodes in the network excluding background nodes
-  if (!(scoretype%in%c("bge", "bde", "bdecat","usr"))) {
+  if (!(scoretype%in%c("bge", "bde", "bdecat","usr"))) { #add mixed later
     stop("Scoretype should be bge (for continuous data), bde (for binary data) bdecat (for categorical data) or usr (for user defined)")
   }
   
@@ -75,6 +77,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
     stop("n and the number of columns in the data do not match")
   }
   } else {
+    if(is.null(dbnpar$stationary)) dbnpar$stationary<-TRUE
     if(dbnpar$stationary) {
     if (ncol(data)!=nsmall*dbnpar$slices+bgn) {
       stop("n, bgn and the number of columns in the data do not match")
@@ -138,6 +141,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
   initparam$labels<-nodeslabels
   initparam$type<-scoretype
   initparam$DBN<-DBN
+  initparam$MDAG<-MDAG
   initparam$weightvector<-weightvector
   initparam$data<-data
   
@@ -210,10 +214,8 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
       
       for(i in 1:length(data)) {
         datalocal<-data[[i]]
-        print(nsmall)
-        print(bgn)
         datalocal <- datalocal[,c(1:nsmall+nsmall+bgn,1:bgn,1:nsmall+bgn)] 
-        initparam$paramsets[[i]]<-scoreparameters(n=n+nsmall, scoretype=scoretype, 
+        initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
                                                  datalocal, weightvector=NULL, 
                                                  bgnodes=initparam$bgnodes,
                                                  bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
@@ -307,7 +309,7 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
       } 
     }
     
-    initparam$otherslices <- scoreparameters(n=n+nsmall, scoretype=scoretype, 
+    initparam$otherslices <- scoreparameters(scoretype=scoretype, 
                                              datalocal, weightvector=weightvector.other, 
                                              bgnodes=initparam$bgnodes,
                                              bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
@@ -332,10 +334,10 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
       }
     }
     if(lNA>0) {
-      print(paste(lNA, "rows were removed due to missing data"))
+      cat(paste(lNA, "rows were removed due to missing data"),"\n")
     }
 
-    initparam$firstslice <- scoreparameters(n=n, scoretype=scoretype, 
+    initparam$firstslice <- scoreparameters(scoretype=scoretype, 
                                             datalocal, weightvector=weightvector, bgnodes=newbgnodes,
                                             bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
                                             edgepmat=edgepmat, DBN=FALSE)
@@ -411,9 +413,29 @@ scoreparameters<-function(n, scoretype=c("bge","bde","bdecat"), data, weightvect
     initparam <- usrscoreparameters(initparam, usrpar)
   } 
   attr(initparam, "class") <- "scoreparameters"
+  if(!is.null(multwv)) {
+    initparam$paramsets<-list()
+    for(i in 1:length(multwv)) {
+      initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
+                                                data, weightvector=multwv[[i]], 
+                                                bgnodes=initparam$bgnodes,
+                                                bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
+                                                edgepmat=edgepmat, DBN=FALSE,MDAG=FALSE,multwv=NULL)
+    }
+  }
   initparam
 
 }
 
-
-
+#Add later
+#@param mixedpar a list which contains parameters for the BGe and BDe score for mixed data:
+#\itemize{
+#\item nbin a positive integer number of binary nodes in the network (the binary nodes are always assumed in first nbin columns of the data)
+# }
+# else if (scoretype=="mixed") {
+#   initparam$nbin<-mixedpar$nbin
+#   initparam$binpar<-scoreparameters("bde", data[,1:mixedpar$nbin], bdepar=bdepar,
+#                                     nodeslabels=nodeslabels[1:mixedpar$nbin],weightvector=weightvector)
+#   initparam$gausspar<-scoreparameters("bge",data,bgnodes = c(1:mixedpar$nbin), bgepar=bgepar,
+#                                       nodeslabels = nodeslabels, weightvector=weightvector)
+# }

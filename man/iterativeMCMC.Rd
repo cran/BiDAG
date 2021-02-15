@@ -6,41 +6,31 @@
 \usage{
 iterativeMCMC(
   scorepar,
-  plus1it = NULL,
-  moveprobs = NULL,
   MAP = TRUE,
   posterior = 0.5,
-  iterations = NULL,
-  stepsave = NULL,
   softlimit = 9,
   hardlimit = 12,
   alpha = 0.05,
   gamma = 1,
-  startspace = NULL,
-  blacklist = NULL,
   verbose = TRUE,
   chainout = FALSE,
   scoreout = FALSE,
   cpdag = FALSE,
   mergetype = "skeleton",
-  addspace = NULL,
-  scoretable = NULL,
+  iterations = NULL,
+  moveprobs = NULL,
+  stepsave = NULL,
   startorder = NULL,
-  accum = FALSE
+  accum = FALSE,
+  plus1it = NULL,
+  startspace = NULL,
+  blacklist = NULL,
+  addspace = NULL,
+  scoretable = NULL
 )
 }
 \arguments{
 \item{scorepar}{an object of class \code{scoreparameters}, containing the data and scoring parameters; see constructor function \code{\link{scoreparameters}}}
-
-\item{plus1it}{(optional) integer, a number of iterations of search space expansion; by default the algorithm iterates until no score improvement can be achieved by further expanding the search space}
-
-\item{moveprobs}{(optional) a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space:
-\itemize{
-\item exchanging 2 random nodes in the order
-\item exchanging 2 adjacent nodes in the order
-\item placing a single node elsewhere in the order
-\item staying still
-}}
 
 \item{MAP}{logical, if TRUE (default) the search targets the MAP DAG (a DAG with maximum score),
 if FALSE at each MCMC step a DAG is sampled from the order proportionally to its score; when expanding a search space when MAP=TRUE all edges from the maximum scoring DAG are added
@@ -48,23 +38,15 @@ if FALSE at each MCMC step a DAG is sampled from the order proportionally to its
 
 \item{posterior}{logical, when \code{MAP} set to FALSE defines posterior probability threshold for adding the edges to the search space}
 
-\item{iterations}{(optional) integer, the number of MCMC steps, the default value is \eqn{3.5n^{2}\log{n}}}
-
-\item{stepsave}{(optional) integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations}/1000}
-
-\item{softlimit}{(optional) integer, limit on the size of parent sets beyond which adding undirected edges is restricted; below this
+\item{softlimit}{integer, limit on the size of parent sets beyond which adding undirected edges is restricted; below this
 limit edges are added to expand the parent sets based on the undirected skeleton of the MAP DAG (or from its CPDAG, depending
 on the parameter \code{mergecp}), above the limit only the directed edges are added from the MAP DAG;  the limit is 9 by default}
 
-\item{hardlimit}{(optional) integer, limit on the size of parent sets beyond which the search space is not further expanded to prevent long runtimes; the limit is 12 by default}
+\item{hardlimit}{integer, limit on the size of parent sets beyond which the search space is not further expanded to prevent long runtimes; the limit is 12 by default}
 
-\item{alpha}{(optional) numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})}
+\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})}
 
-\item{gamma}{(optional) tuning parameter which transforms the score by raising it to this power, 1 by default}
-
-\item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used; if \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1}
-
-\item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space}
+\item{gamma}{tuning parameter which transforms the score by raising it to this power, 1 by default}
 
 \item{verbose}{logical, if TRUE (default) prints messages on the progress of execution}
 
@@ -75,42 +57,43 @@ on the parameter \code{mergecp}), above the limit only the directed edges are ad
 \item{cpdag}{logical, if set to TRUE the equivalence class (CPDAG) found by the PC algorithm is used as a search
 space, when FALSE (default) the undirected skeleton used as a search space}
 
-\item{mergetype}{defines which edges are added to the search space at each expansion iteration; if set to}
+\item{mergetype}{defines which edges are added to the search space at each expansion iteration; three options are available 'dag', 'cpdag', 'skeleton'; 'skeleton' by default}
 
-\item{addspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the edges, which are added at to the search space only at the first iteration of iterative seach and do not necessarily stay afterwards; defined in the form of an adjacency matrix;  if \code{addspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{addspace[i,j]} and \code{addspace[j,i]} should be 1}
+\item{iterations}{integer, the number of MCMC steps, the default value is \eqn{3.5n^{2}\log{n}}}
 
-\item{scoretable}{(optional) list of score tables which has to match startspace and addspace}
+\item{moveprobs}{a numerical vector of 4 values in \code{\{0,1\}} corresponding to the probabilities of the following MCMC moves in the order space:
+\itemize{
+\item exchanging 2 random nodes in the order
+\item exchanging 2 adjacent nodes in the order
+\item placing a single node elsewhere in the order
+\item staying still
+}}
 
-\item{startorder}{(optional) integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is \code{c(1:n)}}
+\item{stepsave}{integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations}/1000}
 
-\item{accum}{logical, when TRUE at each search step expansion new edges are added to the current search space; when FALSE (default) the new edges are added to the starting space
+\item{startorder}{integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is random}
+
+\item{accum}{logical, when TRUE at each search step expansion new edges are added to the current search space; when FALSE (default) the new edges are added to the starting space}
+
+\item{plus1it}{(optional) integer, a number of iterations of search space expansion; by default the algorithm iterates until no score improvement can be achieved by further expanding the search space}
+
+\item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used; if \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1}
+
+\item{blacklist}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space
 \itemize{
 \item "dag", then edges from maximum scoring DAG are added;
 \item "cpdag", then the maximum scoring DAG is first converted to the CPDAG, from which all edges are added to the search space;
 \item "skeleton", then the maximum scoring DAG is first converted to the skeleton, from which all edges are added to the search space
 }}
+
+\item{addspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the edges, which are added at to the search space only at the first iteration of iterative seach and do not necessarily stay afterwards; defined in the form of an adjacency matrix;  if \code{addspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{addspace[i,j]} and \code{addspace[j,i]} should be 1}
+
+\item{scoretable}{(optional) object of class \code{MCMCscoretab} (see \code{\link{MCMCscoretab}}). When not NULL, parameters \code{startspace} and \code{addspace} are ignored.}
 }
 \value{
-Depends on the logical parameters \code{chainout} and \code{scoreout}. If both are FALSE (default), an oject of class \code{MCMCmax}, containing a list of 4 elements:
-\itemize{
-\item {DAG -} {the adjacency matrix of the DAG with maximal score}
-\item {order -} {an order it belongs to}
-\item {score -} {the score of the reported DAG}
-\item {it -} {the iteration at which maximum was reached}
-}
-If \code{chainout} is TRUE an object of class \code{MCMCtrace} is additionally returned, contains 4 lists  (each of the 4 lists has length
-\code{iterations/stepsave}, i.e. the number of saved MCMC steps):
-\itemize{
-\item incidence - contains a list of adjacency matrices of DAGs sampled at each step of MCMC
-\item DAGscores - contains a list of scores of DAGs sampled at each step of MCMC
-\item orderscores - contains a list of scores of orders of DAGs sampled at each step of MCMC
-\item order - contains a list of permutations of the nodes of DAGs sampled at each step of MCMC
-}
-If \code{scoreout} is TRUE an object of class \code{MCMCspace} is additionally returned, contains a list of 2 elements:
-\itemize{
- \item adjacency - the adjacency matrix representing the search space
- \item scoretable - the list of score tables corresponding to this search space
-}
+Object of class \code{MCMCmult}, which contains log-score trace as well 
+as adjacency matrix of the maximum scoring DAG, its score and the order score. See \code{\link{MCMCmult}}.
+The output can optionally include DAGs sampled in MCMC iterations and the score tables. Optional output is regulated by the parameters \code{chainout} and \code{scoreout}.
 }
 \description{
 This function implements an iterative search for the maximum a posteriori (MAP) DAG, 
@@ -125,7 +108,7 @@ The final search space may be used for the sampling versions of \code{\link{orde
 }
 \examples{
 \dontrun{
-Bostonpar<-scoreparameters(14,"bge",Boston)
+Bostonpar<-scoreparameters("bge",Boston)
 itfit<-iterativeMCMC(Bostonpar, chainout=TRUE, scoreout=TRUE)
 plot(itfit)
 }
@@ -140,4 +123,7 @@ Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical
 Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian directed acyclic graphical models. The Annals of Statistics 42, 1689-1691.
 
 Spirtes P, Glymour C and Scheines R (2000). Causation, Prediction, and Search, 2nd edition. The MIT Press.
+}
+\author{
+Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 }

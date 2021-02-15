@@ -7,7 +7,6 @@
 ## Alex Ahgarin <datamanagement@email.com>.  Original version was
 ## named "subsets" and was Written by Bill Venables.  
 ##
-
 combinations <- function(n, r, v = 1:n, set = TRUE, repeats.allowed=FALSE) {
   if(mode(n) != "numeric" || length(n) != 1 
      || n < 1 || (n %% 1) != 0) stop("bad value of n") 
@@ -51,8 +50,6 @@ combinations <- function(n, r, v = 1:n, set = TRUE, repeats.allowed=FALSE) {
 ## Alex Ahgarin <datamanagement@email.com>
 ##
 ##
-
-
 permutations <- function(n, r, v = 1:n, set = TRUE, repeats.allowed=FALSE)
 {
   if(mode(n) != "numeric" || length(n) != 1 
@@ -143,7 +140,6 @@ storemaxMCMC<-function(MCMCres,param) {
     maxobj$order<-order2var(MCMCres[[4]][[maxN]],param$labels)
   }
   maxobj$score<-MCMCres[[2]][[maxN]]
-  attr(maxobj,"class")<-"MCMCmax"
   return(maxobj)
 }
 assignLabels<-function(adjacency,nodelabels){
@@ -276,7 +272,6 @@ checkstartorder<-function(order,varnames,mainnodes,bgnodes,
         } else {#startorder is defined correctly
             if(lo==n) {
               order<-orderbgn(order,bgnodes)
-              print(order)
               #we change indices of variables turning into internal representation
               if(bgn>0) {
                 order<-c(order[1:nsmall]-bgn,order[1:bgn+nsmall]+nsmall)

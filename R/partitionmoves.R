@@ -1,5 +1,5 @@
+#the original code taken from <doi:10.1080/01621459.2015.1133426>
 # swap only nodes in different partition elements # move 1
-
 swapdiffelementnodes<-function(n,currentparty,currentposy,currentpermy,permpossibs){
   
   scorelength<-length(permpossibs) 

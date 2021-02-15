@@ -22,10 +22,13 @@ the log of the BDe/BGe score of given observations against a DAG
 This function calculates the score of a given sample against a DAG represented by its incidence matrix.
 }
 \examples{
- Asiascore<-scoreparameters(8, "bde", Asia[1:100,]) #we wish to score only first 100 observations
+ Asiascore<-scoreparameters("bde", Asia[1:100,]) #we wish to score only first 100 observations
  scoreagainstDAG(Asiascore, Asiamat) 
 
 }
 \references{
 Heckerman D and Geiger D, (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284, 1995.
+}
+\author{
+Jack Kuipers
 }

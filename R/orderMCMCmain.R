@@ -35,21 +35,29 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
       blacklist[,i]<-1
     }
   }
+
+  #defining startskel
+  if (!is.null(scoretable)) {
+    startskel<-scoretable$adjacency
+    blacklist<-scoretable$blacklist
+    scoretable<-scoretable$tables
+  } else {
+    if (is.null(startspace)){
+        startspace<-definestartspace(alpha,param,cpdag=cpdag,algo="pc")
+      }
+    startskeleton<-1*(startspace&!blacklist)
+    if(!is.null(addspace)) { startskel<-1*((addspace|startskeleton)&!blacklist)
+    } else {startskel<-startskeleton }
+  }
+  
   blacklistparents<-list()
   for  (i in 1:matsize) {
     blacklistparents[[i]]<-which(blacklist[,i]==1)
   }
   
-  #defining startspace and startskeleton
-  if (is.null(startspace)) {
-    startspace<-definestartspace(alpha,param,cpdag=cpdag,algo="pc")
-  } 
-  startskeleton<-1*(startspace&!blacklist)
-  
-  if(!is.null(addspace)) { startskel<-1*((addspace|startskeleton)&!blacklist)
-  } else {startskel<-startskeleton }
-  
-  print(paste("maximum parent set size is", max(apply(startskel,2,sum))))
+  if(verbose) {
+    cat(paste("maximum parent set size is", max(apply(startskel,2,sum))),"\n")
+    }
   if(max(apply(startskel,2,sum))>hardlimit) {
     stop("the size of maximal parent set is higher that the hardlimit; redifine the search space or increase the hardlimit!")
   }
@@ -59,7 +67,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
   
   if (verbose) {
-    print("skeleton ready")
+   cat("skeleton ready \n")
    flush.console()
   }
   
@@ -70,8 +78,10 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     numberofparentsvec<-ptab$numberofparentsvec
     numparents<-ptab$numparents
     rowmaps<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
-    scoretable<-scorepossibleparents.alias(parenttable,aliases,n,param,updatenodes,rowmaps,
+    if(is.null(scoretable)) {
+      scoretable<-scorepossibleparents.alias(parenttable,aliases,n,param,updatenodes,rowmaps,
                                          numparents,numberofparentsvec)
+    }
     posetparenttable<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)
   
   if(MAP==TRUE){
@@ -117,7 +127,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   }
 
   if(verbose) {
-    print(paste("score tables calculated, MCMC plus1 starts"))
+    cat(paste("score tables calculated, MCMC plus1 starts"),"\n")
     flush.console()
   }
 
@@ -150,14 +160,14 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
       MCMCtraces$incidence<-lapply(MCMCresult$incidence,function(x)assignLabels(x,param$labels))
       MCMCtraces$orders<-lapply(MCMCresult$orders,order2var,varnames=param$labels)
     }
-    MCMCtraces$DAGscores<-MCMCresult$DAGscores
+    #MCMCtraces$DAGscores<-MCMCresult$DAGscores
     MCMCtraces$orderscores<-MCMCresult$orderscores
   } 
   
   
   maxobj<-storemaxMCMC(MCMCresult,param)
-  maxN<-which.max(unlist(MCMCresult$DAGscores))
-  maxobj$reach<-maxN
+  maxN<-which.max(MCMCresult$DAGscores)
+  #maxobj$reach<-maxN
   
   if (scoreout){
     if(chainout){output<-4}
@@ -167,8 +177,10 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     else {output<-1}
   }
   
-  result$max<-maxobj
-  attr(result$max,"class")<-"MCMCmax"
+  result$DAG<-maxobj$DAG
+  result$CPDAG<-graph2m(dag2cpdag(m2graph(result$DAG)))
+  result$score<-maxobj$score
+  result$maxorder<-maxobj$order
   result$info<-list()
   tabletime<-tableend-tablestart
   if(units(tabletime)=="mins") {
@@ -179,31 +191,30 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     mcmctime<-as.numeric(mcmctime*60)
   }
   result$info$times<-c(tabletime,mcmctime)
-  
+  result$trace<-MCMCresult$DAGscores
   switch(as.character(output),
-         "1"={ # return only maximum DAG and order
-           return(result)
+         "1"={ # return only maximum DAG and score trace
          },
          "2"={ # return all MCMC all saved MCMC steps: incidence, DAGscore, orderscore and order and max result
-           result$chain<-MCMCtraces
-           attr(result$chain,"class")<-"MCMCtrace"
-           attr(result,"class")<-"MCMCres"
+           result$traceadd<-MCMCtraces
          },
          "3"={ # return max DAG, order, last search space incidence and all scoretables
-           result$space<-list()
-           result$space$adjacency<-startskel
-           result$space$scoretable<-scoretable
-           attr(result$space,"class")<-"MCMCspace"
+           result$scoretable<-list()
+           result$scoretable$adjacency<-startskel
+           result$scoretable$tables<-scoretable
+           result$scoretable$blacklist<-blacklist
+           attr(result$scoretable,"class")<-"MCMCscoretab"
          },
          "4"={ # return all MCMC all saved MCMC steps,max result,last search space and scoretables
-           result$space<-list()
-           result$space$adjacency<-startskel
-           result$space$scoretable<-scoretable
-           attr(result$space,"class")<-"MCMCspace"
-           result$chain<-MCMCtraces
-           attr(result$chain,"class")<-"MCMCtrace"
+           result$scoretable<-list()
+           result$scoretable$adjacency<-startskel
+           result$scoretable$tables<-scoretable
+           result$scoretable$blacklist<-blacklist
+           attr(result$scoretable,"class")<-"MCMCscoretab"
+           result$traceadd<-MCMCtraces
          }
   )
+  attr(result,"class")<-"MCMCres"
   return(result)
-  
+
 }

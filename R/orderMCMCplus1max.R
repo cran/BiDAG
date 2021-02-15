@@ -1,4 +1,6 @@
 #implements order MCMC on an extended search space, MAP version
+#partly derived from <doi:10.1080/01621459.2015.1133426>
+
 orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
                             parenttable,scoretable,aliases,numparents,
                          rowmaps,plus1lists,maxmatrices,numberofparentsvec,
@@ -22,8 +24,8 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
   currentDAG<-samplescoreplus1.max(matsize,mainnodes,currentorderscores,plus1lists,maxmatrices,scoretable,
                                    parenttable,numberofparentsvec,aliases) #score of a single DAG sampled from the starting order
   L1 <- list() # stores the adjacency matrix of a DAG sampled from the orders
-  L2 <- list() # stores its log BGe score
-  L3 <- list() # stores the log BGe score of the entire order
+  L2 <- vector() # stores its log BGe score
+  L3 <- vector() # stores the log BGe score of the entire order
   L4 <- list() # stores the orders as permutations
 
   zlimit<- floor(iterations/stepsave) + 1 # number of outer iterations
@@ -33,8 +35,8 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
   length(L4) <- zlimit
 
   L1[[1]]<-currentDAG$incidence #starting DAG adjacency matrix
-  L2[[1]]<-currentDAG$logscore #starting DAG score
-  L3[[1]]<-currenttotallogscore #starting order score
+  L2[1]<-currentDAG$logscore #starting DAG score
+  L3[1]<-currenttotallogscore #starting order score
   L4[[1]]<-currentpermy[1:nsmall] #starting order
 
   moveprobsstart<-moveprobs
@@ -50,7 +52,6 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
         switch(as.character(chosenmove),
                "1"={ # swap any two elements at random
                  sampledelements<-sample.int(nsmall,2,replace=FALSE) #chosen at random
-                 #print("1")
                },
                "2"={ # swap any adjacent elements
                  k<-sample.int(nsmall-1,1) #chose the smallest at random
@@ -62,7 +63,7 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
                "4"={ # stay still
                },
                {# if neither is chosen, we have a problem
-                 print('The move sampling has failed!')
+                 cat("The move sampling has failed! \n")
                }) #end switch
 
         if (chosenmove < 3) {
@@ -98,8 +99,8 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
     currentDAG<-samplescoreplus1.max(matsize,mainnodes,currentorderscores,plus1lists,maxmatrices,scoretable,
                                      parenttable,numberofparentsvec,aliases)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
-    L2[[z]]<-currentDAG$logscore #and log score of a sampled DAG
-    L3[[z]]<-currenttotallogscore #and the current order score
+    L2[z]<-currentDAG$logscore #and log score of a sampled DAG
+    L3[z]<-currenttotallogscore #and the current order score
     L4[[z]]<-currentpermy[1:nsmall] #and store current order
   }
   result<-list()
@@ -107,6 +108,7 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
   result$DAGscores<-L2
   result$orderscores<-L3
   result$orders<-L4
+
   return(result)
 }
 

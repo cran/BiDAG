@@ -2,11 +2,10 @@
 % Please edit documentation in R/plotfns.R
 \name{plotpcor}
 \alias{plotpcor}
-\title{Comparing posterior probabilitites of single edges based on two samples}
+\title{Comparing posterior probabilitites of single edges based on several samples}
 \usage{
 plotpcor(
-  edgepmat1,
-  edgepmat2,
+  pmat,
   highlight = 0.3,
   cut = 0.05,
   main = "",
@@ -15,32 +14,35 @@ plotpcor(
 )
 }
 \arguments{
-\item{edgepmat1}{binary matrix, representing posterior probabilities of single edges in a Bayesian network}
-
-\item{edgepmat2}{binary matrix, representing posterior probabilities of single edges in a Bayesian network}
+\item{pmat}{a list of square matrices, representing posterior probabilities of single edges in a Bayesian network}
 
 \item{highlight}{numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted}
 
 \item{cut}{numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE}
 
-\item{main}{character string, a title for the plot}
+\item{main}{character string, a title for the plot; ignored if length of pmat higher than 2}
 
-\item{xlab}{character string, a title for the x-axis}
+\item{xlab}{character string, a title for the x-axis; ignored if length of pmat higher than 2}
 
-\item{ylab}{character string, a title for the y-axis}
+\item{ylab}{character string, a title for the y-axis; ignored if length of pmat higher than 2}
 }
 \value{
-squared correlation and MSE of posterior probabilities higher than the value defined by the argument cut; also plots the posterior probabilitites from two samples against each other
+plots posterior probabilitites of single edges from two MCMC runs; returns squared correlation and MSE of posterior probabilities higher than the value defined by the argument cut
 }
 \description{
 This function can be used to compare posterior probabilities of edges in a graph 
 based on two samples of graphs
 }
 \examples{
-Asiascore<-scoreparameters(8, "bde", Asia)
-orderfit1<-orderMCMC(Asiascore,plus1=FALSE,iterations=10000)
-orderfit2<-orderMCMC(Asiascore,plus1=FALSE,iterations=30000)
-pedges1<-edges.posterior(orderfit1)
-pedges2<-edges.posterior(orderfit2)
-plotpcor(pedges1,pedges2)
+Asiascore<-scoreparameters("bde", Asia)
+\dontrun{
+orderfit<-list()
+orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE)
+orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE)
+pedges<-lapply(orderfit,edgep,pdag=TRUE)
+plotpcor(pedges)
+}
+}
+\author{
+Polina Suter
 }

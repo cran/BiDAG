@@ -4,7 +4,13 @@
 \alias{plotpedges}
 \title{Plotting posterior probabilities of single edges}
 \usage{
-plotpedges(MCMCtrace, cutoff = 0.2, pdag = FALSE, onlyedges = NULL)
+plotpedges(
+  MCMCtrace,
+  cutoff = 0.2,
+  pdag = FALSE,
+  onlyedges = NULL,
+  highlight = NULL
+)
 }
 \arguments{
 \item{MCMCtrace}{an object of class MCMCres}
@@ -13,22 +19,27 @@ plotpedges(MCMCtrace, cutoff = 0.2, pdag = FALSE, onlyedges = NULL)
 
 \item{pdag}{logical, when true DAGs in a sample will be first coverted to CPDAGs}
 
-\item{onlyedges}{(optional) binary matrix, only edges corresponding to entries whuch equal 1 will be plotted}
+\item{onlyedges}{(optional) binary matrix, only edges corresponding to entries which equal 1 will be plotted}
+
+\item{highlight}{(optional) binary matrix, edges corresponding to entries which equal 1 are highlighted with "red"}
 }
 \value{
-plots the graph which includes edges from edag and truedag, however edges which are different in edag compared to truedag are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
+plots posterior probabilities of edges in the graph as a function of MCMC iterations
 }
 \description{
 This function plots posterior probabilities of all possible edges in the graph as a function of MCMC iterations. It can be used for convergence diagnostics of MCMC
 sampling algorithms order MCMC and partition MCMC.
 }
 \examples{
-score100<-scoreparameters(8, "bde", Asia[1:100,])
+score100<-scoreparameters("bde", Asia[1:100,])
 orderfit100<-orderMCMC(score100,plus1=TRUE)
-score5000<-scoreparameters(8, "bde", Asia)
-orderfit5000<-orderMCMC(score5000,plus1=TRUE)
 \dontrun{
+score5000<-scoreparameters("bde", Asia)
+orderfit5000<-orderMCMC(score5000,plus1=TRUE)
 plotpedges(orderfit100, pdag=TRUE)
 plotpedges(orderfit5000, pdag=TRUE)
 }
+}
+\author{
+Polina Suter
 }

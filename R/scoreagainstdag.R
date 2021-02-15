@@ -8,10 +8,12 @@
 #'@return the log of the BDe/BGe score of given observations against a DAG
 #'@references Heckerman D and Geiger D, (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284, 1995.
 #'@examples
-#'  Asiascore<-scoreparameters(8, "bde", Asia[1:100,]) #we wish to score only first 100 observations
+#'  Asiascore<-scoreparameters("bde", Asia[1:100,]) #we wish to score only first 100 observations
 #'  scoreagainstDAG(Asiascore, Asiamat) 
 #'
 #'@export
+#'@author  Jack Kuipers
+
 scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=FALSE){
   
   n<-scorepar$n
@@ -34,7 +36,12 @@ scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=F
   
   if (scorepar$type=="bge" && marginalise!=FALSE){
     return(scoreagainstDAGmargBGe(n, scorepar, incidence, datatoscore))
-  } else {
+  } else if (scorepar$type=="mixed") {
+    binscore<-scoreagainstDAG(scorepar$binpar, incidence[1:scorepar$nbin,1:scorepar$nbin])
+    gausscore<-scoreagainstDAG(scorepar$gausspar, incidence)
+    return(binscore+gausscore)
+    
+  }else {
     samplescores <- matrix(0,nrow=nrow(datatoscore),ncol=n)  
     for (j in 1:n)  {
       parentnodes <- which(incidence[,j]==1)
@@ -46,6 +53,8 @@ scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=F
 }
 
 # this function scores a nodes against its parents based on the BGe or BDe (binary) score
+# author Jack Kuipers
+
 
 scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
   samplenodescores<-rep(0,nrow(datatoscore)) # store
@@ -128,6 +137,7 @@ scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
 # over the posterior distribution of the BGe score
 # This is equivalent to the difference in scores of the DAG with
 # and without the extra data vector
+# author Jack Kuipers
 
 scoreagainstDAGmargBGe <- function(n, scorepar, incidence, datatoscore){
   

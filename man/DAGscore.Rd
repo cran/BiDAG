@@ -23,7 +23,7 @@ continuous, binary or categorical.  The BGe score is evaluated in the case of
 continuous data and the BDe score is evaluated for binary and categorical variables.
 }
 \examples{
-myScore<-scoreparameters(8, "bde", Asia)
+myScore<-scoreparameters("bde", Asia)
 DAGscore(myScore, Asiamat)
 }
 \references{
@@ -32,4 +32,7 @@ Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical
 Heckerman D and Geiger D (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284.
 
 Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian directed acyclic graphical models. The Annals of Statistics 42, 1689-1691.
+}
+\author{
+Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 }

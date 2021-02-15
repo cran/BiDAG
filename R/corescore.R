@@ -1,25 +1,3 @@
-
-dettwobytwo <- function(D) {
-  D[1,1]*D[2,2]-D[1,2]*D[2,1]
-}
-
-# The determinant of a 3 by 3 matrix
-detthreebythree <- function(D){
-  D[1,1]*(D[2,2]*D[3,3]-D[2,3]*D[3,2])-D[1,2]*(D[2,1]*D[3,3]-D[2,3]*D[3,1])+D[1,3]*(D[2,1]*D[2,3]-D[2,2]*D[3,1])
-}
-
-# The log of the BGe/BDe score, but simplified as much as possible
-# see arXiv:1402.6863 
-
-dettwobytwo <- function(D) {
-  D[1,1]*D[2,2]-D[1,2]*D[2,1]
-}
-
-# The determinant of a 3 by 3 matrix
-detthreebythree <- function(D){
-  D[1,1]*(D[2,2]*D[3,3]-D[2,3]*D[3,2])-D[1,2]*(D[2,1]*D[3,3]-D[2,3]*D[3,1])+D[1,3]*(D[2,1]*D[2,3]-D[2,2]*D[3,1])
-}
-
 # The log of the BGe/BDe score, but simplified as much as possible
 # see arXiv:1402.6863 
 DAGcorescore<-function(j,parentnodes,n,param) {
@@ -27,7 +5,7 @@ DAGcorescore<-function(j,parentnodes,n,param) {
     if(param$stationary) {
       internalparents <- parentnodes[which(parentnodes<=param$nsmall)]
       corescore <- DAGcorescore(j,parentnodes,param$n+param$nsmall,param$otherslices)+
-      DAGcorescore(j,internalparents,param$n,param$firstslice) 
+        DAGcorescore(j,internalparents,param$n,param$firstslice) 
     } else {
       corescore<-0
       for(i in 1:length(param$paramsets)) {
@@ -35,7 +13,13 @@ DAGcorescore<-function(j,parentnodes,n,param) {
                                           param$paramsets[[i]])
       }
     }
-  } else if(param$type=="bge"){
+  } else if(param$MDAG) {
+    corescore<-0
+    for(i in 1:length(param$paramsets)) {
+      corescore<-corescore+DAGcorescore(j,parentnodes,param$n,
+                                        param$paramsets[[i]])
+    }
+  }else if(param$type=="bge"){
     TN<-param$TN
     awpN<-param$awpN
     scoreconstvec<-param$scoreconstvec
@@ -164,6 +148,28 @@ DAGcorescore<-function(j,parentnodes,n,param) {
   
   return(corescore)
 }
+
+dettwobytwo <- function(D) {
+  D[1,1]*D[2,2]-D[1,2]*D[2,1]
+}
+
+# The determinant of a 3 by 3 matrix
+detthreebythree <- function(D){
+  D[1,1]*(D[2,2]*D[3,3]-D[2,3]*D[3,2])-D[1,2]*(D[2,1]*D[3,3]-D[2,3]*D[3,1])+D[1,3]*(D[2,1]*D[2,3]-D[2,2]*D[3,1])
+}
+
+# The log of the BGe/BDe score, but simplified as much as possible
+# see arXiv:1402.6863 
+
+dettwobytwo <- function(D) {
+  D[1,1]*D[2,2]-D[1,2]*D[2,1]
+}
+
+# The determinant of a 3 by 3 matrix
+detthreebythree <- function(D){
+  D[1,1]*(D[2,2]*D[3,3]-D[2,3]*D[3,2])-D[1,2]*(D[2,1]*D[3,3]-D[2,3]*D[3,1])+D[1,3]*(D[2,1]*D[2,3]-D[2,2]*D[3,1])
+}
+
 
 
 

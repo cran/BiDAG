@@ -1,4 +1,5 @@
 #implements order MCMC on a defined search space, sampling version
+#partly derived from <doi:10.1080/01621459.2015.1133426>
 orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,scoretable,aliases,numparents,
                         rowmaps,scoresmatrices,numberofparentsvec,gamma=1,bgnodes,matsize) {
   
@@ -19,8 +20,8 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
                                scoresmatrices,parenttable,numberofparentsvec,aliases) #score of a single DAG sampled from the starting order
 
   L1 <- list() # stores the adjacency matrix of a DAG sampled from the orders
-  L2 <- list() # stores its log BGe score
-  L3 <- list() # stores the log BGe score of the entire order
+  L2 <- vector() # stores its log BGe score
+  L3 <- vector() # stores the log BGe score of the entire order
   L4 <- list() # stores the orders as permutations
 
   zlimit<- floor(iterations/stepsave) + 1 # number of outer iterations
@@ -30,8 +31,8 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
   length(L4) <- zlimit
 
   L1[[1]]<-currentDAG$incidence #starting DAG adjacency matrix
-  L2[[1]]<-currentDAG$logscore #starting DAG score
-  L3[[1]]<-currenttotallogscore #starting order score
+  L2[1]<-currentDAG$logscore #starting DAG score
+  L3[1]<-currenttotallogscore #starting order score
   L4[[1]]<-currentpermy[1:nsmall] #starting order
 
   moveprobsstart<-moveprobs
@@ -93,8 +94,8 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
     currentDAG<-samplescoreplus1(matsize,mainnodes,currentorderscores,plus1lists=NULL,scoretable,scoresmatrices,
                                  parenttable,numberofparentsvec,aliases)
     L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
-    L2[[z]]<-currentDAG$logscore #and log score of a sampled DAG
-    L3[[z]]<-currenttotallogscore #and the current order score
+    L2[z]<-currentDAG$logscore #and log score of a sampled DAG
+    L3[z]<-currenttotallogscore #and the current order score
     L4[[z]]<-currentpermy[1:nsmall] #and store current order
   }
   result<-list()
@@ -102,6 +103,7 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
   result$DAGscores<-L2
   result$orderscores<-L3
   result$orders<-L4
+  
   return(result)
 }
 

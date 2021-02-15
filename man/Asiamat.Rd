@@ -18,7 +18,7 @@ A binary matrix with 8 rows and 8 columns representing an adjacency matrix of a 
 }
 }
 \source{
-\url{http://www.bnlearn.com/bnrepository/}
+\url{https://www.bnlearn.com/bnrepository/}
 }
 \usage{
 Asiamat

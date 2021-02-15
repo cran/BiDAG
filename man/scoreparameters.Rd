@@ -5,34 +5,29 @@
 \title{Initialising score object}
 \usage{
 scoreparameters(
-  n,
   scoretype = c("bge", "bde", "bdecat"),
   data,
-  weightvector = NULL,
-  bgnodes = NULL,
   bgepar = list(am = 1, aw = NULL),
   bdepar = list(chi = 0.5, edgepf = 2),
   bdecatpar = list(chi = 0.5, edgepf = 2),
-  dbnpar = list(samestruct = TRUE, slices = 2, stationary = TRUE),
+  dbnpar = list(samestruct = TRUE, slices = 2),
   usrpar = list(pctesttype = c("bge", "bde", "bdecat")),
+  DBN = FALSE,
+  MDAG = FALSE,
+  weightvector = NULL,
+  bgnodes = NULL,
   edgepmat = NULL,
   nodeslabels = NULL,
-  DBN = FALSE
+  multwv = NULL
 )
 }
 \arguments{
-\item{n}{number of nodes (variables) in the Bayesian network; for DBN n represents the number of nodes per one time slice (including static variables)}
-
 \item{scoretype}{the score to be used to assess the DAG structure:
 "bge" for Gaussian data, "bde" for binary data, 
 "bdecat" for categorical data, "dbn" for dynamic Bayesian networks,
 "usr" for a user defined score}
 
 \item{data}{the data matrix with n columns (the number of variables) and a number of rows equal to the number of observations}
-
-\item{weightvector}{(optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data}
-
-\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables which do not change over time}
 
 \item{bgepar}{a list which contains parameters for BGe score:
 \itemize{
@@ -65,11 +60,19 @@ scoreparameters(
 \item otherpars (optional) a list containing other parameters needed for score evaluation
 }}
 
+\item{DBN}{logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default}
+
+\item{MDAG}{logical, when TRUE the score is initialized for a multiple DAG models; FALSE by default}
+
+\item{weightvector}{(optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data}
+
+\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables which do not change over time}
+
 \item{edgepmat}{(optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default}
 
 \item{nodeslabels}{(optional) a vector of characters which denote the names of nodes in the Bayesian network; by default column names of the data will be taken}
 
-\item{DBN}{logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default}
+\item{multwv}{list(optional) of weightvectors for MDAG model}
 }
 \value{
 an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
@@ -80,7 +83,7 @@ This function returns an object of class scoreparameters containing the data and
 \examples{
 myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2) 
 myData<-pcalg::rmvDAG(200, myDAG) 
-myScore<-scoreparameters(20, "bge", myData)
+myScore<-scoreparameters("bge", myData)
 }
 \references{
 Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
@@ -90,4 +93,7 @@ Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian a
 Heckerman D and Geiger D (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284.
 
 Scutari M (2016). An Empirical-Bayes Score for Discrete Bayesian Networks. Journal of Machine Learning Research 52, 438-448
+}
+\author{
+Polina Suter, Jack kuipers
 }
