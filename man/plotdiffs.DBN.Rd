@@ -24,19 +24,19 @@ plotdiffs.DBN(
 \item{n.static}{number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix}
 }
 \value{
-plots the graph which includes edges from graph1 and graph2, however edges which are different in graph1 compared to graph2 are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
+plots the graph highlights differences between 'eDBN' (estimated DBN) and 'trueDBN' (ground truth); edges which are different in 'eDBN' compared to 'trueDBN' are coloured according to the type of a difference: false-positive, false-negative and error in direction.
 }
 \description{
 This function plots an estimated DBN such that the edges which are different to the ground truth DBN are highlighted.
 }
 \examples{
 dbnscore<-scoreparameters("bge",DBNdata,
-dbnpar = list(samestruct=TRUE, slices=5, stationary=TRUE),
-DBN=TRUE,bgnodes=c(1,2,3))
+dbnpar = list(samestruct=TRUE, slices=5, b=3),
+DBN=TRUE)
 \dontrun{
 orderDBNfit<-iterativeMCMC(dbnscore,chainout = TRUE, mergetype = "skeleton",scoreout=TRUE,alpha=0.4)
-plotdiffs.DBN(orderDBNfit$max$DAG,DBNmat,struct="trans",n.dynamic=12,n.static=3)
-plotdiffs.DBN(orderDBNfit$max$DAG,DBNmat,struct="init",n.dynamic=12,n.static=3)
+plotdiffs.DBN(orderDBNfit$DAG,DBNmat,struct="trans",n.dynamic=12,n.static=3)
+plotdiffs.DBN(orderDBNfit$DAG,DBNmat,struct="init",n.dynamic=12,n.static=3)
 }
 }
 \author{

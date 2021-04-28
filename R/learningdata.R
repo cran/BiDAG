@@ -53,6 +53,7 @@
 #' A simulated data set from a Gaussian continuous Bayesian network
 #'
 #' A synthetic dataset containing 1000 observations generated from a random DAG with 100 continuous nodes.
+#' Functions 'randomDAG' and 'rmvDAG' from R-packages 'pcalg' were used to generate the data. 
 #'
 #' @format A data frame with 1000 rows representing observations of 100 continuous variables: V1, ..., V100
 #'
@@ -60,7 +61,8 @@
 
 #' A simulated data set from a Gaussian continuous Bayesian network
 #'
-#' A synthetic dataset containing 100 observations generated from a random DAG with 100 continuous nodes.
+#' A synthetic dataset containing 100 observations generated from a random DAG with 100 continuous nodes. 
+#' Functions 'randomDAG' and 'rmvDAG' from R-packages 'pcalg' were used to generate the data. 
 #'
 #' @format A data frame with 100 rows representing observations of 100 continuous variables: V1, ..., V100
 #'

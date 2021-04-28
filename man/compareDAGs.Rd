@@ -2,26 +2,40 @@
 % Please edit documentation in R/graphhelpfns.R
 \name{compareDAGs}
 \alias{compareDAGs}
-\title{Comparing two DAGs}
+\title{Comparing two graphs}
 \usage{
-compareDAGs(eDAG, trueDAG)
+compareDAGs(egraph, truegraph, cpdag = FALSE, rnd = 2)
 }
 \arguments{
-\item{eDAG}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the DAG which should be compared to a ground truth DAG or an ajacency matrix corresponding to the DAG}
+\item{egraph}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the graph which should be compared to a ground truth graph or an ajacency matrix corresponding to the graph}
 
-\item{trueDAG}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth DAG or an ajacency matrix corresponding to the DAG}
+\item{truegraph}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth graph or an ajacency matrix corresponding to this graph}
+
+\item{cpdag}{logical, if TRUE (FALSE by default) both graphs are first converted to their respective equivalence class (CPDAG); this affects SHD calculation}
+
+\item{rnd}{integer, rounding integer indicating the number of decimal places (round) when computing TPR, FPR, FPRn and FDR}
 }
 \value{
-a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
+a named numeric vector 8 elements: SHD, number of true positive edges (TP), number of false positive edges (FP), number of false negative edges (FN), true positive rate (TPR),
+false positive rate (FPR), false positive rate normalized to the true number of edges (FPRn) and false discovery rate (FDR)
 }
 \description{
-This function compares one (estimated) DAG to another DAG (true DAG), returning a vector of 3 values: structural Hamming distance,
-number of true positive edges and number of false positive edges.
+This function compares one (estimated) graph to another graph (true graph), returning a vector of 8 values: 
+\itemize{
+\item the number of true positive edges ('TP') is the number of edges in the skeleton of 'egraph' which are also present in the skeleton of 'truegraph'
+\item the number of false positive edges ('FP') is the number of edges in the skeleton of 'egraph' which are absent in the skeleton of 'truegraph'
+\item the number of fralse negative edges ('FN') is the number of edges in the skeleton of 'truegraph' which are absent in the skeleton of 'egraph'
+\item structural Hamming distance ('SHD') between 2 graphs is computed as TP+FP+the number of edges with an error in direction
+\item TPR equals TP/(TP+FN)
+\item FPR equals FP/(TN+FP) (TN stands for true negative edges)
+\item FPRn equals FP/(TP+FN)
+\item FDR equals FP/(TP+FP)
+}
 }
 \examples{
-Asiascore<-scoreparameters("bde",Asia)
+Asiascore<-scoreparameters("bde", Asia)
 \dontrun{
 eDAG<-orderMCMC(Asiascore)
-compareDAGs(eDAG$max$DAG,Asiamat)
+compareDAGs(eDAG$DAG,Asiamat)
 }
 }

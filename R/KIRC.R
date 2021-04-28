@@ -1,8 +1,8 @@
-#' KIRC dataset
+#' kirc dataset
 #'
 #' Mutation data from TCGA kidney renal clear cell cohort (KIRC). 
 #' Mutations are picked according to q-value computed 
-#' by MutSigCV (q<0.1) or connected in networks discovered by Kuipers et al. 2018. 
+#' by MutSig2CV (q<0.1) or connected in networks discovered by Kuipers et al. 2018. 
 #'
 # @source \url{https://portal.gdc.cancer.gov/}
 #' @details { 
@@ -12,7 +12,7 @@
 #' The columns are named according to gene symbols.
 #' }
 #'@references \url{https://portal.gdc.cancer.gov/}
-#'@references \url{http://firebrowse.org/iCoMut/?cohort=kich}
+#'@references \url{http://firebrowse.org/iCoMut/?cohort=kirc}
 #'@references Lawrence, M. et al. Mutational heterogeneity in cancer and the search for new cancer-associated genes. Nature 499, 214-218 (2013) 
 #'
 "kirc"

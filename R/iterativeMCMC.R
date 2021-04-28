@@ -62,16 +62,11 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
     stop("the size of maximal parent set is higher that the hardlimit; redifine the search space or increase the hardlimit!")
   }
   
-  
-  starttimeall<-Sys.time()
   maxorder<-startorder
-  
-
   ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
-  
-  
+
   if (verbose) {
-    cat("skeleton ready \n")
+    cat("core space defined, score table are being computed \n")
     flush.console()
   }
     ##################################
@@ -96,11 +91,9 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
     if(MAP==TRUE){
       maxmatrices<-posetscoremax(posetparenttable,scoretable,numberofparentsvec,
                                  rowmaps,n,plus1lists=plus1lists,updatenodes)
-      endtimetab<-Sys.time()
     } else {
       bannedscore<-poset.scores(posetparenttable,scoretable,ptab$numberofparentsvec,rowmaps,
                                 n,plus1lists=plus1lists,ptab$numparents,updatenodes)
-      endtimetab<-Sys.time()
     }
     oldadj<-startskeleton
     
@@ -111,7 +104,6 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
   i<-1  
   if(is.null(plus1it)) plus1it<-100
   while (length(updatenodes)>0 & i<=plus1it){
-        starttimeit<-Sys.time()
         if(i>1){
           newptab<-listpossibleparents.PC.aliases(newadj,isgraphNEL=FALSE,n,updatenodes)
           parenttable[updatenodes]<-newptab$parenttable[updatenodes] # basic parenttable without plus1 lists
@@ -140,36 +132,24 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
           }
           
           if(verbose) {
-            cat(paste("MCMC plus1 iteration",i, "\n"))
+            cat(paste("search space expansion",i, "\n"))
             flush.console()
           }
         } else {
           if(verbose) {
-            cat(paste("score tables completed, MCMC plus1 starts", "\n"))
+            cat(paste("score tables completed, iterative MCMC is running", "\n"))
             flush.console()
           }
         }
         if(MAP) {
-          starttimemcmc<-Sys.time()
           MCMCresult<-orderMCMCplus1max(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                         scoretable,aliases,numparents,rowmaps,plus1lists,maxmatrices,numberofparentsvec,
                                         gamma=gamma,bgnodes=param$bgnodes,matsize=matsize)
-          endtimeit<-Sys.time()
-          if(verbose) {
-            cat(endtimeit-starttimeit, "\n")
-            flush.console()
-          }
         } else {
-          starttimemcmc<-Sys.time()
           MCMCresult<-orderMCMCplus1(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                      scoretable,aliases,numparents,rowmaps,plus1lists,
                                      bannedscore,numberofparentsvec,gamma=gamma,bgnodes=param$bgnodes,
                                      matsize=matsize)
-          endtimeit<-Sys.time()
-          if(verbose){
-            cat(endtimeit-starttimeit, "\n")
-            flush.console()
-          }
         }
         
         
@@ -221,9 +201,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
       
     
     addedge<-sum(newadj)-sum(startskeleton)
-    endtimeall<-Sys.time()
     
-    #attr(MCMCtraces$DAGscores,"class")<-"MCMCtracemult"
     result<-list()
     if (scoreout){
       if(chainout){output<-4}
@@ -233,7 +211,6 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
       else {output<-1}
     }
     result$maxtrace<-maxlist
-    #result$max<-maxlist[[length(maxlist)]]
     
     result$DAG<-maxobj$DAG
     result$CPDAG<-graph2m(dag2cpdag(m2graph(result$DAG)))
@@ -262,7 +239,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
              result$scoretable$adjacency<-result$endspace
              result$scoretable$tables<-scoretable
              result$scoretable$blacklist<-blacklist
-             attr(result$scoretable,"class")<-"MCMCscoretab"
+             attr(result$scoretable,"class")<-"scorespace"
            },
            "4"={ # return all MCMC all saved MCMC steps,max result,last search space and scoretables
              result$traceadd<-MCMCtraces
@@ -270,7 +247,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
              result$scoretable$adjacency<-result$endspace
              result$scoretable$tables<-scoretable
              result$scoretable$blacklist<-blacklist
-             attr(result$scoretable,"class")<-"MCMCscoretab"
+             attr(result$scoretable,"class")<-"scorespace"
            }
     )
   

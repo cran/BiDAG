@@ -1,4 +1,4 @@
-#'Initialising score object
+#'Initializing score object
 #'
 #'This function returns an object of class scoreparameters containing the data and parameters needed for calculation of the BDe/BGe score, or a user defined score.
 #' @param data the data matrix with n columns (the number of variables) and a number of rows equal to the number of observations
@@ -25,6 +25,7 @@
 #' \itemize{
 #' \item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure of all other time slices
 #' \item slices integer representing the number of time slices in a DBN
+#' \item b the number of static variables; all static variables have to be in the first b columns of the data;  for DBNs static variables have the same meaning as bgnodes for usual Bayesian networks; for DBNs parameters parameter \code{bgnodes} is ignored
 #' }
 #' @param usrpar a list which contains parameters for the user defined score
 #' \itemize{
@@ -33,12 +34,10 @@
 #' \item otherpars (optional) a list containing other parameters needed for score evaluation
 #' }
 #'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
-#'@param MDAG logical, when TRUE the score is initialized for a multiple DAG models; FALSE by default
 #'@param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
-#'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables which do not change over time
+#'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element b of the parameters dbnpar
 #'@param edgepmat (optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default
 #'@param nodeslabels (optional) a vector of characters which denote the names of nodes in the Bayesian network; by default column names of the data will be taken
-#'@param multwv list(optional) of weightvectors for MDAG model
 #'@return an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
 #'@references Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian acyclic graphical models. The Annals of Statistics 42, 1689-1691.
@@ -51,19 +50,25 @@
 #'@author Polina Suter, Jack kuipers
 #'@export
 # a constructor function for the "scoreparameters" class
-scoreparameters<-function(scoretype=c("bge","bde","bdecat"), data, 
+scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data, 
                           bgepar=list(am=1, aw=NULL),
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(samestruct=TRUE,slices=2), 
-                          usrpar=list(pctesttype=c("bge","bde","bdecat")), 
-                          DBN=FALSE,MDAG=FALSE,
+                          dbnpar=list(samestruct=TRUE, slices=2, b=0), 
+                          usrpar=list(pctesttype=c("bge","bde","bdecat","usr")), 
+                          DBN=FALSE,
                           weightvector=NULL,
                           bgnodes=NULL, 
-                          edgepmat=NULL, nodeslabels=NULL,
-                          multwv=NULL) {
+                          edgepmat=NULL, nodeslabels=NULL) {
+  
+  if(DBN) {
+    if(is.null(dbnpar$b)) bgnodes<-NULL else if(dbnpar$b>0) bgnodes<-c(1:dbnpar$b) else bgnodes<-NULL
+  }
+  
   bgn<-length(bgnodes)
-  if(DBN) {n<-(ncol(data)-bgn)/dbnpar$slices+bgn} else {n<-ncol(data)}
+  
+  if(DBN) n<-(ncol(data)-bgn)/dbnpar$slices+bgn else n<-ncol(data)
+  
   nsmall<-n-bgn #number of nodes in the network excluding background nodes
   if (!(scoretype%in%c("bge", "bde", "bdecat","usr"))) { #add mixed later
     stop("Scoretype should be bge (for continuous data), bde (for binary data) bdecat (for categorical data) or usr (for user defined)")
@@ -134,7 +139,8 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat"), data,
       }
     }
   }
-  
+  MDAG<-FALSE
+  multwv<-NULL
   colnames(data)<-nodeslabels
   
   initparam<-list()
@@ -173,10 +179,12 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat"), data,
   }
   
   
-  if (is.null(bdepar$edgepmat)) {
+  if (is.null(edgepmat)) {
     initparam$logedgepmat <- NULL
   } else {
-    initparam$logedgepmat <- log(bdepar$edgepmat)
+    if(all(edgepmat>0)) {
+    initparam$logedgepmat <- log(edgepmat)
+    } else stop("all entries of edgepmat matrix must be bigger than 0! 1 corresponds to no penalization")
   }
   if(DBN) {
     
@@ -416,11 +424,11 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat"), data,
   if(!is.null(multwv)) {
     initparam$paramsets<-list()
     for(i in 1:length(multwv)) {
-      initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
-                                                data, weightvector=multwv[[i]], 
-                                                bgnodes=initparam$bgnodes,
-                                                bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
-                                                edgepmat=edgepmat, DBN=FALSE,MDAG=FALSE,multwv=NULL)
+     # initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
+    #                                            data, weightvector=multwv[[i]], 
+    #                                            bgnodes=initparam$bgnodes,
+    #                                            bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
+    #                                            edgepmat=edgepmat, DBN=FALSE,MDAG=FALSE,multwv=NULL)
     }
   }
   initparam

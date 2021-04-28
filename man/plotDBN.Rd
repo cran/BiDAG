@@ -15,6 +15,10 @@ plotDBN(DBN, struct = c("init", "trans"), n.dynamic, n.static)
 
 \item{n.static}{number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix}
 }
+\value{
+plots the DBN defined by the adjacency matrix 'DBN' and number of static and dynamic variables. When 'struct' equals "trans" the transition structure is plotted,
+otherwise initial structure is plotted
+}
 \description{
 This function can be used for plotting initial and transition structures of a dynamic Bayesian network.
 }

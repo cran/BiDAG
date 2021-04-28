@@ -102,39 +102,61 @@ m2graph<-function(adj,nodes=NULL) {
   
 }
 
-#'Comparing two DAGs
+#'Comparing two graphs
 #'
-#'This function compares one (estimated) DAG to another DAG (true DAG), returning a vector of 3 values: structural Hamming distance,
-#'number of true positive edges and number of false positive edges.
+#'This function compares one (estimated) graph to another graph (true graph), returning a vector of 8 values: 
+#'\itemize{
+#' \item the number of true positive edges ('TP') is the number of edges in the skeleton of 'egraph' which are also present in the skeleton of 'truegraph'
+#' \item the number of false positive edges ('FP') is the number of edges in the skeleton of 'egraph' which are absent in the skeleton of 'truegraph'
+#' \item the number of fralse negative edges ('FN') is the number of edges in the skeleton of 'truegraph' which are absent in the skeleton of 'egraph'
+#' \item structural Hamming distance ('SHD') between 2 graphs is computed as TP+FP+the number of edges with an error in direction
+#' \item TPR equals TP/(TP+FN)
+#' \item FPR equals FP/(TN+FP) (TN stands for true negative edges)
+#' \item FPRn equals FP/(TP+FN)
+#' \item FDR equals FP/(TP+FP)
+#' }
 #'
-#'@param eDAG an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the DAG which should be compared to a ground truth DAG or an ajacency matrix corresponding to the DAG
-#'@param trueDAG an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth DAG or an ajacency matrix corresponding to the DAG
-#'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
+#'@param egraph an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the graph which should be compared to a ground truth graph or an ajacency matrix corresponding to the graph
+#'@param truegraph an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth graph or an ajacency matrix corresponding to this graph
+#'@param cpdag logical, if TRUE (FALSE by default) both graphs are first converted to their respective equivalence class (CPDAG); this affects SHD calculation
+#'@param rnd integer, rounding integer indicating the number of decimal places (round) when computing TPR, FPR, FPRn and FDR
+#'@return a named numeric vector 8 elements: SHD, number of true positive edges (TP), number of false positive edges (FP), number of false negative edges (FN), true positive rate (TPR),
+#'false positive rate (FPR), false positive rate normalized to the true number of edges (FPRn) and false discovery rate (FDR)
 #'@examples
-#'Asiascore<-scoreparameters("bde",Asia)
+#'Asiascore<-scoreparameters("bde", Asia)
 #'\dontrun{
 #'eDAG<-orderMCMC(Asiascore)
-#'compareDAGs(eDAG$max$DAG,Asiamat)
+#'compareDAGs(eDAG$DAG,Asiamat)
 #'}
 #'@export
-compareDAGs<-function(eDAG,trueDAG) {
+compareDAGs<-function(egraph, truegraph, cpdag=FALSE, rnd=2) {
   
-   if(is.matrix(eDAG)) eDAG<-m2graph(eDAG)
-   if(is.matrix(trueDAG)) trueDAG<-m2graph(trueDAG)
+   if(is.matrix(egraph)) egraph<-m2graph(egraph)
+   if(is.matrix(truegraph)) truegraph<-m2graph(truegraph)
    
-   skeleton1<-graph2skeleton(eDAG)
-   skeleton2<-graph2skeleton(trueDAG)
+   skeleton1<-graph2skeleton(egraph)
+   n<-ncol(skeleton1)
+   skeleton2<-graph2skeleton(truegraph)
    
   numedges1<-sum(skeleton1)
   numedges2<-sum(skeleton2)
   
+  TN<-(n*n-n)/2-numedges2
+  
   diff2<-skeleton2-skeleton1
-  res<-list()
-  res$SHD<-pcalg::shd(eDAG, trueDAG)
-  res$TP<-numedges1-sum(diff2<0) #TP
-  res$FP<-sum(diff2<0) #FP
-  res$FN<-sum(diff2>0)#FN
-  res$TPR<-res$TP/numedges2 #TPR
+  
+  res<-vector()
+  res[1]<-numedges1-sum(diff2<0) #TP
+  res[2]<-sum(diff2<0) #FP
+  res[3]<-sum(diff2>0)#FN
+  res[4]<-round(res[1]/numedges2, rnd) #TPR
+  res[5]<-round(res[2]/TN, rnd) #FPR
+  res[6]<-round(res[2]/numedges2, rnd) #FPRn
+  res[7]<-round(res[2]/(res[1]+res[2]),rnd) #FDR
+  if(cpdag) {
+    res[8]<-pcalg::shd(dag2cpdag(egraph), dag2cpdag(truegraph))
+  } else res[8]<-pcalg::shd(egraph, truegraph)
+  names(res)<-c("TP", "FP", "FN", "TPR", "FPR", "FPRn", "FDR", "SHD")
   return(res)
 }
 
@@ -144,19 +166,25 @@ compareDAGs<-function(eDAG,trueDAG) {
 #'
 #'@param eDBN an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the DBN which should be compared to a ground truth DBN 
 #'@param trueDBN an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the ground truth DBN 
-#'@param struct option used to determine if the initial or the transitional structure should be compared; accaptable values are init or trans
 #'@param n.dynamic number of dynamic variables in one time slice of a DBN
 #'@param n.static number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix
+#'@param struct option used to determine if the initial or the transitional structure should be compared; accaptable values are init or trans
 #'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
 #'@examples
-#'testscore<-scoreparameters("bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
-#'                           dbnpar=list(slices=5, stationary=TRUE))
+#'testscore<-scoreparameters("bge", DBNdata, DBN=TRUE, 
+#'dbnpar=list(samestruct=TRUE, slices=5, b=3))
 #'\dontrun{
-#'DBNfit<-iterativeMCMC(testscore,moveprobs=c(0.11,0.84,0.04,0.01))
-#'compareDBNs(DBNfit$max$DAG,DBNmat,struct="trans",n.dynamic=12,n.static=3)
+#'DBNfit<-iterativeMCMC(testscore, moveprobs=c(0.11,0.84,0.04,0.01))
+#'compareDBNs(DBNfit$DAG,DBNmat, struct="trans", n.dynamic=12, n.static=3)
 #'}
 #'@export
-compareDBNs<-function(eDBN,trueDBN,struct=c("init","trans"),n.dynamic,n.static) {
+compareDBNs<-function(eDBN, trueDBN, n.dynamic, n.static, struct=c("init","trans")) {
+  
+  if(length(struct)>1) {
+    struct<-"trans"
+    warning("parameter struct was not defined, 'trans' used by default")
+  }
+
   n<-n.static+n.dynamic
   matsize<-n.static+2*n.dynamic
   
@@ -194,9 +222,8 @@ compareDBNs<-function(eDBN,trueDBN,struct=c("init","trans"),n.dynamic,n.static) 
     skeleton1<-skeleton1[1:n,1:n]
     skeleton2<-skeleton2[1:n,1:n]
     
-    
   } else {
-    stop("parameter struct should equal either init or trans!")
+    stop("'struc' must be either 'init' or 'trans'!" )
   }
   eDAG<-m2graph(adj1)
   trueDAG<-m2graph(adj2)
@@ -206,12 +233,11 @@ compareDBNs<-function(eDBN,trueDBN,struct=c("init","trans"),n.dynamic,n.static) 
   
   diff2<-skeleton2-skeleton1
   res<-vector()
-  res[1]<-pcalg::shd(eDAG, trueDAG)
-  res[2]<-numedges1-sum(diff2<0) #TP
-  res[3]<-sum(diff2<0) #FP
-  res[4]<-sum(diff2>0)#FN
-  res[5]<-res[2]/numedges2 #TPR
-  attr(res, "class")<-"compDAGs"
+  res["SHD"]<-pcalg::shd(eDAG, trueDAG)
+  res["TP"]<-numedges1-sum(diff2<0) #TP
+  res["FP"]<-sum(diff2<0) #FP
+  res["FN"]<-sum(diff2>0)#FN
+  res["TPR"]<-res["TP"]/numedges2 #TPR
   return(res)
 }
 
@@ -223,12 +249,15 @@ compareDBNs<-function(eDBN,trueDBN,struct=c("init","trans"),n.dynamic,n.static) 
 #' @param curnames character vector with gene names which will be used in \code{BiDAG} learning function
 #' @param mapping data frame, representing a mapping between curnames and preferredNames used in interactions downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'queryItem' and 'preferredName'
 #' @param int data frame, representing a interactions between genes/proteins downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'node1' and 'node2'
-#'@return square matrix, whose entries equal 1 is interactions between i and j is found in the interaction list and 0 otherwise
+#' @param type character, defines how interactions will be reflected in the output matrix; \code{int} will result in a matrix whose entries equal 1 if interaction is present in the list of interactions \code{int} and 0 otherwise; \code{blacklist} results in a matrix whose entries equal 0 when interaction is present in the list of interactions and 1 otherwise;
+#' \code{pf} results in a matrix results in a matrix whose entries equal 1 is interaction is present in the list of interactions \code{int} and \code{pf} otherwise
+#' @param pf penalization factor for interactions, needed if \code{type}=pf 
+#'@return square matrix whose entries  correspond to the list of interactions and parameter \code{type}
 #'@examples
 #'curnames<-colnames(kirp)
-#'intmat<-string2mat(curnames,mapSTRING,intSTRING)
+#'intmat<-string2mat(curnames, mapping, interactions, type="pf")
 #'@export
-string2mat<-function(curnames,mapping,int) {
+string2mat<-function(curnames,mapping,int,type=c("int","blacklist","pf"),pf=2) {
   rownames(mapping)<-mapping$queryItem
   n<-length(curnames)
   aliases<-as.character(mapping[curnames,]$preferredName)
@@ -253,7 +282,9 @@ string2mat<-function(curnames,mapping,int) {
   }
   colnames(space)<-curnames
   rownames(space)<-curnames
-  return(space)
+  
+  if(type=="int") space else if(type=="blacklist") 1*(!space) else (pf-1)*(!space)+1
+
 }
 
 
@@ -329,4 +360,41 @@ graph2skeleton<-function(g,upper=TRUE,outmat=TRUE) {
   }
 }
 
+
+getRepr<-function(pdag,dag) {
+  n<-ncol(pdag)
+  for(i in 1:n) {
+    for(j in 1:n) {
+      if(pdag[i,j]==pdag[j,i] & pdag[i,j]==1) {
+        pdag[i,j]<-dag[i,j]
+        pdag[j,i]<-dag[j,i]
+      }
+    }
+  }
+  if(orderdag(pdag)!="error1") {
+    return(pdag)
+  } else {
+    stop("not possible to resolve cycles!")
+  }
+}
+
+
+orderdag<-function(adj) {
+  n<-ncol(adj)
+  allnodes<-c(1:n)
+  curnodes<-c(1)
+  order<-c()
+  cntr<-1
+  while(length(curnodes)<n & cntr<n) {
+    npar<-apply(adj,2,sum)
+    curnodes<-which(npar==0)
+    order<-c(setdiff(curnodes,order),order)
+    adj[curnodes,]<-0
+    cntr<-cntr+1
+  }
+  
+  if(sum(adj)==0) return(order)
+  else return("error1")
+  
+}
 

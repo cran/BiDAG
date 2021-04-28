@@ -7,6 +7,8 @@
 #' @param pdag logical, when true DAGs in a sample will be first coverted to CPDAGs
 #' @param onlyedges (optional) binary matrix, only edges corresponding to entries which equal 1 will be plotted
 #' @param highlight (optional) binary matrix, edges corresponding to entries which equal 1 are highlighted with "red"
+#' @param ... (optional) parameters passed to the plot function
+#'
 #'@return plots posterior probabilities of edges in the graph as a function of MCMC iterations
 #'@examples
 #'score100<-scoreparameters("bde", Asia[1:100,])
@@ -19,7 +21,8 @@
 #'}
 #'@author Polina Suter
 #'@export
-plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NULL) {
+plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NULL, ...) {
+  old.par<-par(no.readonly = TRUE)
   MCMCtrace<-MCMCtrace$traceadd$incidence
   if(is.null(MCMCtrace)) {
     stop("no saved MCMC steps found! try chainout=TRUE when sampling")
@@ -68,10 +71,12 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
   colvec<-as.integer(colvec)
   plot(x=c(1:lchain),y=postvec[[1]],type="l",
        col=cols5[colvec[1]],xlab="MCMC step",ylab="estimated posterior",
-       main="posterior probabilities of single edges",ylim=c(0,1),cex.main=1)
+       ylim=c(0,1), ...) #posterior probabilities of single edges
   for(i in 2:numelem){
     lines(x=c(1:lchain),postvec[[i]],type="l",col=cols5[colvec[i]])
   }
+  par(old.par)
+  
 }
 
 
@@ -80,12 +85,12 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
 #'This function can be used to compare posterior probabilities of edges in a graph 
 #'based on two samples of graphs
 #'@param pmat a list of square matrices, representing posterior probabilities of single edges in a Bayesian network
-#'@param highlight numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted 
+#'@param highlight numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted in red
 #'@param cut numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE
-#'@param main character string, a title for the plot; ignored if length of pmat higher than 2
-#'@param xlab character string, a title for the x-axis; ignored if length of pmat higher than 2
-#'@param ylab character string, a title for the y-axis; ignored if length of pmat higher than 2
-#'@return plots posterior probabilitites of single edges from two MCMC runs; returns squared correlation and MSE of posterior probabilities higher than the value defined by the argument cut
+#'@param ... prameters passed further to the \code{plot} function (e.g. \code{xlab}, \code{ylab}, \code{main}) in case when the length of \code{pmat} equals 2
+#'@return plots concordance of posterior probabilitites of single edges on multiple MCMC runs (minimum 2), highlighting the edges whose posterior probabilities in 2 runs differ by more than 'highlight'; 
+#'when the number of runs equals 2, the function returns also squared correlation and RMSE of posterior probabilities 
+#'higher than the value defined by the argument 'cut' as well as the list of all edges whose posterior probabilities in 2 runs differ by more than 'highlight'.
 #'@examples
 #'Asiascore<-scoreparameters("bde", Asia)
 #'\dontrun{
@@ -93,14 +98,12 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
 #'orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE)
 #'orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE)
 #'pedges<-lapply(orderfit,edgep,pdag=TRUE)
-#'plotpcor(pedges)
+#'plotpcor(pedges, xlab="run1", ylab="run2")
 #'}
 #'@author Polina Suter
 #'@export
-plotpcor<-function(pmat,highlight=0.3,cut=0.05,main="",
-                   xlab="sample 1",
-                   ylab="sample 2") {
-  oldpar<-par(no.readonly = TRUE)
+plotpcor<-function(pmat,highlight=0.3,cut=0.05, ...) {#main="", xlab="sample 1", ylab="sample 2") {
+  old.par<-par(no.readonly = TRUE)
   nruns<-length(pmat)
   if(nruns==1) stop("the number of matrices in the list must be at least two!")
   if(nruns>2) {
@@ -117,7 +120,7 @@ plotpcor<-function(pmat,highlight=0.3,cut=0.05,main="",
         pcorcore(vecy[[i]],vecy[[j]],pmat[[i]],pmat[[j]],highlight,i,j)
       }
     }
-    par(oldpar)
+    par(old.par)
   } else {
   varnames<-colnames(pmat[[1]])
   vec1<-as.vector(pmat[[1]])
@@ -137,10 +140,8 @@ plotpcor<-function(pmat,highlight=0.3,cut=0.05,main="",
     }
   }
   
-  
   plot(x=seq(0,1,by=0.1),y=seq(0,1,by=0.1),type="l",col="blue",lty=2,
-       xlab=xlab,ylab=ylab,
-       xlim=c(0,1),ylim=c(0,1),main=main)
+       xlim=c(0,1),ylim=c(0,1), ...)
   lines(vec1,vec2,type="p",col="grey")
   if(highlight<1) lines(vec1high,vec2high,type="p",col="red")
   
@@ -153,7 +154,8 @@ plotpcor<-function(pmat,highlight=0.3,cut=0.05,main="",
     res$diffedges<-matrix(varnames[diffedges],ncol=2,nrow=nrow(diffedges))
     colnames(res$diffedges)<-c("from","to")
   }
-  return(res)
+  par(old.par)
+  res
   }
 
 

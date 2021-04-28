@@ -1,12 +1,13 @@
 #' Plotting a DBN
 #' 
 #' This function can be used for plotting initial and transition structures of a dynamic Bayesian network.
-#' 
 #'
 #'@param DBN binary matrix (or a graph object) representing a 2-step DBN (compact or unrolled)
 #'@param struct option used to determine if the initial or the transition structure should be plotted; accaptable values are init or trans
 #'@param n.dynamic number of dynamic variables in one time slice of a DBN
 #'@param n.static number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix
+#'@return plots the DBN defined by the adjacency matrix 'DBN' and number of static and dynamic variables. When 'struct' equals "trans" the transition structure is plotted,
+#'otherwise initial structure is plotted
 #'@examples
 #'plotDBN(DBNmat, "init", n.dynamic=12,n.static=3)
 #'plotDBN(DBNmat, "trans", n.dynamic=12,n.static=3)
@@ -177,15 +178,15 @@ assigncolor<-function(nit,ncol) {
 #'@param struct option used to determine if the initial or the transition structure should be plotted; accaptable values are init or trans
 #'@param n.dynamic number of dynamic variables in one time slice of a DBN
 #'@param n.static number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix
-#'@return plots the graph which includes edges from graph1 and graph2, however edges which are different in graph1 compared to graph2 are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
+#'@return plots the graph highlights differences between 'eDBN' (estimated DBN) and 'trueDBN' (ground truth); edges which are different in 'eDBN' compared to 'trueDBN' are coloured according to the type of a difference: false-positive, false-negative and error in direction.
 #'@examples
 #'dbnscore<-scoreparameters("bge",DBNdata,
-#'dbnpar = list(samestruct=TRUE, slices=5, stationary=TRUE),
-#'DBN=TRUE,bgnodes=c(1,2,3))
+#'dbnpar = list(samestruct=TRUE, slices=5, b=3),
+#'DBN=TRUE)
 #'\dontrun{
 #'orderDBNfit<-iterativeMCMC(dbnscore,chainout = TRUE, mergetype = "skeleton",scoreout=TRUE,alpha=0.4)
-#'plotdiffs.DBN(orderDBNfit$max$DAG,DBNmat,struct="trans",n.dynamic=12,n.static=3)
-#'plotdiffs.DBN(orderDBNfit$max$DAG,DBNmat,struct="init",n.dynamic=12,n.static=3)
+#'plotdiffs.DBN(orderDBNfit$DAG,DBNmat,struct="trans",n.dynamic=12,n.static=3)
+#'plotdiffs.DBN(orderDBNfit$DAG,DBNmat,struct="init",n.dynamic=12,n.static=3)
 #'}
 #'@export
 #'@author Polina Suter
@@ -614,7 +615,8 @@ plotdiffs.DBN<-function(eDBN,trueDBN,struct=c("init","trans"),
       tpname<-NULL
     }
     
-    graph.par(list(graph=list(main="Comparison of DBN transition structures")))
+    graph.par(list(graph=list(main="",cex.main=1.5),
+                   nodes=list(lty="solid", lwd=1, fontsize=24)))
     layout(matrix(c(1,1,1,1,1,4,4,
                     1,1,1,1,1,2,2,
                     1,1,1,1,1,3,3), nrow = 3, ncol = 7, byrow = TRUE))
@@ -647,7 +649,8 @@ plotdiffs.DBN<-function(eDBN,trueDBN,struct=c("init","trans"),
 #'@param name1 character, custom name for 'graph1'
 #'@param name2 character, custom name for 'graph2'
 #'@param clusters (optional) a list of nodes to be represented on the graph as clusters 
-#'@return plots the graph which includes edges from graph1 and graph2, however edges which are different in graph1 compared to graph2 are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
+#'@param ... optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}
+#'@return plots the graph which includes edges from graph1 and graph2; edges which are different in graph1 compared to graph2 are coloured according to the type of a difference
 #'@examples
 #'Asiascore<-scoreparameters("bde",Asia)
 #'Asiamap<-orderMCMC(Asiascore)
@@ -658,7 +661,7 @@ plotdiffs.DBN<-function(eDBN,trueDBN,struct=c("init","trans"),
 #'@author Polina Suter
 #'@export
 plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
-                    name2="graph2",clusters=NULL) {
+                    name2="graph2",clusters=NULL, ...) {
   old.par <- par(no.readonly = TRUE)
   if(!is.matrix(graph1)) {
     adj<-graph2m(graph1)
@@ -687,8 +690,8 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
   BiFP<-NULL
   BiFN<-NULL
   
-  graph.par(list(nodes=list(lty="solid", lwd=1, fontsize=18),
-                 graph=list(main=paste("similarities/differences between",name1,"and",name2), cex.main=1.5)))
+  graph.par(list(nodes=list(lty="solid", lwd=1, ...),
+                 graph=list(...)))
   comedges<-0
   if(estimated) {
 
@@ -1029,7 +1032,101 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
   par(old.par)
 }
 
+#' Highlighting similarities between two graphs
+#' 
+#' This function plots nodes and edges from two graphs in one and indicates similarities between these graphs.
+#' 
+#'@param graph1 binary adjacency matrix of a graph
+#'@param graph2 binary adjacency matrix of a graph, column names should coincide with column names of 'graph1'
+#'@param bidir logical, defines arrows of bidirected edges are drawn; FALSE by defauls.
+#'@param ... optional parameters passed to \pkg{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}
+#'@return plots the graph which includes nodes and edges two graphs; nodes which are connected to at least one other node in both graphs are plotted only once and coloured orange, edges which are shared by two graphs
+#'are coloured orange; all other nodes and edges a plotted once for each 'graph1' and 'graph2' and coloured blue and green accordingly.
+#'@author Polina Suter
+#'@export
+plot2in1<-function(graph1, graph2, bidir=FALSE, ...) {
+  if(!all(colnames(graph1)==colnames(graph2))) stop("adjacency matrices 'graph1' and 'graph2' have different column names!")
+  
+  old.par <- par(no.readonly = TRUE)
+  mycolors <- c("#cbd5e8", "#ccebc5","#fdcdac","#E8CED4FF")
+  glist<-list()
+  glist[[1]]<- connectedSubGraph(graph1)
+  glist[[2]]<- connectedSubGraph(graph2)
+  
+  clustm<-list()
+  
+  
+  clustm[[1]]<-setdiff(colnames(glist[[1]]),colnames(glist[[2]]))
+  clustm[[2]]<-setdiff(colnames(glist[[2]]),colnames(glist[[1]]))
+  clustm[[3]]<-intersect(colnames(glist[[1]]),colnames(glist[[2]]))
+  numsubg<-length(clustm)
+  
+  allmuts<-unique(c(colnames(glist[[1]]),colnames(glist[[2]])))
+  
+  glist[[1]]<-getSubGraph(graph1,allmuts)
+  glist[[2]]<-getSubGraph(graph2,allmuts)
 
+  nodelabs<-colnames(glist[[2]])
+  n<-nrow(glist[[2]])
+  jointgraph<-1*Reduce("|",glist)
+  jointarcs<-adjacency2edgel(jointgraph,nodes=nodelabs)
+  graph.obj = new("graphNEL", nodes = nodelabs, edgeL = jointarcs,
+                  edgemode = 'directed')
+
+  sg<-list()
+  subGList<-list()
+  for(i in 1:numsubg) {
+    if(!is.null(clustm[[i]])) {
+      sg[[i]] <-subGraph(clustm[[i]],  graph.obj)
+      subGList[[i]]<-list(graph = sg[[i]], cluster = TRUE)
+    }
+  }
+  
+  graph.par(list(nodes=list(lty="solid", lwd=1, ...), graph=list(...)))
+  
+  graph.plot = Rgraphviz::layoutGraph(graph.obj,subGList = subGList)
+  graph::nodeRenderInfo(graph.plot)[["fill"]][clustm[[1]]] = mycolors[1] #M
+  graph::nodeRenderInfo(graph.plot)[["fill"]][clustm[[2]]] = mycolors[2] #T
+  graph::nodeRenderInfo(graph.plot)[["fill"]][clustm[[3]]] = mycolors[3] #CNA
+
+  sumgraph<-Reduce("+",glist)
+  arcl<-list()
+  
+  for(i in 1:2) {
+    edgy<-which(glist[[i]]>0,arr.ind = TRUE)
+    arcl[[i]]<-matrix(ncol=2,nrow=nrow(edgy))
+    for(j in 1:nrow(edgy)) {
+      arcl[[i]][j,]<-c(nodelabs[edgy[j,1]],nodelabs[edgy[j,2]])
+    }
+  }
+  
+  commedges<-which(sumgraph>1,arr.ind = TRUE)
+  if(nrow(commedges>0)) {
+    arcl[[3]]<-matrix(ncol=2,nrow=nrow(commedges))
+    for(j in 1:nrow(commedges)) {
+      arcl[[3]][j,]<-c(nodelabs[commedges[j,1]], nodelabs[commedges[j,2]])
+    }
+  }
+  
+  for(i in 1:length(arcl)) {
+    if(!is.null(arcl[[i]])) {
+      arcl[[i]]<-apply(arcl[[i]], 1, paste, collapse = "~")
+      graph::edgeRenderInfo(graph.plot)[["col"]][arcl[[i]]] = mycolors[i]
+    }
+  }
+  
+  
+  u <- names(which(graph::edgeRenderInfo(graph.plot)[["direction"]] == "both"))
+  if(!bidir) {
+    graph::edgeRenderInfo(graph.plot)[["arrowhead"]][u] = "none"
+    graph::edgeRenderInfo(graph.plot)[["arrowtail"]][u] = "none"
+  }
+  graph::edgeRenderInfo(graph.plot)[["lwd"]]<-2
+  Rgraphviz::renderGraph(graph.plot)
+  par(old.par)
+  
+  
+}
 
 
 

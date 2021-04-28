@@ -4,30 +4,21 @@
 \alias{plotpcor}
 \title{Comparing posterior probabilitites of single edges based on several samples}
 \usage{
-plotpcor(
-  pmat,
-  highlight = 0.3,
-  cut = 0.05,
-  main = "",
-  xlab = "sample 1",
-  ylab = "sample 2"
-)
+plotpcor(pmat, highlight = 0.3, cut = 0.05, ...)
 }
 \arguments{
 \item{pmat}{a list of square matrices, representing posterior probabilities of single edges in a Bayesian network}
 
-\item{highlight}{numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted}
+\item{highlight}{numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted in red}
 
 \item{cut}{numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE}
 
-\item{main}{character string, a title for the plot; ignored if length of pmat higher than 2}
-
-\item{xlab}{character string, a title for the x-axis; ignored if length of pmat higher than 2}
-
-\item{ylab}{character string, a title for the y-axis; ignored if length of pmat higher than 2}
+\item{...}{prameters passed further to the \code{plot} function (e.g. \code{xlab}, \code{ylab}, \code{main}) in case when the length of \code{pmat} equals 2}
 }
 \value{
-plots posterior probabilitites of single edges from two MCMC runs; returns squared correlation and MSE of posterior probabilities higher than the value defined by the argument cut
+plots concordance of posterior probabilitites of single edges on multiple MCMC runs (minimum 2), highlighting the edges whose posterior probabilities in 2 runs differ by more than 'highlight'; 
+when the number of runs equals 2, the function returns also squared correlation and RMSE of posterior probabilities 
+higher than the value defined by the argument 'cut' as well as the list of all edges whose posterior probabilities in 2 runs differ by more than 'highlight'.
 }
 \description{
 This function can be used to compare posterior probabilities of edges in a graph 
@@ -40,7 +31,7 @@ orderfit<-list()
 orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE)
 orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE)
 pedges<-lapply(orderfit,edgep,pdag=TRUE)
-plotpcor(pedges)
+plotpcor(pedges, xlab="run1", ylab="run2")
 }
 }
 \author{

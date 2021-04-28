@@ -1,66 +1,70 @@
 ##############################
 #print methods for S3 classes#
-#   MCMCres                  #
-#   MCMCmult                 #
+#   orderMCMC                #
+#   partitionMCMC            #
+#   iterativeMCMC            #
 #   scoreparameters          #
-#   MCMCspace                #
+#   scorespace               #
+#   intersim                 #
+#   sampsim                  #
 ##############################
 
-#' S3 methods for class 'scoreparameters'
-#' 
 #' Print object of class 'scoreparameters'
 #'
 #' @param x object of class 'scoreparameters'
 #' @param ... ignored
 #' 
-# @rdname scoreparameters
-#' @export print.scoreparameters
+#' @rdname scoreparameters
 #' @export
-print.scoreparameters <-function(x,...){
+print.scoreparameters <-function(x, ...){
   cat("$type \n")
-  cat(x$type,"\n\n")
-  
-  cat("$labels.short \n")
-  cat(x$labels.short,"\n\n")
-  
+  cat(x$type,"\n")
   cat("$data \n")
-  cat("...\n")
-  cat("data contains",nrow(x$data),"observations of",ncol(x$data),"variables \n" )
-  
+  if(!x$DBN) {
+    cat("data contains",nrow(x$data),"observations of",ncol(x$data),"variables \n\n" )
+  } else {
+    cat("data contains",nrow(x$data),"rows and",ncol(x$data),"columns \n\n") 
+  }
   cat("$DBN \n")
-  cat(x$DBN,"\n\n")
-  
-  cat("$MDAG \n")
-  cat(x$MDAG, "\n\n")
-  
-  if(x$type=="bge") {
-    cat("$am \n")
-    cat(x$am,"\n\n")
-    cat("$aw \n")
-    cat(x$am,"\n\n")
-    if(x$bgn>0) {
-      cat("$bgnodes \n")
-      cat(x$bgnodes,"\n\n")
-    }
-  } else if (x$type%in%c("bde","bdecat")) {
-    cat("$chi \n")
-    cat(x$chi,"\n\n")
-    cat("$pf \n")
-    cat(x$pf,"\n\n")
-    if(x$bgn>0) {
-      cat("$bgnodes \n")
-      cat(x$bgnodes,"\n\n")
-    }
-  } else if (x$type=="dbn") {
+  cat(x$DBN,"\n")
+  if (x$DBN) {
     cat("$slices \n")
-    cat(x$slices,"\n\n")
-    
+    cat(x$slices,"\n")
     if(x$bgn>0) {
       cat("$static \n")
-      cat(x$static,"\n\n")
+      cat(x$static,"\n")
+      cat("$firstslice \n")
+      cat("...\n")
+      cat("$otherslices \n")
+      cat("...\n\n")
     }
-
+  } else {
+    if(x$type=="bge") {
+      if(x$bgn>0) {
+        cat("$bgnodes \n")
+        cat(x$bgnodes,"\n")
+      } 
+      cat("$am \n")
+      cat(x$am,"\n")
+      cat("$aw \n")
+      cat(x$am,"\n")
+      cat("$means \n")
+      cat(x$means[1],"...", x$means[length(x$means)] ,"\n")
+      cat("$SigmaN \n")
+      cat("matrix", ncol(x$SigmaN), "x",ncol(x$SigmaN), "\n")
+      
+    } else if (x$type%in%c("bde","bdecat")) {
+      cat("$chi \n")
+      cat(x$chi,"\n\n")
+      cat("$pf \n")
+      cat(x$pf,"\n\n")
+      if(x$bgn>0) {
+        cat("$bgnodes \n")
+        cat(x$bgnodes,"\n\n")
+      }
+    } 
   }
+  
   
   if(!is.null(x$weightvector)) {
     cat("$weightvector \n")
@@ -71,34 +75,27 @@ print.scoreparameters <-function(x,...){
 }
 
 
-
-#' S3 methods for class 'MCMCres'
-#' 
-#' Prints object of class 'MCMCres'
+#' Prints object of class 'orderMCMC'
 #'
-#' @param x object of class 'MCMCres'
+#' @param x object of class 'orderMCMC'
 #' @param ... ignored
 #' 
-# @rdname MCMCres
-#' @export print.MCMCres
+#' @rdname orderMCMC
 #' @export
-print.MCMCres <-function(x,...){
-  cat("object of class 'MCMCres', contains the result of running MCMC", "\n")
+print.orderMCMC <-function(x, ...){
+  cat("object of class 'orderMCMC', from Call:", "\n")
+  print(x$info$fncall)
   cat("\n")
   cat("$DAG\n")
   cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n")
-  cat("\n")
   cat("$score\n")
   cat(x$score,"\n")
-  cat("\n")
   cat("$maxorder\n")
   cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n")
-  cat("\n")
   cat("$info\n")
-  print(x$info)
-  cat("\n")
+  cat("... \n")
   cat("$trace\n")
-  cat("score trace of sampled DAGs\n")
+  cat(x$trace[1], "...", x$trace[length(x$trace)])
   cat("\n")
   if(!is.null(x$traceadd)) {
     cat("$traceadd\n")
@@ -111,36 +108,64 @@ print.MCMCres <-function(x,...){
   }
 }
 
-#' S3 methods for class 'MCMCmult'
-#' 
-#' Prints object of class 'MCMCmult'
+#' Prints object of class 'partitionMCMC'
 #'
-#' @param x object of class 'MCMCmult'
+#' @param x object of class 'partitionMCMC'
 #' @param ... ignored
 #' 
-# @rdname MCMCmult
-#' @export print.MCMCmult
+#' @rdname partitionMCMC
 #' @export
-print.MCMCmult <-function(x,...){
-  cat("object of class 'MCMCmult', contains the result of running iterative MCMC", "\n")
+print.partitionMCMC <-function(x, ...){
+  cat("object of class 'partitionMCMC', from Call:", "\n")
+  print(x$info$fncall)
   cat("\n")
   cat("$DAG\n")
   cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n")
+  cat("$score\n")
+  cat(x$score,"\n")
+  cat("$maxorder\n")
+  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n")
+  cat("$info\n")
+  cat("... \n")
+  cat("$trace\n")
+  cat(x$trace[1], "...", x$trace[length(x$trace)])
   cat("\n")
+  if(!is.null(x$traceadd)) {
+    cat("$traceadd\n")
+    cat("adjacency matrices of sampled DAGs, corresponding orders and order scores\n")
+    cat("\n")
+  }
+  if(!is.null(x$scoretable)) {
+    cat("$scoretable\n")
+    cat("score tables corresponding to core search space $endspace\n")
+  }
+}
+
+
+#' Prints object of class 'iterativeMCMC'
+#'
+#' @param x object of class 'iterativeMCMC'
+#' @param ... ignored
+#' 
+#' @rdname iterativeMCMC
+#' @export
+print.iterativeMCMC <-function(x, ...){
+  cat("object of class 'iterativeMCMC', from Call:", "\n")
+  print(x$info$fncall)
+  cat("\n")
+  cat("$DAG\n")
+  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n")
   cat("$maxorder\n")
   cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n")
   cat("$score\n")
   cat(x$score,"\n")
-  cat("\n")
   cat("$maxtrace:\n")
-  cat("local maximums at each expansion step:", unlist(lapply(x$maxtrace,function(x)x$score)))
-  cat("\n")
-  cat("\n")
+  cat("local maximums at each expansion step:\n")
+  cat(unlist(lapply(x$maxtrace,function(x)x$score)),"\n")
   cat("$info\n")
-  print(x$info)
-  cat("\n")
+  cat("... \n")
   cat("$trace\n")
-  cat("score trace of sampled DAGs\n")
+  cat(x$trace[[1]][1], "...", x$trace[[length(x$trace)]][length(x$trace[[1]][1])])
   cat("\n")
   if(!is.null(x$traceadd)) {
     cat("$traceadd\n")
@@ -149,40 +174,87 @@ print.MCMCmult <-function(x,...){
   }
   if(!is.null(x$scoretable)) {
       cat("$scoretable\n")
-      cat("score tables corresponding to core search space $endspace\n")
+      cat("scoretable, object of class 'scorespace'\n")
   }
 }
 
-#' S3 methods for class 'MCMCscoretab'
-#' 
-#' Prints object of class 'MCMCscoretab'
+#' Prints 'scorespace' object
 #'
-#' @param x object of class 'MCMCscoretab'
+#' @param x object of class 'scorespace'
 #' @param ... ignored
 #' 
-# @rdname MCMCscoretab
-#' @export print.MCMCscoretab
+#' @rdname scorespace
 #' @export
-print.MCMCscoretab <-function(x,...){
-  cat("$adjacency, adjacency matrix representing a core search space:", "\n")
+print.scorespace <-function(x, ...){
+  cat("object of class 'scorespace'")
+  n<-ncol(x$adjacency)
   cat("\n")
-  print(x$adjacency)
-  cat("\n")
-  cat("$tables, a list containing computed local scores used in MCMC chain:", "\n")
-  cat("\n")
-  if(length(x$tables[[1]])>1) {
-    cat("$tables[[1]][[1]]", "\n")
-    cat("\n")
-    cat(x$tables[[1]][[1]][1,])
+  cat("$adjacency \n")
+  cat("matrix", n,"x",n, "\n\n")
+  n<-length(x$tables)
+  if(is.list(x$tables[[1]])) {
+    cat("$tables", "\n")
+    cat("[[1]][[1]]", "\n")
+    cat(x$tables[[1]][[1]][1,],"\n")
     cat("...", "\n")
+    lastt<-length(x$tables[[n]])
+    cat("[[",n,"]][[",lastt,"]]\n", sep="")
+    cat(x$tables[[n]][[lastt]][1,],"\n")
+    cat("...", "\n")
+    
   } else {
     cat("$tables[[1]]", "\n")
-    cat("\n")
-    cat(x$tables[[1]][1,])
-    cat("...", "\n")
+    cat(x$tables[[1]][1,], "...\n")
+    cat("...\n")
+    cat("$tables[[", length(x$tables),"]]\n",sep="")
+    cat(x$tables[[length(x$tables)]][1,],"...\n")
   }
  
   cat("\n")
+  
+  cat("$blacklist \n")
+  cat("matrix", n,"x",n, "\n")
 }
+
+#' Prints itercomp object.
+#'
+#' @param x object of class 'itercomp'
+#' @param ... ignored
+#' @rdname itercomp
+#' @export 
+print.itercomp <-function(x, ...){
+  cat("object of class 'itercomp'")
+  cat("\n\n")
+  nit<-nrow(x)
+  if(nit<5) {
+    print(x[1:nit,,drop=FALSE])
+  } else {
+    print(x[1:2,])
+    cat("... \n")
+    print(x[c(nit-1,nit),])
+  }
+}
+
+#' Prints samplecomp object.
+#' 
+#' @param x object of class 'samplecomp'
+#' @param ... ignored
+#' @rdname samplecomp
+#' @export
+print.samplecomp <-function(x, ...){
+  cat("object of class 'samplecomp'")
+  cat("\n\n")
+  np<-nrow(x)
+  if(is.null(np)) {
+    print(x[1:length(x)])
+  } else if(np<10) {
+    print(x[1:np,,drop=FALSE])
+  } else {
+    print(x[1:5,])
+    cat("... \n")
+    print(x[c(np-4,np),])
+  }
+}
+
 
 

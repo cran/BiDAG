@@ -12,5 +12,6 @@ gsim
 }
 \description{
 A synthetic dataset containing 1000 observations generated from a random DAG with 100 continuous nodes.
+Functions 'randomDAG' and 'rmvDAG' from R-packages 'pcalg' were used to generate the data.
 }
 \keyword{datasets}

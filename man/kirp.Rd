@@ -3,9 +3,9 @@
 \docType{data}
 \name{kirp}
 \alias{kirp}
-\title{KIRP dataset}
+\title{kirp dataset}
 \format{
-An object of class \code{matrix} with 161 rows and 40 columns.
+An object of class \code{matrix} with 282 rows and 70 columns.
 }
 \usage{
 kirp
@@ -26,7 +26,7 @@ The columns are named according to gene symbols.
 \references{
 \url{https://portal.gdc.cancer.gov/}
 
-\url{http://firebrowse.org/iCoMut/?cohort=kich}
+\url{http://firebrowse.org/iCoMut/?cohort=kirp}
 
 Lawrence, M. et al. Mutational heterogeneity in cancer and the search for new cancer-associated genes. Nature 499, 214-218 (2013)
 }

@@ -4,7 +4,7 @@
 \alias{string2mat}
 \title{Deriving interactions matrix}
 \usage{
-string2mat(curnames, mapping, int)
+string2mat(curnames, mapping, int, type = c("int", "blacklist", "pf"), pf = 2)
 }
 \arguments{
 \item{curnames}{character vector with gene names which will be used in \code{BiDAG} learning function}
@@ -12,9 +12,14 @@ string2mat(curnames, mapping, int)
 \item{mapping}{data frame, representing a mapping between curnames and preferredNames used in interactions downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'queryItem' and 'preferredName'}
 
 \item{int}{data frame, representing a interactions between genes/proteins downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'node1' and 'node2'}
+
+\item{type}{character, defines how interactions will be reflected in the output matrix; \code{int} will result in a matrix whose entries equal 1 if interaction is present in the list of interactions \code{int} and 0 otherwise; \code{blacklist} results in a matrix whose entries equal 0 when interaction is present in the list of interactions and 1 otherwise;
+\code{pf} results in a matrix results in a matrix whose entries equal 1 is interaction is present in the list of interactions \code{int} and \code{pf} otherwise}
+
+\item{pf}{penalization factor for interactions, needed if \code{type}=pf}
 }
 \value{
-square matrix, whose entries equal 1 is interactions between i and j is found in the interaction list and 0 otherwise
+square matrix whose entries  correspond to the list of interactions and parameter \code{type}
 }
 \description{
 This transforms a list of possible interactions between proteins downloaded from STRING database
@@ -22,5 +27,5 @@ into a matrix which can be used for blacklisting/penalization in BiDAG.
 }
 \examples{
 curnames<-colnames(kirp)
-intmat<-string2mat(curnames,mapSTRING,intSTRING)
+intmat<-string2mat(curnames, mapping, interactions, type="pf")
 }

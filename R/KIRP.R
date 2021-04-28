@@ -1,4 +1,4 @@
-#' KIRP dataset
+#' kirp dataset
 #'
 #' Mutation data from TCGA kidney renal papillary cell cohort (KIRP). 
 #' Mutations are picked according to q-value computed 
@@ -12,7 +12,7 @@
 #' The columns are named according to gene symbols.
 #' }
 #'@references \url{https://portal.gdc.cancer.gov/}
-#'@references \url{http://firebrowse.org/iCoMut/?cohort=kich}
+#'@references \url{http://firebrowse.org/iCoMut/?cohort=kirp}
 #'@references Lawrence, M. et al. Mutational heterogeneity in cancer and the search for new cancer-associated genes. Nature 499, 214-218 (2013) 
 #'
 "kirp"

@@ -1,15 +1,21 @@
-#' S3 methods for class 'scoreparameters'
-#' 
+#SUMMARY methods for classes:
+#scoreparameters
+#scorespace
+#orderMCMC
+#partitionMCMC
+#iterativeMCMC
+#itercomp
+#samplecomp
+
 #' Summary of object of class 'scoreparameters'
 #'
 #' @param object object of class 'scoreparameters'
 #' @param ... ignored
 #' 
-# @rdname scoreparameters
+#' @rdname scoreparameters
 #' @method summary scoreparameters
-#' @export summary.scoreparameters
 #' @export
-summary.scoreparameters <-function(object,...){
+summary.scoreparameters <-function(object, ...){
   cat("object of class 'scoreparameters' \n")
   cat("number of nodes (variables):", object$n, "\n")
   cat("number of observations:", nrow(object$data), "\n")
@@ -18,7 +24,7 @@ summary.scoreparameters <-function(object,...){
   if(object$DBN==TRUE) {
     cat("score object created for a DBN \n")
     if(object$bgn>0) {
-      cat("static nodes (no parents are allowed):", object$bgnodes, "\n")
+      cat("static nodes (no parents are allowed):", object$static, "\n")
     }
   } else {
     if(object$bgn>0) {
@@ -33,49 +39,52 @@ summary.scoreparameters <-function(object,...){
 
 
 
-#' S3 methods for class 'MCMCscoretab'
-#' 
-#' Summary of object of class 'MCMCscoretab'
+
+#' Summary of object of class 'scorespace'
 #'
-#' @param object object of class 'MCMCscoretab'
+#' @param object object of class 'scorespace'
 #' @param ... ignored
 #' 
-# @rdname MCMCspace
-#' @method summary MCMCscoretab
-#' @export summary.MCMCscoretab
+#' @rdname scorespace
+#' @method summary scorespace
 #' @export
-summary.MCMCscoretab <-function(object,...){
+summary.scorespace <-function(object, ...){
+  cat("object of class 'scorespace'")
+  cat("\n\n")
   n<-ncol(object$adjacency)
   possedges<-n*n-n
   cat("Core search space ($adjacency) contains ", sum(object$adjacency), " edges out of ", possedges,
       "edges in a full search space","\n")
-  if(length(object$scoretable[[1]])>1) {
+  if(is.list(object$tables[[1]])) {
     cat("Search space is extended", "\n")
   } else {
     cat("Search space is NOT extended", "\n")
   }
+  
+  nbl<-sum(object$blacklist)
+  cat(nbl, " edges from the full space were blacklisted \n")
 }
 
 
-#' S3 methods for class 'MCMCres'
-#' 
-#' Summary of object of class 'MCMCres'
+
+#' Summary of object of class 'orderMCMC'
 #'
-#' @param object object of class 'MCMCres'
+#' @param object object of class 'orderMCMC'
 #' @param ... ignored
 #' 
-# @rdname MCMCres
-#' @method summary MCMCres
-#' @export summary.MCMCres
+#' @rdname orderMCMC
+#' @method summary orderMCMC
 #' @export
-summary.MCMCres <- function(object, ...) {
+summary.orderMCMC <- function(object, ...) {
+  cat("object of class 'orderMCMC'")
+  cat("\n\n")
   cat("Results:","\n")
-  cat("\n")
   cat("maximum score DAG with", ncol(object$DAG), "nodes and ", sum(object$DAG)," edges:", "\n")
-  cat("DAG score=", object$score,"\n")
-  cat("\n")
+  cat("maximum DAG score=", object$score,"\n")
+  cat("scores of samped DAGs (trace):")
+  cat(object$trace[1], "...", object$trace[length(object$trace)])
+  cat("\n\n")
   cat("MCMC settings:","\n")
-  cat("\n")
   cat(paste("algorithm:",object$info$algo,"\n"))
   cat(paste("number of MCMC iterations:",object$info$iterations,"\n"))
   cat(paste("number of MCMC sampling steps (length of trace):",object$info$samplesteps,"\n"))
@@ -84,34 +93,29 @@ summary.MCMCres <- function(object, ...) {
   cat("\n")
   cat("Additional output:","\n")
   cat("\n")
-  if(is.null(object$traceadd)) {
-    cat("sampled matrices were not saved","\n")
-    cat("to save sampled matrices set 'chainout' to TRUE","\n")
-    
-  } else {
-    cat(paste("Additional output ($traceadd) contains",length(object$traceadd$incidence),"sampled DAGs","\n"))
+  if(!is.null(object$traceadd)) {
+    cat(paste("traceadd contains",length(object$traceadd$incidence),"sampled DAGs","\n"))
   }
   if(!is.null(object$scoretable)) {
-    cat("Additional output ($scoretable) includes the adjacency matrix of the core search space and the score tables corresponding to this search space","\n")
+    cat("scoretable, object of class scorespace \n" )
   }
   cat("\n")
 }
 
-#' S3 methods for class 'MCMCmult'
-#' 
-#' Summary of object of class 'MCMCmult'
+
+#' Summary of object of class 'iterativeMCMC'
 #'
-#' @param object object of class 'MCMCmult'
+#' @param object object of class 'iterativeMCMC'
 #' @param ... ignored
 #' 
-# @rdname MCMCmult
-#' @method summary MCMCmult
-#' @export summary.MCMCmult
+#' @rdname iterativeMCMC
+#' @method summary iterativeMCMC
 #' @export
-summary.MCMCmult <- function(object, ...) {
+summary.iterativeMCMC <- function(object, ...) {
+  cat("object of class 'iterativeMCMC'")
+  cat("\n\n")
   cat("Results:","\n")
-  cat("\n")
-  cat("maximum score DAG with", ncol(object$DAG), "nodes and ", sum(object$DAG)," edges:", "\n")
+  cat("maximum score DAG with", ncol(object$DAG), "nodes and ", sum(object$DAG)," edges: \n")
   cat("DAG score=", object$score,"\n")
   cat("\n")
   cat(paste("algorithm:",object$info$algo,"\n"))
@@ -126,17 +130,99 @@ summary.MCMCmult <- function(object, ...) {
   cat(paste("sample/MAP: ",object$info$sampletype,"\n"))
   cat("\n")
   cat("Additional output:","\n")
-  cat("\n")
-  if(is.null(object$chain)) {
-    cat("sampled matrices were not saved","\n")
-    cat("to save sampled matrices set 'chainout' to TRUE","\n")
-    
-  } else {
-    cat(paste("$chain contains",length(object$traceadd$incidence)*length(object$maxtrace),"sampled DAGs","\n"))
+  if(!is.null(object$traceadd)) {
+    cat(paste("traceadd contains",length(object$traceadd$incidence[[1]])*length(object$maxtrace),"sampled DAGs \n"))
+    cat("\n")
   }
-  cat("\n")
   if(!is.null(object$scoretable)) {
-    cat("$scoretable includes the adjacency matrix of the core search space and the score tables corresponding to this search space","\n")
+    cat("scoretable, object of class 'scorespace' \n")
   }
   cat("\n")
+}
+
+
+#' Summary of object of class 'partitionMCMC'
+#'
+#' @param object object of class 'partitionMCMC'
+#' @param ... ignored
+#' 
+#' @rdname partitionMCMC
+#' @method summary partitionMCMC
+#' @export
+summary.partitionMCMC <- function(object, ...) {
+  cat("object of class 'partitionMCMC'")
+  cat("\n\n")
+  cat("Results:","\n")
+  cat("maximum score DAG with", ncol(object$DAG), "nodes and ", sum(object$DAG)," edges:", "\n")
+  cat("maximum DAG score=", object$score,"\n")
+  cat("scores of samped DAGs (trace):")
+  cat(object$trace[1], "...", object$trace[length(object$trace)])
+  cat("\n\n")
+  cat("MCMC settings:","\n")
+  cat(paste("algorithm:",object$info$algo,"\n"))
+  cat(paste("number of MCMC iterations:",object$info$iterations,"\n"))
+  cat(paste("number of MCMC sampling steps (length of trace):",object$info$samplesteps,"\n"))
+  cat(paste("initial search space:",object$info$spacealgo,"\n"))
+  cat(paste("sample/MAP: ",object$info$sampletype,"\n"))
+  cat("\n")
+  cat("Additional output:","\n")
+  cat("\n")
+  if(!is.null(object$traceadd)) {
+    cat(paste("traceadd contains",length(object$traceadd$incidence),"sampled DAGs","\n"))
+  }
+  if(!is.null(object$scoretable)) {
+    cat("scoretable, object of class scorespace \n" )
+  }
+  cat("\n")
+}
+
+
+
+#' Summary of object of class 'itercomp'
+#'
+#' @param object object of class 'itercomp'
+#' @param ... ignored
+#' 
+#' @rdname itercomp
+#' @method summary itercomp
+#' @export
+summary.itercomp <-function(object, ...){
+cat("object of class 'itercomp'")
+cat("\n\n")
+n<-nrow(object)
+colo<-colnames(object)
+if(n>1) {
+  cat("structure fit changes: first -> last expansion iteration: \n")
+  for(i in 1:ncol(object)) {
+    cat(colo[i],":", object[1,i], "->",object[n,i],"\n")
+  }
+}
+}
+
+
+#' Summary of object of class 'samplecomp'
+#'
+#' @param object object of class 'samplecomp'
+#' @param ... ignored
+#' 
+#' @rdname samplecomp
+#' @method summary samplecomp
+#' @export
+summary.samplecomp <-function(object, ...){
+  cat("object of class 'samplecomp'")
+  cat("\n\n")
+  n<-nrow(object)
+  colo<-colnames(object)
+  keymetrics<-c("TPR","FDR","SHD")
+  if(n>1) {
+    cat("best thresholds p for key metrics: \n")
+  
+      besttpr<-which.max(object[,"TPR"])[1]
+      cat("TPR",":","p =",object[besttpr,"p"], "TPR =",object[besttpr,"TPR"],"\n")
+      bestfdr<-which.min(object[,"FDR"])[1]
+      cat("FDR",":","p =",object[bestfdr,"p"], "FDR =",object[bestfdr,"FDR"],"\n")
+      bestshd<-which.min(object[,"SHD"])[1]
+      cat("SHD",":","p =",object[bestshd,"p"], "SHD =",object[bestshd,"SHD"],"\n")
+
+  }
 }

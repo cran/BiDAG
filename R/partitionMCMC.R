@@ -56,7 +56,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
   partstepflag<-1
   partjoinholeflag<-1
 
-  for (z in 2:zlimit){ #the MCMC chain loop with 'iteration' steps is in two parts
+  for (z in 1:zlimit){ #the MCMC chain loop with 'iteration' steps is in two parts
     count<-1
     while (count <=stepsave){ #since we only save the results to the lists each 'stepsave'
         chosenmove<-sample.int(5,1,prob=moveprobs) # sample what type of move

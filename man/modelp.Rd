@@ -7,14 +7,13 @@
 modelp(MCMCchain, p, pdag = FALSE, burnin = 0.2)
 }
 \arguments{
-\item{MCMCchain}{list of adjacency matrices with dimensions equal to n and elements in \code{\{0,1\}}, representing a sample of DAGs from an MCMC scheme 
-(object of class \code{MCMCres} with non-null element addtrace is also a valid data type, see \code{\link{MCMCmult}})}
+\item{MCMCchain}{object of class \code{partitionMCMC} or \code{orderMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE;}
 
 \item{p}{threshold such that only edges with a higher posterior probability will be retained in the directed graph summarising the sample of DAGs}
 
 \item{pdag}{logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging}
 
-\item{burnin}{(optional)  number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default}
+\item{burnin}{number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default}
 }
 \value{
 a square matrix with dimensions equal to the number of variables representing the adjacency matrix of the directed graph summarising the sample of DAGs

@@ -67,7 +67,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
   
   if (verbose) {
-   cat("skeleton ready \n")
+   cat("core space defined, score table are being computed \n")
    flush.console()
   }
   
@@ -127,7 +127,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   }
 
   if(verbose) {
-    cat(paste("score tables calculated, MCMC plus1 starts"),"\n")
+    cat(paste("score tables computed, orderMCMCis running"),"\n")
     flush.console()
   }
 
@@ -190,7 +190,8 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   if(units(mcmctime)=="mins") {
     mcmctime<-as.numeric(mcmctime*60)
   }
-  result$info$times<-c(tabletime,mcmctime)
+  result$info$runtimes<-c(tabletime,mcmctime)
+  names(result$info$runtimes)<-c("scoretables","MCMCchain")
   result$trace<-MCMCresult$DAGscores
   switch(as.character(output),
          "1"={ # return only maximum DAG and score trace
@@ -203,18 +204,18 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
            result$scoretable$adjacency<-startskel
            result$scoretable$tables<-scoretable
            result$scoretable$blacklist<-blacklist
-           attr(result$scoretable,"class")<-"MCMCscoretab"
+           attr(result$scoretable,"class")<-"scorespace"
          },
          "4"={ # return all MCMC all saved MCMC steps,max result,last search space and scoretables
            result$scoretable<-list()
            result$scoretable$adjacency<-startskel
            result$scoretable$tables<-scoretable
            result$scoretable$blacklist<-blacklist
-           attr(result$scoretable,"class")<-"MCMCscoretab"
+           attr(result$scoretable,"class")<-"scorespace"
            result$traceadd<-MCMCtraces
          }
   )
-  attr(result,"class")<-"MCMCres"
+  attr(result,"class")<-"orderMCMC"
   return(result)
 
 }

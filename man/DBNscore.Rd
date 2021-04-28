@@ -23,11 +23,10 @@ Acceptable data matrices are homogeneous with all variables of the same type: co
 binary or categorical.  The BGe score is evaluated in the case of continuous data and the BDe score is evaluated for binary and categorical variables.
 }
 \examples{
-testscore<-scoreparameters("bge", DBNdata, bgnodes=c(1,2,3), DBN=TRUE,
-                        dbnpar=list(slices=5, stationary=TRUE))
+testscore<-scoreparameters("bge", DBNdata, DBN=TRUE, dbnpar=list(slices=5, b=3))
 DBNscore(testscore, DBNmat)
 
 }
 \author{
-Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
+Polina Suter, Jack Kuipers
 }

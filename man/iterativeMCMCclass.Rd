@@ -1,15 +1,15 @@
-\name{MCMCmult}
-\alias{MCMCmult}
-\title{MCMCmult class structure}
+\name{iterativeMCMC class}
+\alias{iterativeMCMC class}
+\title{iterativeMCMC class structure}
 \description{
 
-  The structure of an object of S3 class \code{MCMCmult}.
+  The structure of an object of S3 class \code{iterativeMCMC}.
 
 }
 
 \details{
 
-  An object of class \code{MCMCres} is a list containing at least the following
+  An object of class \code{iterativeMCMC} is a list containing at least the following
   components:
 
   \itemize{
@@ -22,7 +22,9 @@
     
     \item maxorder: order of a maximum scoring DAG found/sampled in MCMC.
     
-    \item info: a list containing information about parameters and results of MCMC:
+    \item maxtrace: a list of graphs, their scores and orders used for search space expansion (either MAP graphs at each expansion iterations or consensus graphs corresponding to the threshold p)
+    
+    \item info: a list containing information about parameters and results of MCMC
     
     \item trace: a vector containing log-scores of sampled DAGs
     
@@ -34,15 +36,13 @@
 
   \itemize{
 
-    \item \code{traceadd}: list which  consists of three or four elements (depending on MCMC scheme used for sampling):
+    \item \code{traceadd}: list which  consists of three elements:
         \itemize{
         \item incidence: list containg adjacency matrices of sampled DAGs
         \item order: list of orders from which the DAGs were sampled
-        \item partition: list of partition from which the DAGs were sampled (present when \code{partitionMCMC} was used)
-        \item orderscores: order log-scores (present when \code{orderMCMC} was used)
-        \item partitionscores: partition log-scores (present when \code{partitionMCMC} was used)
+        \item orderscores: order log-scores 
         }
-    \item \code{scoretable}: object of class \code{\link{MCMCscoretab}}
+    \item \code{scoretable}: object of class \code{\link{scorespace class}}
   }
 }
 }

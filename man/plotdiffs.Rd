@@ -10,7 +10,8 @@ plotdiffs(
   estimated = TRUE,
   name1 = "graph1",
   name2 = "graph2",
-  clusters = NULL
+  clusters = NULL,
+  ...
 )
 }
 \arguments{
@@ -25,9 +26,11 @@ plotdiffs(
 \item{name2}{character, custom name for 'graph2'}
 
 \item{clusters}{(optional) a list of nodes to be represented on the graph as clusters}
+
+\item{...}{optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}}
 }
 \value{
-plots the graph which includes edges from graph1 and graph2, however edges which are different in graph1 compared to graph2 are coloured according to the type of a mistake: false positive with red, false negative with dashed grey, error in direction with magenta
+plots the graph which includes edges from graph1 and graph2; edges which are different in graph1 compared to graph2 are coloured according to the type of a difference
 }
 \description{
 This function plots edges from two graphs in one and indicates similarities and differences between these graphs.

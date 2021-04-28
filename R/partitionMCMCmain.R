@@ -1,6 +1,7 @@
 #implements partition MCMC scheme for structure learning problem, searches in plus1 neighbourhood of a search space defined
 #by startspace or iterativeMCMC function
 #authors Polina Suter, Jack Kuipers, partly derived from <doi:10.1080/01621459.2015.1133426>
+
 partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
                                    startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE,
                                    scoreout=FALSE){
@@ -108,7 +109,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   }
   
   
-  if(verbose) cat("search space identified, score tables to be calculated \n")
+  if(verbose) cat("core space defined, score table are being computed \n")
   permy<-forpart$permy
   party<-forpart$party
   starttable<-Sys.time()
@@ -144,7 +145,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
                                            ptab$numberofparentsvec,rowmapsallowed,needednodebannedrow,scoretable,
                                            plus1lists,n,updatenodes)
   endtable<-Sys.time()
-  if(verbose) cat("score tables calculated, partition MCMC starts \n")
+  if(verbose) cat("score tables calculated, partition MCMC is running \n")
     partres<-partitionMCMCplus1(n,param$nsmall,permy,party,numit,stepsave,parenttable,scoretable,scoretab,
                                  aliases,plus1neededpart,plus1allowedpart,plus1lists,rowmapsneeded,rowmapsallowed,
                                  needednodetable,ptab$numberofparentsvec,
@@ -182,7 +183,8 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   if(units(mcmctime)=="mins") {
     mcmctime<-as.numeric(mcmctime*60)
   }
-  result$info$times<-c(tabletime,mcmctime)
+  result$info$runtimes<-c(tabletime,mcmctime)
+  names(result$info$runtimes)<-c("scoretables","MCMCchain")
   result$trace<-MCMCtraces$DAGscores
   MCMCtraces$DAGscores<-NULL
   result$traceadd<-MCMCtraces
@@ -195,9 +197,9 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
     result$scoretable$adjacency<-startspace
     result$scoretable$tables<-scoretable
     result$scoretable$blacklist<-blacklist
-    attr( result$scoretable,"class")<-"MCMCscoretab"
+    attr( result$scoretable,"class")<-"scorespace"
   }
-  attr(result,"class")<-"MCMCres"
+  attr(result,"class")<-"partitionMCMC"
   
   return(result)
 }

@@ -9,7 +9,8 @@ plotpedges(
   cutoff = 0.2,
   pdag = FALSE,
   onlyedges = NULL,
-  highlight = NULL
+  highlight = NULL,
+  ...
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ plotpedges(
 \item{onlyedges}{(optional) binary matrix, only edges corresponding to entries which equal 1 will be plotted}
 
 \item{highlight}{(optional) binary matrix, edges corresponding to entries which equal 1 are highlighted with "red"}
+
+\item{...}{(optional) parameters passed to the plot function}
 }
 \value{
 plots posterior probabilities of edges in the graph as a function of MCMC iterations

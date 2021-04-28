@@ -3,9 +3,9 @@
 \docType{data}
 \name{kirc}
 \alias{kirc}
-\title{KIRC dataset}
+\title{kirc dataset}
 \format{
-An object of class \code{matrix} with 437 rows and 40 columns.
+An object of class \code{matrix} with 476 rows and 70 columns.
 }
 \usage{
 kirc
@@ -13,7 +13,7 @@ kirc
 \description{
 Mutation data from TCGA kidney renal clear cell cohort (KIRC). 
 Mutations are picked according to q-value computed 
-by MutSigCV (q<0.1) or connected in networks discovered by Kuipers et al. 2018.
+by MutSig2CV (q<0.1) or connected in networks discovered by Kuipers et al. 2018.
 }
 \details{
 { 
@@ -26,7 +26,7 @@ The columns are named according to gene symbols.
 \references{
 \url{https://portal.gdc.cancer.gov/}
 
-\url{http://firebrowse.org/iCoMut/?cohort=kich}
+\url{http://firebrowse.org/iCoMut/?cohort=kirc}
 
 Lawrence, M. et al. Mutational heterogeneity in cancer and the search for new cancer-associated genes. Nature 499, 214-218 (2013)
 }

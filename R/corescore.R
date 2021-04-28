@@ -38,6 +38,9 @@ DAGcorescore<-function(j,parentnodes,n,param) {
              B<-TN[j,parentnodes]
              logdetpart2<-log(A-B^2/D)
              corescore <- scoreconstvec[lp+1]-awpNd2*logdetpart2 - logdetD/2
+             if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+               corescore <- corescore - param$logedgepmat[parentnodes, j]
+             }
            },
            
            "2"={# can do matrix determinant and inverse explicitly
@@ -50,6 +53,9 @@ DAGcorescore<-function(j,parentnodes,n,param) {
              #logdetpart2<-log(A-(D[2,2]*B[1]^2+D[1,1]*B[2]^2-2*D[1,2]*B[1]*B[2])/detD) #also using symmetry of D
              logdetpart2<-log(dettwobytwo(D-(B)%*%t(B)/A))+log(A)-logdetD
              corescore <- scoreconstvec[lp+1]-awpNd2*logdetpart2 - logdetD/2
+             if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+               corescore <- corescore - sum(param$logedgepmat[parentnodes, j])
+             }
            },
            
            {# otherwise we use cholesky decomposition to perform both
@@ -59,6 +65,9 @@ DAGcorescore<-function(j,parentnodes,n,param) {
              B<-TN[j,parentnodes]
              logdetpart2<-log(A-sum(backsolve(choltemp,B,transpose=TRUE)^2))
              corescore <- scoreconstvec[lp+1]-awpNd2*logdetpart2 - logdetD/2
+             if (!is.null(param$logedgepmat)) { # if there is an additional edge penalisation
+               corescore <- corescore - sum(param$logedgepmat[parentnodes, j])
+             }
            })
   } else if (param$type=="bde"){
     
