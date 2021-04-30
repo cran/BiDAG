@@ -4,8 +4,8 @@
 #' @param data the data matrix with n columns (the number of variables) and a number of rows equal to the number of observations
 #' @param scoretype the score to be used to assess the DAG structure:
 #'  "bge" for Gaussian data, "bde" for binary data, 
-#'  "bdecat" for categorical data, "dbn" for dynamic Bayesian networks,
-#'  "usr" for a user defined score
+#'  "bdecat" for categorical data,
+#'  "usr" for a user defined score; when "usr" score is chosen, one must define a function (which evaluates the log score of a node given its parents) in the following format: usrDAGcorescore(j,parentnodes,n,param), where 'j' is node to be scores, 'parentnodes' are the parents of this node, 'n' number of nodes in the netwrok and 'param' is an object of class 'scoreparameters'
 #' @param bgepar a list which contains parameters for BGe score:
 #' \itemize{
 #' \item am (optional) a positive numerical value, 1 by default
@@ -29,9 +29,7 @@
 #' }
 #' @param usrpar a list which contains parameters for the user defined score
 #' \itemize{
-#' \item pctesttype (optional) conditional independence test ("bde","bge","bdecat","usrCItest")
-#' \item suffStat (optional)  a list containing sufficient statistics for  the CI test
-#' \item otherpars (optional) a list containing other parameters needed for score evaluation
+#' \item pctesttype (optional) conditional independence test ("bde","bge","bdecat")
 #' }
 #'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
 #'@param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
@@ -55,7 +53,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
                           dbnpar=list(samestruct=TRUE, slices=2, b=0), 
-                          usrpar=list(pctesttype=c("bge","bde","bdecat","usr")), 
+                          usrpar=list(pctesttype=c("bge","bde","bdecat")), 
                           DBN=FALSE,
                           weightvector=NULL,
                           bgnodes=NULL, 
@@ -389,7 +387,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     }
   } else if (scoretype=="bde") {
     if(is.null(bdepar$chi)) {bdepar$chi<-0.5}
-    if(is.null(bdepar$edgepf)) {bdepar$edgepf <- 2}
+    if(is.null(bdepar$edgepf)) {bdepar$edgepf<- 2}
     if (is.null(weightvector)) {
       initparam$N<-nrow(data)
       initparam$d1<-data
@@ -409,7 +407,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     }
   } else if (scoretype=="bdecat") {
     if(is.null(bdecatpar$chi)) {bdecatpar$chi<-0.5}
-    if(is.null(bdecatpar$edgepf)) {bdecatpar$edgepf <- 2}
+    if(is.null(bdecatpar$edgepf)) {bdecatpar$edgepf<-2}
     maxparents<-n-1
     initparam$chi<-bdecatpar$chi 
     initparam$pf<-bdecatpar$edgepf
@@ -421,17 +419,19 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     initparam <- usrscoreparameters(initparam, usrpar)
   } 
   attr(initparam, "class") <- "scoreparameters"
-  if(!is.null(multwv)) {
-    initparam$paramsets<-list()
-    for(i in 1:length(multwv)) {
-     # initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
-    #                                            data, weightvector=multwv[[i]], 
-    #                                            bgnodes=initparam$bgnodes,
-    #                                            bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
-    #                                            edgepmat=edgepmat, DBN=FALSE,MDAG=FALSE,multwv=NULL)
-    }
-  }
-  initparam
+  return(initparam)
+
+  # #this if for future models
+  # if(!is.null(multwv)) {
+  #   initparam$paramsets<-list()
+  #   for(i in 1:length(multwv)) {
+  #    # initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
+  #   #                                            data, weightvector=multwv[[i]], 
+  #   #                                            bgnodes=initparam$bgnodes,
+  #   #                                            bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
+  #   #                                            edgepmat=edgepmat, DBN=FALSE,MDAG=FALSE,multwv=NULL)
+  #   }
+  # }
 
 }
 

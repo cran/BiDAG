@@ -38,8 +38,6 @@ summary.scoreparameters <-function(object, ...){
 }
 
 
-
-
 #' Summary of object of class 'scorespace'
 #'
 #' @param object object of class 'scorespace'
@@ -116,10 +114,10 @@ summary.iterativeMCMC <- function(object, ...) {
   cat("\n\n")
   cat("Results:","\n")
   cat("maximum score DAG with", ncol(object$DAG), "nodes and ", sum(object$DAG)," edges: \n")
-  cat("DAG score=", object$score,"\n")
+  cat("maximum DAG score=", object$score,"\n")
   cat("\n")
   cat(paste("algorithm:",object$info$algo,"\n"))
-  cat(paste("number of search space expansion steps:", length(object$maxtrace)-1,"\n"))
+  cat(paste("number of search space expansion steps:", length(object$maxtrace),"\n"))
   cat(paste("number of edges in the intial search space:",sum(object$startspace),"\n"))
   cat(paste("number of added edges:",sum(object$endspace)-sum(object$startspace),"\n"))
   cat(paste("total number of MCMC iterations:",object$info$iterations*length(object$maxtrace),"\n"))

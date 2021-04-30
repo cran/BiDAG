@@ -22,7 +22,7 @@
     
     \item maxorder: order of a maximum scoring DAG found/sampled in MCMC.
     
-    \item maxtrace: a list of graphs, their scores and orders used for search space expansion (either MAP graphs at each expansion iterations or consensus graphs corresponding to the threshold p)
+    \item maxtrace: a list of maximum score graphs uncovered at each expansion of the search space; their scores and orders 
     
     \item info: a list containing information about parameters and results of MCMC
     

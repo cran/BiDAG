@@ -1,8 +1,9 @@
 newspaceskel<-function(n,startspace,currspace,softlimit,hardlimit,posterior,blacklist,
                        MCMCtrace=NULL,mergetype="skeleton") {
+  
   switch(mergetype,
          "dag" = { 
-           mdag<-modelp(MCMCtrace,p=posterior,pdag=FALSE)
+           mdag<-modelpcore(MCMCtrace,p=posterior,pdag=FALSE)
            newadj<-1*(!blacklist&(startspace|mdag))
            toomanyneib<-which(apply(newadj,2,sum)>hardlimit)
            if(length(toomanyneib)>0){newadj[,toomanyneib]<-(1*(!blacklist&mdag))[,toomanyneib]}
@@ -10,11 +11,11 @@ newspaceskel<-function(n,startspace,currspace,softlimit,hardlimit,posterior,blac
            if(length(toomanyneib)>0){newadj[,toomanyneib]<-currspace[,toomanyneib]}
          },
          "cpdag" = { 
-           mcp<-modelp(n,MCMCtrace,p=posterior,pdag=TRUE)
+           mcp<-modelpcore(n,MCMCtrace,p=posterior,pdag=TRUE)
            newadj<-1*(!blacklist&(startspace|mcp))
            toomanyneib<-which(apply(newadj,2,sum)>softlimit)
            if(length(toomanyneib)>0) {
-             mdag<-modelp(MCMCtrace,p=posterior,pdag=FALSE)
+             mdag<-modelpcore(MCMCtrace,p=posterior,pdag=FALSE)
              newadj[,toomanyneib]<-(1*(!blacklist&(startspace|mdag)))[,toomanyneib]
            }
            tootoomanyneib<-which(apply(newadj,2,sum)>hardlimit)
@@ -23,15 +24,15 @@ newspaceskel<-function(n,startspace,currspace,softlimit,hardlimit,posterior,blac
            if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-currspace[,tootoomanyneib]}
          },
          "skeleton" = { 
-           mskel<-1*(modelp(MCMCtrace,p=posterior,pdag=FALSE)|t(modelp(MCMCtrace,p=posterior,pdag=FALSE)))
+           mskel<-1*(modelpcore(MCMCtrace,p=posterior,pdag=FALSE)|t(modelpcore(MCMCtrace,p=posterior,pdag=FALSE)))
            newadj<-1*(!blacklist&(startspace|mskel))
            toomanyneib<-which(apply(newadj,2,sum)>4)
            if(length(toomanyneib)>0) {
-             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|modelp(MCMCtrace,p=posterior,pdag=TRUE))))[,toomanyneib]
+             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|modelpcore(MCMCtrace,p=posterior,pdag=TRUE))))[,toomanyneib]
            }
            toomanyneib<-which(apply(newadj,2,sum)>softlimit)
            if(length(toomanyneib)>0) {
-             mdag<-modelp(MCMCtrace,p=posterior,pdag=FALSE)
+             mdag<-modelpcore(MCMCtrace,p=posterior,pdag=FALSE)
              newadj[,toomanyneib]<-(1*(!blacklist&(startspace|mdag)))[,toomanyneib]
            }
            tootoomanyneib<-which(apply(newadj,2,sum)>hardlimit)

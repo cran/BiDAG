@@ -21,9 +21,9 @@ print.scoreparameters <-function(x, ...){
   cat(x$type,"\n")
   cat("$data \n")
   if(!x$DBN) {
-    cat("data contains",nrow(x$data),"observations of",ncol(x$data),"variables \n\n" )
+    cat("data contains",nrow(x$data),"observations of",ncol(x$data),"variables \n" )
   } else {
-    cat("data contains",nrow(x$data),"rows and",ncol(x$data),"columns \n\n") 
+    cat("data contains",nrow(x$data),"rows and",ncol(x$data),"columns \n") 
   }
   cat("$DBN \n")
   cat(x$DBN,"\n")

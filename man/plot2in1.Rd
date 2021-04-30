@@ -11,7 +11,7 @@ plot2in1(graph1, graph2, bidir = FALSE, ...)
 
 \item{graph2}{binary adjacency matrix of a graph, column names should coincide with column names of 'graph1'}
 
-\item{bidir}{logical, defines arrows of bidirected edges are drawn; FALSE by defauls.}
+\item{bidir}{logical, defines if arrows of bidirected edges are drawn; FALSE by defauls.}
 
 \item{...}{optional parameters passed to \pkg{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}}
 }

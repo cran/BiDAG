@@ -247,17 +247,24 @@ compareDBNs<-function(eDBN, trueDBN, n.dynamic, n.static, struct=c("init","trans
 #'into a matrix which can be used for blacklisting/penalization in BiDAG.
 #'
 #' @param curnames character vector with gene names which will be used in \code{BiDAG} learning function
-#' @param mapping data frame, representing a mapping between curnames and preferredNames used in interactions downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'queryItem' and 'preferredName'
 #' @param int data frame, representing a interactions between genes/proteins downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'node1' and 'node2'
+#' @param mapping (optional) data frame, representing a mapping between 'curnames' (gene names, usually the column names of 'data') and gene names used in interactions downloaded from STRING (\url{https://string-db.org/}); two columns are necessary 'queryItem' and 'preferredName'
 #' @param type character, defines how interactions will be reflected in the output matrix; \code{int} will result in a matrix whose entries equal 1 if interaction is present in the list of interactions \code{int} and 0 otherwise; \code{blacklist} results in a matrix whose entries equal 0 when interaction is present in the list of interactions and 1 otherwise;
-#' \code{pf} results in a matrix results in a matrix whose entries equal 1 is interaction is present in the list of interactions \code{int} and \code{pf} otherwise
+#' \code{pf} results in a matrix results in a matrix whose entries equal 1 is interaction is present in the list of interactions \code{int} and \code{pf} otherwise$ "int" by default
 #' @param pf penalization factor for interactions, needed if \code{type}=pf 
 #'@return square matrix whose entries  correspond to the list of interactions and parameter \code{type}
 #'@examples
 #'curnames<-colnames(kirp)
 #'intmat<-string2mat(curnames, mapping, interactions, type="pf")
 #'@export
-string2mat<-function(curnames,mapping,int,type=c("int","blacklist","pf"),pf=2) {
+string2mat<-function(curnames, int, mapping=NULL, type=c("int"), pf=2) {
+  
+  if(is.null(mapping)) {
+    mapping<-cbind(curnames,curnames)
+    colnames(mapping)<-c("queryItem","preferredName")
+    mapping<-as.data.frame(mapping)
+  }
+  
   rownames(mapping)<-mapping$queryItem
   n<-length(curnames)
   aliases<-as.character(mapping[curnames,]$preferredName)

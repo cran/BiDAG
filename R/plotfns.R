@@ -80,17 +80,20 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
 }
 
 
-#'Comparing posterior probabilitites of single edges based on several samples
+#'Comparing posterior probabilitites of single edges 
 #'
 #'This function can be used to compare posterior probabilities of edges in a graph 
-#'based on two samples of graphs
-#'@param pmat a list of square matrices, representing posterior probabilities of single edges in a Bayesian network
+#'
+#'
+#'@param pmat a list of square matrices, representing posterior probabilities of single edges in a Bayesian network; see \code{\link{edgep}} for obtaining such a matrix from a single MCMC run
 #'@param highlight numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted in red
-#'@param cut numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE
+#'@param printedges when TRUE the function also returns squared correlation and RMSE of posterior probabilities higher than the value defined 
+#'by the argument 'cut' as well as the list of all edges whose posterior probabilities in the first two matrices differ more than 'highlight'; FALSE by default
+#'@param cut numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE when 'printedges' equals TRUE
 #'@param ... prameters passed further to the \code{plot} function (e.g. \code{xlab}, \code{ylab}, \code{main}) in case when the length of \code{pmat} equals 2
-#'@return plots concordance of posterior probabilitites of single edges on multiple MCMC runs (minimum 2), highlighting the edges whose posterior probabilities in 2 runs differ by more than 'highlight'; 
-#'when the number of runs equals 2, the function returns also squared correlation and RMSE of posterior probabilities 
-#'higher than the value defined by the argument 'cut' as well as the list of all edges whose posterior probabilities in 2 runs differ by more than 'highlight'.
+#'@return plots concordance of posterior probabilitites of single edges based on several matrices (minimum 2 matrices); highlights the edges whose posterior probabilities in a pair of matrices differ by more than 'highlight'; 
+#'when 'printedges' set to TRUE, the function returns also squared correlation and RMSE of posterior probabilities 
+#'higher than the value defined by the argument 'cut' as well as the list of all edges whose posterior probabilities in the first two matrices differ by more than 'highlight'.
 #'@examples
 #'Asiascore<-scoreparameters("bde", Asia)
 #'\dontrun{
@@ -102,27 +105,28 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
 #'}
 #'@author Polina Suter
 #'@export
-plotpcor<-function(pmat,highlight=0.3,cut=0.05, ...) {#main="", xlab="sample 1", ylab="sample 2") {
+plotpcor<-function(pmat,highlight=0.3,printedges=FALSE,cut=0.05, ...) {
   old.par<-par(no.readonly = TRUE)
   nruns<-length(pmat)
-  if(nruns==1) stop("the number of matrices in the list must be at least two!")
+  if(nruns<2) stop("the number of matrices in the list must be at least two!")
+  varnames<-colnames(pmat[[1]])
   if(nruns>2) {
   
     vecy<-list()
     for(i in 1:nruns) {
       vecy[[i]]<-as.vector(pmat[[i]])
     }
-
+    if(printedges) diffedges<-pcorcore(vecy[[1]],vecy[[2]],pmat[[1]],pmat[[2]],highlight,1,2,printedges=TRUE)
     par(mfrow=c(nruns,nruns)) 
     
     for(i in 1:nruns) {
       for(j in 1:nruns) {
-        pcorcore(vecy[[i]],vecy[[j]],pmat[[i]],pmat[[j]],highlight,i,j)
+        pcorcore(vecy[[i]],vecy[[j]],pmat[[i]],pmat[[j]],highlight,i,j,name=names(pmat[i]))
       }
     }
     par(old.par)
+    if(printedges) return(pcorvals(vecy[[1]], vecy[[2]], diffedges, cut, varnames))
   } else {
-  varnames<-colnames(pmat[[1]])
   vec1<-as.vector(pmat[[1]])
   vec2<-as.vector(pmat[[2]])
   
@@ -144,28 +148,15 @@ plotpcor<-function(pmat,highlight=0.3,cut=0.05, ...) {#main="", xlab="sample 1",
        xlim=c(0,1),ylim=c(0,1), ...)
   lines(vec1,vec2,type="p",col="grey")
   if(highlight<1) lines(vec1high,vec2high,type="p",col="red")
-  
-  rsqindex<-intersect(which(vec1<cut),which(vec2<cut))
-  Rsq<-cor(vec1[-rsqindex],vec2[-rsqindex])^2
-  res<-list()
-  res$MSE<-sum((vec1[-rsqindex]-vec2[-rsqindex])^2)/length(vec1[-rsqindex])
-  res$R2<-Rsq
-  if(length(diffedges)>0) {
-    res$diffedges<-matrix(varnames[diffedges],ncol=2,nrow=nrow(diffedges))
-    colnames(res$diffedges)<-c("from","to")
-  }
   par(old.par)
-  res
+  if (printedges) return(pcorvals(vec1, vec2, diffedges, cut, varnames))
   }
-
-
 }
 
-
-
-
-
-pcorcore<-function(vec1,vec2,mat1,mat2,highlight,i,j) {
+pcorcore<-function(vec1,vec2,mat1,mat2,highlight,i,j,printedges=FALSE,name=NULL) {
+  if(printedges) {
+    diffmat<-abs(mat1-mat2)
+    return(which(diffmat>highlight,arr.ind=TRUE)) } else {
   if(highlight<1){
     diffmat<-abs(mat1-mat2)
     pointstohighlight<-which(diffmat>highlight)
@@ -178,13 +169,28 @@ pcorcore<-function(vec1,vec2,mat1,mat2,highlight,i,j) {
       highlight<-1
     }
   }
-  
-  
-  plot(x=seq(0,1,by=0.1),y=seq(0,1,by=0.1),type="l",col="blue",lty=2,
-       xlab=paste("sample",i),ylab=paste("sample",j),
-       xlim=c(0,1),ylim=c(0,1))
-  lines(vec1,vec2,type="p",col="grey")
-  if(highlight<1) lines(vec1high,vec2high,type="p",col="red")
+}
+  par(mar = c(1, 1, 1, 1))
+  if(i == j) {
+    plot(x=1,xlim=c(0,1),ylim=c(0,1),type = "n")
+    if(is.null(name)) text(0.5,0.5,i,cex=3) else text(0.5,0.5,name, cex=2)
+  } else {
+    plot(x=seq(0,1,by=0.1),y=seq(0,1,by=0.1),type="l",col="blue",lty=2,
+       xlab="",ylab="",xlim=c(0,1),ylim=c(0,1))
+    lines(vec1,vec2,type="p",col="grey")
+    if(highlight<1) lines(vec1high,vec2high,type="p",col="red")
+  }
 }
 
-
+pcorvals<-function(vec1, vec2, diffedges, cut, varnames) {
+  rsqindex <- intersect(which(vec1 < cut), which(vec2 < cut))
+  Rsq <- cor(vec1[-rsqindex], vec2[-rsqindex]) ^ 2
+  res <- list()
+  res$MSE <- sum((vec1[-rsqindex] - vec2[-rsqindex]) ^ 2) / length(vec1[-rsqindex])
+  res$R2 <- Rsq
+  if (length(diffedges) > 0) {
+    res$diffedges <- matrix(varnames[diffedges], ncol = 2, nrow = nrow(diffedges))
+    colnames(res$diffedges) <- c("from", "to")
+    return(res)
+  }
+}

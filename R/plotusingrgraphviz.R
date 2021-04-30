@@ -1038,7 +1038,7 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
 #' 
 #'@param graph1 binary adjacency matrix of a graph
 #'@param graph2 binary adjacency matrix of a graph, column names should coincide with column names of 'graph1'
-#'@param bidir logical, defines arrows of bidirected edges are drawn; FALSE by defauls.
+#'@param bidir logical, defines if arrows of bidirected edges are drawn; FALSE by defauls.
 #'@param ... optional parameters passed to \pkg{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}
 #'@return plots the graph which includes nodes and edges two graphs; nodes which are connected to at least one other node in both graphs are plotted only once and coloured orange, edges which are shared by two graphs
 #'are coloured orange; all other nodes and edges a plotted once for each 'graph1' and 'graph2' and coloured blue and green accordingly.

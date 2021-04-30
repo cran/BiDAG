@@ -17,7 +17,7 @@ samplecomp(
   trans = TRUE
 )
 
-\method{plot}{samplecomp}(x, ..., vars = c("FP", "TP"), type = "b", col = "blue", showp = FALSE)
+\method{plot}{samplecomp}(x, ..., vars = c("FP", "TP"), type = "b", col = "blue", showp = NULL)
 
 \method{print}{samplecomp}(x, ...)
 

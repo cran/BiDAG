@@ -10,7 +10,7 @@
 \usage{
 itercomp(MCMCmult, truedag, cpdag = TRUE, p = 0.5, trans = TRUE)
 
-\method{plot}{itercomp}(x, ..., vars = c("FP", "TP"), type = "b", col = "blue", showit = FALSE)
+\method{plot}{itercomp}(x, ..., vars = c("FP", "TP"), type = "b", col = "blue", showit = c())
 
 \method{print}{itercomp}(x, ...)
 
@@ -37,20 +37,19 @@ itercomp(MCMCmult, truedag, cpdag = TRUE, p = 0.5, trans = TRUE)
 
 \item{col}{colour of line in the plot; "blue" by default}
 
-\item{showit}{logical, defines if points are labelled with the corresponding number of search space expansion}
+\item{showit}{(optional) vector of integers specifying indices of search expansion iterations to be labelled; by default no iterations are labelled}
 
 \item{object}{object of class 'itercomp'}
 }
 \value{
 an object if class \code{itersim}, a matrix with the number of rows equal to the number of expansion iterations in \code{iterativeMCMC}, and 8 columns reporting for 
-the maximally scoring DAG uncovered at each iteration (or for a summary over the sample of DAGs if \code{sample} parameter set to TRUE) 
-the number of true positive edges ('TP'), the number of false positive edges ('FP'), 
+the maximally scoring DAG uncovered at each iteration: the number of true positive edges ('TP'), the number of false positive edges ('FP'), 
 the true positive rate ('TPR'), the structural Hamming distance ('SHD'), false positive rate ('FPR'),
 false discovery rate ('FDR') and the score of the DAG (`score').
 }
 \description{
 This function compute 8 different metrics of structure fit of an object of class \code{iterativeMCMC} to the ground truth DAG (or CPDAG). Object of class
-\code{iterativeMCMC} stores MAP (consensus) graph at from each search space expansion step. This function computes structure fit of
+\code{iterativeMCMC} stores MAP graph at from each search space expansion step. This function computes structure fit of
 each of the stored graphs to the ground truth one. Computed metrics include: TP, FP, TPR, FPR, FPRn, FDR, SHD. See metrics description in
 see also \code{\link{compareDAGs}}.
 }

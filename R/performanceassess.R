@@ -94,7 +94,7 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
 #'Performance assessment of iterative MCMC scheme against a known Bayesian network
 #'
 #'This function compute 8 different metrics of structure fit of an object of class \code{iterativeMCMC} to the ground truth DAG (or CPDAG). Object of class
-#'\code{iterativeMCMC} stores MAP (consensus) graph at from each search space expansion step. This function computes structure fit of
+#'\code{iterativeMCMC} stores MAP graph at from each search space expansion step. This function computes structure fit of
 #'each of the stored graphs to the ground truth one. Computed metrics include: TP, FP, TPR, FPR, FPRn, FDR, SHD. See metrics description in
 #'see also \code{\link{compareDAGs}}.
 #'
@@ -105,8 +105,7 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
 #'@param p threshold such that only edges with a higher posterior probability will be retained in the directed graph summarising the sample of DAGs at each iteration from \code{MCMCmult} if parameter \code{sample} set to TRUE
 #'@param trans logical, for DBNs indicates if model comparions are performed for transition structure; when \code{trans} equals FALSE the comparison is performed for initial structures of estimated models and the ground truth DBN; for usual BNs the parameter is disregarded
 #'@return an object if class \code{itersim}, a matrix with the number of rows equal to the number of expansion iterations in \code{iterativeMCMC}, and 8 columns reporting for 
-#'the maximally scoring DAG uncovered at each iteration (or for a summary over the sample of DAGs if \code{sample} parameter set to TRUE) 
-#'the number of true positive edges ('TP'), the number of false positive edges ('FP'), 
+#'the maximally scoring DAG uncovered at each iteration: the number of true positive edges ('TP'), the number of false positive edges ('FP'), 
 #'the true positive rate ('TPR'), the structural Hamming distance ('SHD'), false positive rate ('FPR'),
 #'false discovery rate ('FDR') and the score of the DAG (`score'). 
 #' @examples
@@ -257,4 +256,25 @@ samplecomp<-function(MCMCchain, truedag, p=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0
   return(res)
 }
 
-
+modelpcore<-function(MCMCchain, p, pdag=FALSE, burnin=0.2, DBN=FALSE, nsmall=0, n.dynamic=0, n.static=0) {
+  
+  varlabels<-colnames(MCMCchain[[1]])
+  n<-nrow(MCMCchain[[1]])
+  incidence<-matrix(rep(0, n*n), nrow=n, ncol=n)
+  endstep<-length(MCMCchain)
+  startstep<-max(as.integer(burnin*endstep),1)
+  if (pdag) {
+    cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
+    incidence[which(Reduce('+', cpdags)/(endstep-startstep+1)>p)]<-1
+  } else {
+    incidence[which(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1)>p)]<-1
+  }
+  colnames(incidence)<-varlabels
+  rownames(incidence)<-varlabels
+  if(DBN) {
+    incidence<-DBNcut(incidence,n.dynamic=n.dynamic,n.static=n.static)
+    incidence.init<-DBNinit(incidence,n.dynamic=n.dynamic,n.static=n.static)
+    incidence[1:(n.dynamic+n.static),1:(n.dynamic+n.static)]<-incidence.init
+  }
+  return(incidence)
+}

@@ -122,15 +122,12 @@ plot.partitionMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="
 #' @param vars a tuple of variables which will be used for 'x' and 'y' axes; possible values: "SHD", "TP", "FP", "TPR", "FPR", "FPRn", "FDR", "score" 
 #' @param type type of line in the plot;"b" by default
 #' @param col colour of line in the plot; "blue" by default
-#' @param showit logical, defines if points are labelled with the corresponding number of search space expansion
-#' 
+#' @param showit (optional) vector of integers specifying indices of search expansion iterations to be labelled; by default no iterations are labelled
 #' @rdname itercomp
 #' @method plot itercomp
 #' @export
-plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", showit=FALSE){
+plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", showit=c()){
   old.par <- par(no.readonly = TRUE)
-  nit<-nrow(x)
-  x<-x[2:nit-1,]
   nit<-nrow(x)
   if(nit>1) {
   scales<-vector()
@@ -140,8 +137,8 @@ plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", sho
   }
   
   plot(x[,vars[1]], x[,vars[2]], type=type, col=col, xlab=vars[1],ylab=vars[2], ...)
-  if(showit) {
-    for(i in 1:nit) {
+  if(length(showit)>0) {
+    for(i in showit) {
       text(x[i,vars[1]]+scales[vars[1]], x[i,vars[2]]-0.5*scales[vars[2]], i)
     }
   }
@@ -161,7 +158,7 @@ plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", sho
 #' @rdname samplecomp
 #' @method plot samplecomp
 #' @export
-plot.samplecomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", showp=FALSE){
+plot.samplecomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", showp=NULL){
   old.par <- par(no.readonly = TRUE)
   nit<-nrow(x)
   if(is.null(nit)) {

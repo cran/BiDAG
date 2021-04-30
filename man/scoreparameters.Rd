@@ -13,7 +13,7 @@ scoreparameters(
   bdepar = list(chi = 0.5, edgepf = 2),
   bdecatpar = list(chi = 0.5, edgepf = 2),
   dbnpar = list(samestruct = TRUE, slices = 2, b = 0),
-  usrpar = list(pctesttype = c("bge", "bde", "bdecat", "usr")),
+  usrpar = list(pctesttype = c("bge", "bde", "bdecat")),
   DBN = FALSE,
   weightvector = NULL,
   bgnodes = NULL,
@@ -28,8 +28,8 @@ scoreparameters(
 \arguments{
 \item{scoretype}{the score to be used to assess the DAG structure:
 "bge" for Gaussian data, "bde" for binary data, 
-"bdecat" for categorical data, "dbn" for dynamic Bayesian networks,
-"usr" for a user defined score}
+"bdecat" for categorical data,
+"usr" for a user defined score; when "usr" score is chosen, one must define a function (which evaluates the log score of a node given its parents) in the following format: usrDAGcorescore(j,parentnodes,n,param), where 'j' is node to be scores, 'parentnodes' are the parents of this node, 'n' number of nodes in the netwrok and 'param' is an object of class 'scoreparameters'}
 
 \item{data}{the data matrix with n columns (the number of variables) and a number of rows equal to the number of observations}
 
@@ -60,9 +60,7 @@ scoreparameters(
 
 \item{usrpar}{a list which contains parameters for the user defined score
 \itemize{
-\item pctesttype (optional) conditional independence test ("bde","bge","bdecat","usrCItest")
-\item suffStat (optional)  a list containing sufficient statistics for  the CI test
-\item otherpars (optional) a list containing other parameters needed for score evaluation
+\item pctesttype (optional) conditional independence test ("bde","bge","bdecat")
 }}
 
 \item{DBN}{logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default}

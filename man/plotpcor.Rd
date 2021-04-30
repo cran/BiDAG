@@ -2,27 +2,29 @@
 % Please edit documentation in R/plotfns.R
 \name{plotpcor}
 \alias{plotpcor}
-\title{Comparing posterior probabilitites of single edges based on several samples}
+\title{Comparing posterior probabilitites of single edges}
 \usage{
-plotpcor(pmat, highlight = 0.3, cut = 0.05, ...)
+plotpcor(pmat, highlight = 0.3, printedges = FALSE, cut = 0.05, ...)
 }
 \arguments{
-\item{pmat}{a list of square matrices, representing posterior probabilities of single edges in a Bayesian network}
+\item{pmat}{a list of square matrices, representing posterior probabilities of single edges in a Bayesian network; see \code{\link{edgep}} for obtaining such a matrix from a single MCMC run}
 
 \item{highlight}{numeric, defines maximum acceptable difference between posterior probabilities of an edge in two samples; points corresponding to higher differences are highlighted in red}
 
-\item{cut}{numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE}
+\item{printedges}{when TRUE the function also returns squared correlation and RMSE of posterior probabilities higher than the value defined 
+by the argument 'cut' as well as the list of all edges whose posterior probabilities in the first two matrices differ more than 'highlight'; FALSE by default}
+
+\item{cut}{numeric value corresponding to a minimum posterior probabilitity which is included into calculation of squared correlation and MSE when 'printedges' equals TRUE}
 
 \item{...}{prameters passed further to the \code{plot} function (e.g. \code{xlab}, \code{ylab}, \code{main}) in case when the length of \code{pmat} equals 2}
 }
 \value{
-plots concordance of posterior probabilitites of single edges on multiple MCMC runs (minimum 2), highlighting the edges whose posterior probabilities in 2 runs differ by more than 'highlight'; 
-when the number of runs equals 2, the function returns also squared correlation and RMSE of posterior probabilities 
-higher than the value defined by the argument 'cut' as well as the list of all edges whose posterior probabilities in 2 runs differ by more than 'highlight'.
+plots concordance of posterior probabilitites of single edges based on several matrices (minimum 2 matrices); highlights the edges whose posterior probabilities in a pair of matrices differ by more than 'highlight'; 
+when 'printedges' set to TRUE, the function returns also squared correlation and RMSE of posterior probabilities 
+higher than the value defined by the argument 'cut' as well as the list of all edges whose posterior probabilities in the first two matrices differ by more than 'highlight'.
 }
 \description{
-This function can be used to compare posterior probabilities of edges in a graph 
-based on two samples of graphs
+This function can be used to compare posterior probabilities of edges in a graph
 }
 \examples{
 Asiascore<-scoreparameters("bde", Asia)
