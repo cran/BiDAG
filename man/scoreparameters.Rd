@@ -14,6 +14,7 @@ scoreparameters(
   bdecatpar = list(chi = 0.5, edgepf = 2),
   dbnpar = list(samestruct = TRUE, slices = 2, b = 0),
   usrpar = list(pctesttype = c("bge", "bde", "bdecat")),
+  mixedpar = list(nbin = 0),
   DBN = FALSE,
   weightvector = NULL,
   bgnodes = NULL,
@@ -61,6 +62,11 @@ scoreparameters(
 \item{usrpar}{a list which contains parameters for the user defined score
 \itemize{
 \item pctesttype (optional) conditional independence test ("bde","bge","bdecat")
+}}
+
+\item{mixedpar}{a list which contains parameters for the BGe and BDe score for mixed data
+\itemize{
+\item nbin a positive integer number of binary nodes in the network (the binary nodes are always assumed in first nbin columns of the data)
 }}
 
 \item{DBN}{logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default}

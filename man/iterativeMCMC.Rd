@@ -62,7 +62,7 @@ on the parameter \code{mergecp}), above the limit only the directed edges are ad
 
 \item{hardlimit}{integer, limit on the size of parent sets beyond which the search space is not further expanded to prevent long runtimes; the limit is 12 by default}
 
-\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})}
+\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage}
 
 \item{gamma}{tuning parameter which transforms the score by raising it to this power, 1 by default}
 
@@ -138,6 +138,9 @@ The edges in the MAP DAG are added to the initial search space to provide
 the search space for the next iteration.  The algorithm iterates until no 
 further score improvements can be achieved by expanding the search space.  
 The final search space may be used for the sampling versions of \code{\link{orderMCMC}} and \code{\link{partitionMCMC}}.
+}
+\note{
+see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
 }
 \examples{
 \dontrun{

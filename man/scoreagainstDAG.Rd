@@ -4,7 +4,13 @@
 \alias{scoreagainstDAG}
 \title{Calculating the score of a sample against a DAG}
 \usage{
-scoreagainstDAG(scorepar, incidence, datatoscore = NULL, marginalise = FALSE)
+scoreagainstDAG(
+  scorepar,
+  incidence,
+  datatoscore = NULL,
+  marginalise = FALSE,
+  onlymain = FALSE
+)
 }
 \arguments{
 \item{scorepar}{an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}}
@@ -13,7 +19,9 @@ scoreagainstDAG(scorepar, incidence, datatoscore = NULL, marginalise = FALSE)
 
 \item{datatoscore}{(optional) a matrix (vector) containing binary (for BDe score) or continuous (for the BGe score) observations (or just one observation)  to be scored; the number of columns should be equal to the number of variables in the Bayesian network, the number of rows should be equal to the number of observations; by default all data from \code{scorepar} parameter is used}
 
-\item{marginalise}{(optional for continuous data), whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)}
+\item{marginalise}{(optional for continuous data) defines, whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)}
+
+\item{onlymain}{(optional), defines the the score is computed for nodes excluding 'bgnodes'; FALSE by default}
 }
 \value{
 the log of the BDe/BGe score of given observations against a DAG

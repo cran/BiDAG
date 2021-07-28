@@ -95,7 +95,7 @@ summary.orderMCMC <- function(object, ...) {
     cat(paste("traceadd contains",length(object$traceadd$incidence),"sampled DAGs","\n"))
   }
   if(!is.null(object$scoretable)) {
-    cat("scoretable, object of class scorespace \n" )
+    cat("scoretable, object of class 'scorespace' \n" )
   }
   cat("\n")
 }
@@ -169,7 +169,7 @@ summary.partitionMCMC <- function(object, ...) {
     cat(paste("traceadd contains",length(object$traceadd$incidence),"sampled DAGs","\n"))
   }
   if(!is.null(object$scoretable)) {
-    cat("scoretable, object of class scorespace \n" )
+    cat("scoretable, object of class 'scorespace' \n" )
   }
   cat("\n")
 }

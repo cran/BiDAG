@@ -2,58 +2,57 @@
 #'
 #'This function transforms a compact 2-slice adjacency matrix of DBN into full T-slice adjacency matrix
 #'
-#' @param DBNmat a square matrix, representing initial and transitional structure of a DBN; the size of matrix is 2*n.dynamic+n.static
-#' @param n.dynamic integer, number of dynamic variables in one time slice
-#' @param n.slices integer, number of slices in an unrolled DBN
-#' @param n.static integer, number of static variables
+#' @param DBNmat a square matrix, representing initial and transitional structure of a DBN; the size of matrix is 2*dyn+b
+#' @param slices integer, number of slices in an unrolled DBN
+#' @param b integer, number of static variables
 #' @return an adjacency matrix of an unrolled DBN
 #' @examples
-#' compact2full(DBNmat, n.dynamic=12, n.slices=5, n.static=3)
+#' compact2full(DBNmat, slices=5, b=3)
 #' @export
-compact2full<-function(DBNmat,n.dynamic,n.slices,n.static=0) {
-
-  if(n.slices<3) {
+compact2full<-function(DBNmat,slices,b=0) {
+  dyn<-(ncol(DBNmat)-b)/2
+  if(slices<3) {
     return(DBNmat)
   } else {
 
     if(all(is.character(colnames(DBNmat)))){
       baseall<-colnames(DBNmat)
-      basenames<-colnames(DBNmat)[1:n.dynamic+n.static]
+      basenames<-colnames(DBNmat)[1:dyn+b]
     } else {
-      if(n.static!=0) {
-        staticnames<-paste("s",1:n.static,sep="")
-        basenames<-paste("v",1:n.dynamic,sep="")
+      if(b!=0) {
+        staticnames<-paste("s",1:b,sep="")
+        basenames<-paste("v",1:dyn,sep="")
         baseall<-c(staticnames,basenames)
       } else {
-        basenames<-paste("v",1:n.dynamic,sep="")
+        basenames<-paste("v",1:dyn,sep="")
         baseall<-basenames
       }
     }
     
-    for(i in 3:n.slices) {
+    for(i in 3:slices) {
     baseall<-c(baseall,paste(basenames,".",i,sep=""))
     }
     
-    nbig<-n.slices*n.dynamic+n.static
+    nbig<-slices*dyn+b
     DBNbig<-matrix(0,nrow=nbig,ncol=nbig)
     print(baseall)
     colnames(DBNbig)<-baseall
     rownames(DBNbig)<-baseall
     
     
-    DBNbig[1:(n.dynamic+n.static),1:n.dynamic+n.static]<-DBNmat[1:(n.dynamic+n.static),1:n.dynamic+n.static] #copying initial structure
+    DBNbig[1:(dyn+b),1:dyn+b]<-DBNmat[1:(dyn+b),1:dyn+b] #copying initial structure
    
-    intStruct<-DBNmat[1:n.dynamic+n.dynamic+n.static,1:n.dynamic+n.dynamic+n.static] #internal structure
-    transStruct<-DBNmat[1:n.dynamic+n.static,1:n.dynamic+n.dynamic+n.static] #transitional structure
-    if(n.static>0) {
-      bgStrct<-DBNmat[1:n.static,1:n.dynamic+n.dynamic+n.static] #edges from static variables
+    intStruct<-DBNmat[1:dyn+dyn+b,1:dyn+dyn+b] #internal structure
+    transStruct<-DBNmat[1:dyn+b,1:dyn+dyn+b] #transitional structure
+    if(b>0) {
+      bgStrct<-DBNmat[1:b,1:dyn+dyn+b] #edges from static variables
     }
-    for(i in 1:(n.slices-1)) {
-      if(n.static>0) {
-        DBNbig[1:n.static,1:n.dynamic+i*n.dynamic+n.static]<-bgStrct
+    for(i in 1:(slices-1)) {
+      if(b>0) {
+        DBNbig[1:b,1:dyn+i*dyn+b]<-bgStrct
       }
-      DBNbig[1:n.dynamic+(i-1)*n.dynamic+n.static,1:n.dynamic+i*n.dynamic+n.static]<-transStruct
-      DBNbig[1:n.dynamic+i*n.dynamic+n.static,1:n.dynamic+i*n.dynamic+n.static]<-intStruct
+      DBNbig[1:dyn+(i-1)*dyn+b,1:dyn+i*dyn+b]<-transStruct
+      DBNbig[1:dyn+i*dyn+b,1:dyn+i*dyn+b]<-intStruct
     }
     return(DBNbig)
   }
@@ -62,14 +61,14 @@ compact2full<-function(DBNmat,n.dynamic,n.slices,n.static=0) {
 #'
 #'This function transforms an unrolled adjacency matrix of DBN into a compact representation
 #'
-#' @param DBNmat a square matrix, representing the structure of an unrolled DBN; the size of matrix is n.slices*n.dynamic+n.static; all static variables are assumed to be in the first n.static rows and columns of the matrix
-#' @param n.dynamic integer, number of dynamic variables in each time slice
-#' @param n.static integer, number of static variables
+#' @param DBNmat a square matrix, representing the structure of an unrolled DBN; the size of matrix is slices*dyn+b; all static variables are assumed to be in the first b rows and columns of the matrix
+#' @param b integer, number of static variables; 0 by default
 #' @examples
-#' full2compact(DBNunrolled,n.dynamic=12,n.static=3)
+#' full2compact(DBNunrolled,b=3)
 #'@export
-full2compact<-function(DBNmat,n.dynamic,n.static=0) {
-    DBNcompact<-DBNmat[1:(2*n.dynamic+n.static),1:(2*n.dynamic+n.static)]
+full2compact<-function(DBNmat,b=0) {
+   dyn<-(ncol(DBNmat)-b)/2
+    DBNcompact<-DBNmat[1:(2*dyn+b),1:(2*dyn+b)]
     return(DBNcompact)
 }
 
@@ -124,7 +123,7 @@ DBNbacktransform<-function(DBNmat,param) {
     res$init<-newinitDBNmat
     
     transDBNmat<-matrix(0,nrow=param$otherslices$n,ncol=param$otherslices$n)
-    DBNmat<-DBNcut(DBNmat,n.dynamic=param$nsmall,n.static=param$bgn)
+    DBNmat<-DBNcut(DBNmat,dyn=param$nsmall,b=param$bgn)
     transDBNmat[param$intstr$rows,param$intstr$cols]<-DBNmat[param$usrintstr$rows,param$usrintstr$cols]
     transDBNmat[param$trans$rows,param$trans$cols]<-DBNmat[param$usrtrans$rows,param$usrtrans$cols]
     res$trans<-transDBNmat
@@ -132,14 +131,14 @@ DBNbacktransform<-function(DBNmat,param) {
     return(res)
   }
 }
-DBNcut<-function(adj,n.dynamic,n.static){
-  adj[,1:(n.dynamic+n.static)]<-0
+DBNcut<-function(adj,dyn,b){
+  adj[,1:(dyn+b)]<-0
   return(adj)
 }
-DBNinit<-function(adj,n.dynamic,n.static){
-  adj<-adj[1:(n.static+n.dynamic),1:(n.static+n.dynamic)]
-  if(n.static>0) {
-    adj[,1:n.static]<-0
+DBNinit<-function(adj,dyn,b){
+  adj<-adj[1:(b+dyn),1:(b+dyn)]
+  if(b>0) {
+    adj[,1:b]<-0
   }
   return(adj)
 }
@@ -183,7 +182,7 @@ mergeDBNres<-function(result.init,result.trans,scorepar,algo) {
     
     result.init$traceadd$incidence<-lapply(result.init$traceadd$incidence,DBNtransform.init,param=scorepar)
     result.trans$traceadd$incidence<-lapply(result.trans$traceadd$incidence,DBNtransform,param=scorepar)
-    result.trans$traceadd$incidence<-lapply(result.trans$traceadd$incidence,DBNcut,n.dynamic=scorepar$nsmall,n.static=scorepar$bgn)
+    result.trans$traceadd$incidence<-lapply(result.trans$traceadd$incidence,DBNcut,dyn=scorepar$nsmall,b=scorepar$bgn)
     res$traceadd$incidence<-mapply(mergeDBNstr,result.init$traceadd$incidence,result.trans$traceadd$incidence,SIMPLIFY = FALSE)
     res$trace<-mapply(mergeDBNscore,result.init$trace,result.trans$trace)
     
@@ -216,12 +215,12 @@ mergeDBNres.it<-function(result.init,result.trans,scorepar) {
   
   for(i in 1:length(res$trans$maxtrace)) {
     res$trans$maxtrace[[i]]$DAG<-DBNtransform(res$trans$maxtrace[[i]]$DAG,scorepar)
-    res$trans$maxtrace[[i]]$DAG<-DBNcut(res$trans$maxtrace[[i]]$DAG,n.dynamic=scorepar$nsmall,n.static=scorepar$bgn)
+    res$trans$maxtrace[[i]]$DAG<-DBNcut(res$trans$maxtrace[[i]]$DAG,dyn=scorepar$nsmall,b=scorepar$bgn)
   }
   
   for(i in 1:length(res$init$maxtrace)) {
     res$init$maxtrace[[i]]$DAG<-DBNtransform.init(res$init$maxtrace[[i]]$DAG,scorepar)
-    res$init$maxtrace[[i]]$DAG<-DBNinit(res$init$maxtrace[[i]]$DAG,n.dynamic=scorepar$nsmall,n.static=scorepar$bgn)
+    res$init$maxtrace[[i]]$DAG<-DBNinit(res$init$maxtrace[[i]]$DAG,dyn=scorepar$nsmall,b=scorepar$bgn)
   }
   
   res$DAG<-mergeDBNstr(maxinit,maxtrans)

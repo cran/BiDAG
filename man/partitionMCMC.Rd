@@ -94,6 +94,9 @@ orders and partitions See \code{\link{partitionMCMC class}}.
 This function implements the partition MCMC algorithm for the structure learning of Bayesian networks.  This procedure provides an unbiased sample from the posterior distribution of DAGs given the data. 
 The search space can be defined either by a preliminary run of the function \code{iterativeMCMC} or by a given adjacency matrix (which can be the full matrix with zero on the diagonal, to consider the entire space of DAGs, feasible only for a limited number of nodes).
 }
+\note{
+see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
+}
 \examples{
 \dontrun{
 myScore<-scoreparameters("bge", Boston)

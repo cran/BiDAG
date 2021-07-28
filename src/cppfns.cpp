@@ -16,6 +16,17 @@ NumericVector extractT(IntegerVector xs, IntegerVector ys, NumericMatrix ts) {
 }
 
 // [[Rcpp::export]]
+NumericVector collectC(IntegerVector xs, NumericVector ys, int n) {
+  int ln = ys.size();
+  NumericVector out(n);
+  
+  for(int i = 0; i < ln; ++i) {
+    out[xs[i]] += ys[i];
+  }
+  return out;
+}
+
+// [[Rcpp::export]]
 NumericMatrix collectCcatwt(IntegerVector xs, IntegerVector ys, NumericVector ws, int n, int m) {
   int ln = ys.size();
   NumericMatrix out(n, m);
@@ -37,16 +48,7 @@ IntegerMatrix collectCcat(IntegerVector xs, IntegerVector ys, int n, int m) {
   return out;
 }
 
-// [[Rcpp::export]]
-NumericVector collectC(IntegerVector xs, NumericVector ys, int n) {
-  int ln = ys.size();
-  NumericVector out(n);
-  
-  for(int i = 0; i < ln; ++i) {
-    out[xs[i]] += ys[i];
-  }
-  return out;
-}
+
 
 
 

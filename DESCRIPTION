@@ -1,8 +1,8 @@
 Package: BiDAG
 Type: Package
 Title: Bayesian Inference for Directed Acyclic Graphs
-Version: 2.0.2
-Date: 2021-04-14
+Version: 2.0.3
+Date: 2021-07-20
 Author: Polina Suter [aut, cre], Jack Kuipers [aut]
 Maintainer: Polina Suter <polina.suter@bsse.ethz.ch>
 Description: Implementation of a collection of MCMC methods for Bayesian structure learning
@@ -26,13 +26,14 @@ Description: Implementation of a collection of MCMC methods for Bayesian structu
 Acknowledgments: We would like to thank Giusi Moffa for discussion and
         comments on the package and its manual.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.7), methods, pcalg, graph, Rgraphviz
-Depends: R (>= 3.5.0), graphics
+Depends: R (>= 3.5.0)
+Imports: Rcpp (>= 0.12.7), methods, graph, Rgraphviz, RBGL, pcalg,
+        graphics
 LinkingTo: Rcpp
 RoxygenNote: 7.1.1
 Encoding: UTF-8
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2021-04-29 17:44:22 UTC; polinasuter
+Packaged: 2021-07-27 11:02:53 UTC; polinasuter
 Repository: CRAN
-Date/Publication: 2021-04-30 04:10:21 UTC
+Date/Publication: 2021-07-28 05:00:11 UTC

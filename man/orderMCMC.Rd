@@ -67,7 +67,7 @@ if FALSE at each MCMC step a DAG is sampled from the order proportionally to its
 
 \item{stepsave}{integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}}
 
-\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})}
+\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage}
 
 \item{cpdag}{logical, if TRUE the CPDAG returned by the PC algorithm will be used as the search
 space, if FALSE (default) the full undirected skeleton will be used as the search space}
@@ -118,6 +118,9 @@ By default the search space is limited to the skeleton found through the PC algo
 (using the functions \code{\link[pcalg]{skeleton}} and \code{\link[pcalg]{pc}} from the `pcalg' package [Kalisch et al, 2012]).
 It is also possible to define an arbitrary search space by inputting an adjacency matrix, for example estimated by partial correlations or other network algorithms.
 Also implemented is the possibility to expand the default or input search space, by allowing each node in the network to have one additional parent.  This offers improvements in the learning and sampling of Bayesian networks.
+}
+\note{
+see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
 }
 \examples{
 \dontrun{

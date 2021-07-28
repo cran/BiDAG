@@ -4,16 +4,14 @@
 \alias{compact2full}
 \title{Deriving an adjecency matrix of a full DBN}
 \usage{
-compact2full(DBNmat, n.dynamic, n.slices, n.static = 0)
+compact2full(DBNmat, slices, b = 0)
 }
 \arguments{
-\item{DBNmat}{a square matrix, representing initial and transitional structure of a DBN; the size of matrix is 2*n.dynamic+n.static}
+\item{DBNmat}{a square matrix, representing initial and transitional structure of a DBN; the size of matrix is 2*dyn+b}
 
-\item{n.dynamic}{integer, number of dynamic variables in one time slice}
+\item{slices}{integer, number of slices in an unrolled DBN}
 
-\item{n.slices}{integer, number of slices in an unrolled DBN}
-
-\item{n.static}{integer, number of static variables}
+\item{b}{integer, number of static variables}
 }
 \value{
 an adjacency matrix of an unrolled DBN
@@ -22,5 +20,5 @@ an adjacency matrix of an unrolled DBN
 This function transforms a compact 2-slice adjacency matrix of DBN into full T-slice adjacency matrix
 }
 \examples{
-compact2full(DBNmat, n.dynamic=12, n.slices=5, n.static=3)
+compact2full(DBNmat, slices=5, b=3)
 }

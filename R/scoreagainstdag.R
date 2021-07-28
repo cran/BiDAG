@@ -4,7 +4,8 @@
 #'@param scorepar an object of class \code{scoreparameters}; see constructor function \code{\link{scoreparameters}}
 #'@param incidence a square matrix of dimensions equal to the number of variables with entries in \code{\{0,1\}}, representing the adjacency matrix of the DAG against which the score is calculated
 #'@param datatoscore (optional) a matrix (vector) containing binary (for BDe score) or continuous (for the BGe score) observations (or just one observation)  to be scored; the number of columns should be equal to the number of variables in the Bayesian network, the number of rows should be equal to the number of observations; by default all data from \code{scorepar} parameter is used
-#'@param marginalise (optional for continuous data), whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)
+#'@param marginalise (optional for continuous data) defines, whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)
+#'@param onlymain (optional), defines the the score is computed for nodes excluding 'bgnodes'; FALSE by default
 #'@return the log of the BDe/BGe score of given observations against a DAG
 #'@references Heckerman D and Geiger D, (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284, 1995.
 #'@examples
@@ -14,9 +15,16 @@
 #'@export
 #'@author  Jack Kuipers
 
-scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=FALSE){
+scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=FALSE, onlymain=FALSE){
   
-  n<-scorepar$n
+ 
+  if(onlymain & !marginalise) {
+    n<-scorepar$n
+    mainnodes<-scorepar$mainnodes
+  } else {
+    n<-scorepar$n
+    mainnodes<-c(1:n)
+  }
   
   if (is.null(datatoscore)) {
     datatoscore<-scorepar$data
@@ -40,10 +48,9 @@ scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=F
     binscore<-scoreagainstDAG(scorepar$binpar, incidence[1:scorepar$nbin,1:scorepar$nbin])
     gausscore<-scoreagainstDAG(scorepar$gausspar, incidence)
     return(binscore+gausscore)
-    
   }else {
     samplescores <- matrix(0,nrow=nrow(datatoscore),ncol=n)  
-    for (j in 1:n)  {
+    for (j in mainnodes)  {
       parentnodes <- which(incidence[,j]==1)
       samplescores[,j]<-scoreagainstDAGcore(j,parentnodes,n,scorepar,datatoscore)
     }
@@ -64,7 +71,6 @@ scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
          "bge" = {
            Sigma <- param$SigmaN
            A <- Sigma[j,j]
-           
            if(lp==0){# no parents
              samplenodescores <- -datatoscore[,j]^2/(2*A) - log(2*pi*A)/2
            } else {
@@ -72,11 +78,19 @@ scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
              choltemp<-chol(D)
              B <- Sigma[j,parentnodes]
              C <- backsolve(choltemp,B,transpose=TRUE)
-             E <- backsolve(choltemp,C)
-             
-             K <- A - sum(C^2)
+             E <- backsolve(choltemp,C) #computing betas
+            # myE<-B%*%solve(D) #same as E this is how it is done in formulas
+            # print(E)
+            # print(myE)
+
+             #myK<-A-B%*%solve(D)%*%as.matrix(B) same as K below but from formula
+             K <- A - sum(C^2) #sigma2
+             #print(myK)
+             #print(K)
              coreMat <- c(1,-E)%*%t(c(1,-E))/K
              xs <- datatoscore[,c(j,parentnodes)]
+          
+             #print(-(datatoscore[,j]-sum(myE*datatoscore[,parentnodes]))^2/(2*K) - log(2*pi*K)/2)
              samplenodescores <- -rowSums(xs%*%coreMat*xs)/2 - log(2*pi*K)/2 
            }
          },

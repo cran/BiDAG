@@ -5,7 +5,7 @@
 \alias{kirp}
 \title{kirp dataset}
 \format{
-An object of class \code{matrix} with 282 rows and 70 columns.
+An object of class \code{matrix} (inherits from \code{array}) with 282 rows and 70 columns.
 }
 \usage{
 kirp

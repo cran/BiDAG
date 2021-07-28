@@ -27,6 +27,10 @@
 #' \item slices integer representing the number of time slices in a DBN
 #' \item b the number of static variables; all static variables have to be in the first b columns of the data;  for DBNs static variables have the same meaning as bgnodes for usual Bayesian networks; for DBNs parameters parameter \code{bgnodes} is ignored
 #' }
+#'@param mixedpar a list which contains parameters for the BGe and BDe score for mixed data
+#' \itemize{
+#' \item nbin a positive integer number of binary nodes in the network (the binary nodes are always assumed in first nbin columns of the data)
+#' }
 #' @param usrpar a list which contains parameters for the user defined score
 #' \itemize{
 #' \item pctesttype (optional) conditional independence test ("bde","bge","bdecat")
@@ -54,6 +58,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
                           bdecatpar=list(chi=0.5, edgepf=2),
                           dbnpar=list(samestruct=TRUE, slices=2, b=0), 
                           usrpar=list(pctesttype=c("bge","bde","bdecat")), 
+                          mixedpar=list(nbin=0),
                           DBN=FALSE,
                           weightvector=NULL,
                           bgnodes=NULL, 
@@ -68,7 +73,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
   if(DBN) n<-(ncol(data)-bgn)/dbnpar$slices+bgn else n<-ncol(data)
   
   nsmall<-n-bgn #number of nodes in the network excluding background nodes
-  if (!(scoretype%in%c("bge", "bde", "bdecat","usr"))) { #add mixed later
+  if (!(scoretype%in%c("bge", "bde", "bdecat","usr","mixed"))) { #add mixed later
     stop("Scoretype should be bge (for continuous data), bde (for binary data) bdecat (for categorical data) or usr (for user defined)")
   }
   
@@ -378,7 +383,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     constscorefact<- -(N/2)*log(pi) + (1/2)*log(bgepar$am/(bgepar$am+N))
     
     initparam$muN <- (N*means + bgepar$am*mu0)/(N + bgepar$am) # posterior mean mean
-    initparam$SigmaN <- initparam$TN/(initparam$awpN-n-1) # posterior mode covariance matrix
+    initparam$SigmaN <- initparam$TN/(initparam$awpN-n-1) # posterior mode covariance matrix 
     
     initparam$scoreconstvec<-numeric(n)
     for (j in (1:n)) {# j represents the number of parents plus 1
@@ -417,7 +422,13 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     if(is.null(usrpar$pctesttype)){usrpar$pctesttype <- "usr"}
     initparam$pctesttype <- usrpar$pctesttype
     initparam <- usrscoreparameters(initparam, usrpar)
-  } 
+  } else if (scoretype=="mixed") {
+       initparam$nbin<-mixedpar$nbin
+       initparam$binpar<-scoreparameters("bde", data[,1:mixedpar$nbin], bdepar=bdepar,
+                                         nodeslabels=nodeslabels[1:mixedpar$nbin],weightvector=weightvector)
+       initparam$gausspar<-scoreparameters("bge",data,bgnodes = c(1:mixedpar$nbin), bgepar=bgepar,
+                                           nodeslabels = nodeslabels, weightvector=weightvector)
+     }
   attr(initparam, "class") <- "scoreparameters"
   return(initparam)
 

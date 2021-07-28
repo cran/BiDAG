@@ -4,18 +4,16 @@
 \alias{compareDBNs}
 \title{Comparing two DBNs}
 \usage{
-compareDBNs(eDBN, trueDBN, n.dynamic, n.static, struct = c("init", "trans"))
+compareDBNs(eDBN, trueDBN, struct = c("init", "trans"), b = 0)
 }
 \arguments{
 \item{eDBN}{an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the DBN which should be compared to a ground truth DBN}
 
 \item{trueDBN}{an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the ground truth DBN}
 
-\item{n.dynamic}{number of dynamic variables in one time slice of a DBN}
-
-\item{n.static}{number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix}
-
 \item{struct}{option used to determine if the initial or the transitional structure should be compared; accaptable values are init or trans}
+
+\item{b}{number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first b columns of the matrix}
 }
 \value{
 a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
@@ -28,6 +26,6 @@ testscore<-scoreparameters("bge", DBNdata, DBN=TRUE,
 dbnpar=list(samestruct=TRUE, slices=5, b=3))
 \dontrun{
 DBNfit<-iterativeMCMC(testscore, moveprobs=c(0.11,0.84,0.04,0.01))
-compareDBNs(DBNfit$DAG,DBNmat, struct="trans", n.dynamic=12, n.static=3)
+compareDBNs(DBNfit$DAG,DBNmat, struct="trans", b=3)
 }
 }

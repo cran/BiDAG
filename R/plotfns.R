@@ -12,10 +12,10 @@
 #'@return plots posterior probabilities of edges in the graph as a function of MCMC iterations
 #'@examples
 #'score100<-scoreparameters("bde", Asia[1:100,])
-#'orderfit100<-orderMCMC(score100,plus1=TRUE)
+#'orderfit100<-orderMCMC(score100,plus1=TRUE,chainout=TRUE)
 #'\dontrun{
 #'score5000<-scoreparameters("bde", Asia)
-#'orderfit5000<-orderMCMC(score5000,plus1=TRUE)
+#'orderfit5000<-orderMCMC(score5000,plus1=TRUE,chainout=TRUE)
 #'plotpedges(orderfit100, pdag=TRUE)
 #'plotpedges(orderfit5000, pdag=TRUE)
 #'}
@@ -23,6 +23,7 @@
 #'@export
 plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NULL, ...) {
   old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
   MCMCtrace<-MCMCtrace$traceadd$incidence
   if(is.null(MCMCtrace)) {
     stop("no saved MCMC steps found! try chainout=TRUE when sampling")
@@ -75,8 +76,7 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
   for(i in 2:numelem){
     lines(x=c(1:lchain),postvec[[i]],type="l",col=cols5[colvec[i]])
   }
-  par(old.par)
-  
+
 }
 
 
@@ -98,15 +98,16 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
 #'Asiascore<-scoreparameters("bde", Asia)
 #'\dontrun{
 #'orderfit<-list()
-#'orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE)
-#'orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE)
+#'orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE,chainout=TRUE)
+#'orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE,chainout=TRUE)
 #'pedges<-lapply(orderfit,edgep,pdag=TRUE)
-#'plotpcor(pedges, xlab="run1", ylab="run2")
+#'plotpcor(pedges, xlab="run1", ylab="run2",printedges=TRUE)
 #'}
 #'@author Polina Suter
 #'@export
 plotpcor<-function(pmat,highlight=0.3,printedges=FALSE,cut=0.05, ...) {
   old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
   nruns<-length(pmat)
   if(nruns<2) stop("the number of matrices in the list must be at least two!")
   varnames<-colnames(pmat[[1]])
@@ -148,8 +149,9 @@ plotpcor<-function(pmat,highlight=0.3,printedges=FALSE,cut=0.05, ...) {
        xlim=c(0,1),ylim=c(0,1), ...)
   lines(vec1,vec2,type="p",col="grey")
   if(highlight<1) lines(vec1high,vec2high,type="p",col="red")
-  par(old.par)
-  if (printedges) return(pcorvals(vec1, vec2, diffedges, cut, varnames))
+  if (printedges) {
+  return(pcorvals(vec1, vec2, diffedges, cut, varnames))
+  }
   }
 }
 
@@ -191,6 +193,6 @@ pcorvals<-function(vec1, vec2, diffedges, cut, varnames) {
   if (length(diffedges) > 0) {
     res$diffedges <- matrix(varnames[diffedges], ncol = 2, nrow = nrow(diffedges))
     colnames(res$diffedges) <- c("from", "to")
-    return(res)
   }
+  return(res)
 }

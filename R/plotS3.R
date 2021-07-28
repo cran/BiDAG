@@ -20,7 +20,9 @@
 #' @method plot iterativeMCMC
 #' @export
 plot.iterativeMCMC <-function(x,...,main="iterative MCMC, DAG scores", xlab="MCMC step", ylab="DAG logscore", type="l", col="blue"){
-  old.par <- par(no.readonly = TRUE)
+  old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
+  
   x<-x$trace
   nchains<-length(x)
   nsteps<-length(x[[1]])
@@ -61,7 +63,9 @@ plot.iterativeMCMC <-function(x,...,main="iterative MCMC, DAG scores", xlab="MCM
 #' @method plot orderMCMC    
 #' @export
 plot.orderMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="iteration", ylab="logscore", type="l", col="#0c2c84"){
-  old.par <- par(no.readonly = TRUE)
+  old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
+  
   scorevec<-x$trace
   vecl<-length(scorevec)
   burnin<-ceiling(vecl*burnin)
@@ -76,7 +80,6 @@ plot.orderMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="iter
   par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
   plot(x=c(burnin:vecl),y=scorevec[burnin:vecl], type=type, col=col, xlab=xlab, ylab=ylab,
        ylim=c(score20,scoremax), main="excluding burn-in")
-  par(old.par)
 }
 
 
@@ -96,7 +99,9 @@ plot.orderMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="iter
 #' @method plot partitionMCMC
 #' @export
 plot.partitionMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="iteration", ylab="logscore", type="l", col="#0c2c84"){
-  old.par <- par(no.readonly = TRUE)
+  old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
+  
   scorevec<-x$trace
   vecl<-length(scorevec)
   burnin<-ceiling(vecl*burnin)
@@ -111,7 +116,6 @@ plot.partitionMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="
   par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
   plot(x=c(burnin:vecl),y=scorevec[burnin:vecl], type=type, col=col, xlab=xlab, ylab=ylab,
        ylim=c(score20,scoremax), main="excluding burn-in")
-  par(old.par)
 }
 
 
@@ -127,7 +131,9 @@ plot.partitionMCMC <-function(x, ..., burnin = 0.2, main="DAG logscores", xlab="
 #' @method plot itercomp
 #' @export
 plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", showit=c()){
-  old.par <- par(no.readonly = TRUE)
+  old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
+  
   nit<-nrow(x)
   if(nit>1) {
   scales<-vector()
@@ -143,7 +149,6 @@ plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", sho
     }
   }
   }
-  par(old.par)
 }
 
 #' Plotting object of class 'samplecomp'
@@ -159,7 +164,9 @@ plot.itercomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", sho
 #' @method plot samplecomp
 #' @export
 plot.samplecomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", showp=NULL){
-  old.par <- par(no.readonly = TRUE)
+  old.par<-par(no.readonly = TRUE)
+  on.exit(par(old.par))
+  
   nit<-nrow(x)
   if(is.null(nit)) {
     message("plotting structure fit for the only threshold")
@@ -185,6 +192,5 @@ plot.samplecomp <-function(x, ..., vars = c("FP", "TP"), type="b", col="blue", s
     }
   }
 
-  par(old.par)
 }
 

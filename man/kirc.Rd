@@ -5,7 +5,7 @@
 \alias{kirc}
 \title{kirc dataset}
 \format{
-An object of class \code{matrix} with 476 rows and 70 columns.
+An object of class \code{matrix} (inherits from \code{array}) with 476 rows and 70 columns.
 }
 \usage{
 kirc

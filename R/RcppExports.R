@@ -5,16 +5,16 @@ extractT <- function(xs, ys, ts) {
     .Call(`_BiDAG_extractT`, xs, ys, ts)
 }
 
+collectC <- function(xs, ys, n) {
+    .Call(`_BiDAG_collectC`, xs, ys, n)
+}
+
 collectCcatwt <- function(xs, ys, ws, n, m) {
     .Call(`_BiDAG_collectCcatwt`, xs, ys, ws, n, m)
 }
 
 collectCcat <- function(xs, ys, n, m) {
     .Call(`_BiDAG_collectCcat`, xs, ys, n, m)
-}
-
-collectC <- function(xs, ys, n) {
-    .Call(`_BiDAG_collectC`, xs, ys, n)
 }
 
 takefirst <- function(xs, pos) {

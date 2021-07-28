@@ -100,8 +100,10 @@ DAGcorescore<-function(j,parentnodes,n,param) {
            { # more parents
              summys<-colSums(2^(c(0:(lp-1)))*t(param$data[,parentnodes]))
              
-             N1s<-collectC(summys,param$d1[,j],noparams)
+             N1s<-collectC(summys,param$d1[,j],noparams) 
              N0s<-collectC(summys,param$d0[,j],noparams)
+             #N1s<-1 #!changeback!!
+             #N0s<-1 #!changeback!!
              
              NTs<-N1s+N0s       
              corescore <- scoreconstvec[lp+1] + sum(lgamma(N0s+chi/(2*noparams))) + 

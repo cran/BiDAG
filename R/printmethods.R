@@ -17,24 +17,26 @@
 #' @rdname scoreparameters
 #' @export
 print.scoreparameters <-function(x, ...){
+  cat("object of class 'scoreparameters' \n\n")
+  
   cat("$type \n")
-  cat(x$type,"\n")
+  cat(x$type,"\n\n")
   cat("$data \n")
   if(!x$DBN) {
-    cat("data contains",nrow(x$data),"observations of",ncol(x$data),"variables \n" )
+    cat("data contains",nrow(x$data),"observations of",ncol(x$data),"variables \n\n" )
   } else {
-    cat("data contains",nrow(x$data),"rows and",ncol(x$data),"columns \n") 
+    cat("data contains",nrow(x$data),"rows and",ncol(x$data),"columns \n\n") 
   }
   cat("$DBN \n")
-  cat(x$DBN,"\n")
+  cat(x$DBN,"\n\n")
   if (x$DBN) {
     cat("$slices \n")
-    cat(x$slices,"\n")
+    cat(x$slices,"\n\n")
     if(x$bgn>0) {
       cat("$static \n")
-      cat(x$static,"\n")
+      cat(x$static,"\n\n")
       cat("$firstslice \n")
-      cat("...\n")
+      cat("...\n\n")
       cat("$otherslices \n")
       cat("...\n\n")
     }
@@ -42,16 +44,16 @@ print.scoreparameters <-function(x, ...){
     if(x$type=="bge") {
       if(x$bgn>0) {
         cat("$bgnodes \n")
-        cat(x$bgnodes,"\n")
+        cat(x$bgnodes,"\n\n")
       } 
       cat("$am \n")
-      cat(x$am,"\n")
+      cat(x$am,"\n\n")
       cat("$aw \n")
-      cat(x$am,"\n")
+      cat(x$am,"\n\n")
       cat("$means \n")
-      cat(x$means[1],"...", x$means[length(x$means)] ,"\n")
+      cat(x$means[1],"...", x$means[length(x$means)] ,"\n\n")
       cat("$SigmaN \n")
-      cat("matrix", ncol(x$SigmaN), "x",ncol(x$SigmaN), "\n")
+      cat("matrix", ncol(x$SigmaN), "x",ncol(x$SigmaN), "\n\n")
       
     } else if (x$type%in%c("bde","bdecat")) {
       cat("$chi \n")
@@ -68,8 +70,7 @@ print.scoreparameters <-function(x, ...){
   
   if(!is.null(x$weightvector)) {
     cat("$weightvector \n")
-    cat("...\n") 
-    cat("...numeric vector of length",length(x$weightvector),"\n") 
+    cat("...numeric vector of length",length(x$weightvector),"\n\n") 
   }
 
 }
@@ -87,24 +88,23 @@ print.orderMCMC <-function(x, ...){
   print(x$info$fncall)
   cat("\n")
   cat("$DAG\n")
-  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n")
+  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges \n\n")
   cat("$score\n")
-  cat(x$score,"\n")
+  cat(x$score,"\n\n")
   cat("$maxorder\n")
-  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n")
+  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n\n")
   cat("$info\n")
-  cat("... \n")
+  cat("... \n\n")
   cat("$trace\n")
   cat(x$trace[1], "...", x$trace[length(x$trace)])
-  cat("\n")
+  cat("\n\n")
   if(!is.null(x$traceadd)) {
     cat("$traceadd\n")
-    cat("adjacency matrices of sampled DAGs, corresponding orders and order scores\n")
-    cat("\n")
+    cat("adjacency matrices of sampled DAGs, corresponding orders and order scores \n\n")
   }
   if(!is.null(x$scoretable)) {
     cat("$scoretable\n")
-    cat("score tables corresponding to core search space $endspace\n")
+    cat("score tables corresponding to core search space $endspace\n\n")
   }
 }
 
@@ -120,24 +120,23 @@ print.partitionMCMC <-function(x, ...){
   print(x$info$fncall)
   cat("\n")
   cat("$DAG\n")
-  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n")
+  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n\n")
   cat("$score\n")
-  cat(x$score,"\n")
+  cat(x$score,"\n\n")
   cat("$maxorder\n")
-  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n")
+  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n\n")
   cat("$info\n")
   cat("... \n")
   cat("$trace\n")
   cat(x$trace[1], "...", x$trace[length(x$trace)])
-  cat("\n")
+  cat("\n\n")
   if(!is.null(x$traceadd)) {
     cat("$traceadd\n")
-    cat("adjacency matrices of sampled DAGs, corresponding orders and order scores\n")
-    cat("\n")
+    cat("adjacency matrices of sampled DAGs, corresponding orders and order scores \n\n")
   }
   if(!is.null(x$scoretable)) {
     cat("$scoretable\n")
-    cat("score tables corresponding to core search space $endspace\n")
+    cat("score tables corresponding to core search space $endspace \n\n")
   }
 }
 
@@ -152,21 +151,22 @@ print.partitionMCMC <-function(x, ...){
 print.iterativeMCMC <-function(x, ...){
   cat("object of class 'iterativeMCMC', from Call:", "\n")
   print(x$info$fncall)
+  
   cat("\n")
   cat("$DAG\n")
-  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n")
+  cat("adjacency matrix of a DAG with", ncol(x$DAG), "nodes and ", sum(x$DAG)," edges", "\n\n")
   cat("$maxorder\n")
-  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n")
+  cat(x$maxorder[1],"...",x$maxorder[length(x$maxorder)],"\n\n")
   cat("$score\n")
-  cat(x$score,"\n")
+  cat(x$score,"\n\n")
   cat("$maxtrace:\n")
   cat("local maximums at each expansion step:\n")
-  cat(unlist(lapply(x$maxtrace,function(x)x$score)),"\n")
+  cat(unlist(lapply(x$maxtrace,function(x)x$score)),"\n\n")
   cat("$info\n")
   cat("... \n")
   cat("$trace\n")
   cat(x$trace[[1]][1], "...", x$trace[[length(x$trace)]][length(x$trace[[1]][1])])
-  cat("\n")
+  cat("\n\n")
   if(!is.null(x$traceadd)) {
     cat("$traceadd\n")
     cat("adjacency matrices of sampled DAGs, corresponding orders and order scores\n")
@@ -174,7 +174,7 @@ print.iterativeMCMC <-function(x, ...){
   }
   if(!is.null(x$scoretable)) {
       cat("$scoretable\n")
-      cat("scoretable, object of class 'scorespace'\n")
+      cat("scoretable, object of class 'scorespace'\n\n")
   }
 }
 
@@ -188,7 +188,7 @@ print.iterativeMCMC <-function(x, ...){
 print.scorespace <-function(x, ...){
   cat("object of class 'scorespace'")
   n<-ncol(x$adjacency)
-  cat("\n")
+  cat("\n\n")
   cat("$adjacency \n")
   cat("matrix", n,"x",n, "\n\n")
   n<-length(x$tables)

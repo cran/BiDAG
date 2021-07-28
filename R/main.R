@@ -23,7 +23,7 @@
 #' }
 #' @param iterations integer, the number of MCMC steps, the default value is \eqn{6n^{2}\log{n}}
 #' @param stepsave integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}
-#' @param alpha numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})
+#' @param alpha numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage
 #' @param gamma tuning parameter which transforms the score by raising it to this power, 1 by default
 #' @param cpdag logical, if TRUE the CPDAG returned by the PC algorithm will be used as the search
 #'space, if FALSE (default) the full undirected skeleton will be used as the search space
@@ -36,6 +36,7 @@
 #' @return Object of class \code{orderMCMC}, which contains log-score trace of sampled DAGs as well 
 #' as adjacency matrix of the maximum scoring DAG, its score and the order score. The output can optionally include DAGs sampled in MCMC iterations and the score tables. 
 #' Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{orderMCMC class}} for a detailed class structure.
+#' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
 #'@references Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.
 #'@references Kalisch M, Maechler M, Colombo D, Maathuis M and Buehlmann P (2012). Causal inference using graphical models with the R package pcalg. Journal of Statistical Software 47, 1-26.
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
@@ -192,6 +193,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #' @return Object of class \code{partitionMCMC}, which contains log-score trace as well 
 #' as adjacency matrix of the maximum scoring DAG, its score and the order score. Additionally, returns all sampled DAGs (represented by their adjacency matrices), their scores,
 #'orders and partitions See \code{\link{partitionMCMC class}}.
+#' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
 #'@references Kuipers J and Moffa G (2017). Partition MCMC for inference on acyclic digraphs. Journal of the American Statistical Association 112, 282-299.
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
 #'@references Heckerman D and Geiger D (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284.
@@ -329,7 +331,7 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #' if FALSE at each MCMC step a DAG is sampled from the order proportionally to its score; when expanding a search space when MAP=TRUE all edges from the maximum scoring DAG are added
 #'  to the new space, when MAP=FALSE only edges with posterior probability higher than defined by parameter \code{posterior} are added to the search space
 #' @param posterior logical, when \code{MAP} set to FALSE defines posterior probability threshold for adding the edges to the search space 
-#' @param alpha numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage (by default \eqn{0.4} for \eqn{n<50}, \eqn{20/n} for \eqn{n>50})
+#' @param alpha numerical significance value in \code{\{0,1\}} for the conditional independence tests in the PC-stage
 #' @param gamma tuning parameter which transforms the score by raising it to this power, 1 by default
 #' @param startorder integer vector of length n, which will be used as the starting order in the MCMC algorithm, the default order is random
 #' @param softlimit integer, limit on the size of parent sets beyond which adding undirected edges is restricted; below this
@@ -355,6 +357,7 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #' @param scoreout logical, if TRUE the search space from the last plus1 iterations and the corresponding score tables are returned, FALSE by default
 #' @return Object of class \code{iterativeMCMC}, which contains log-score trace as well as adjacency matrix of the maximum scoring DAG, its score and the order score. 
 #' The output can optionally include DAGs sampled in MCMC iterations and the score tables. Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{iterativeMCMC class}} for a detailed class structure.
+#' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
 #'@references Kuipers J, Super P and Moffa G (2020). Efficient Sampling and Structure Learning of Bayesian Networks. (arXiv:1803.07859v3)
 #'@references Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.
 #'@references Kalisch M, Maechler M, Colombo D, Maathuis M and Buehlmann P (2012). Causal inference using graphical models with the R package pcalg. Journal of Statistical Software 47, 1-26.
@@ -550,7 +553,6 @@ DAGscore <- function(scorepar, incidence){
     parentnodes <- which(incidence[,j]==1)
     P_local[j]<-DAGcorescore(j,parentnodes,scorepar$n,scorepar)
   }
-  #print(P_local)
   return(sum(P_local))
 }
 

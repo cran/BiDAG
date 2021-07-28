@@ -26,7 +26,7 @@
     
     \item info: a list containing information about parameters and results of MCMC
     
-    \item trace: a vector containing log-scores of sampled DAGs
+    \item trace: a list of vectors containing log-scores of sampled DAGs, each element of the list corresponds to a single expansion of a search space
     
     \item startspace: adjacency matrix representing the initial core space where MCMC was ran
     
@@ -40,7 +40,7 @@
         \itemize{
         \item incidence: list containg adjacency matrices of sampled DAGs
         \item order: list of orders from which the DAGs were sampled
-        \item orderscores: order log-scores 
+        \item orderscores: a list of vectors with order log-scores 
         }
     \item \code{scoretable}: object of class \code{\link{scorespace class}}
   }

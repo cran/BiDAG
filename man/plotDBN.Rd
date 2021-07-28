@@ -4,16 +4,16 @@
 \alias{plotDBN}
 \title{Plotting a DBN}
 \usage{
-plotDBN(DBN, struct = c("init", "trans"), n.dynamic, n.static)
+plotDBN(DBN, struct = c("init", "trans"), b = 0, ...)
 }
 \arguments{
 \item{DBN}{binary matrix (or a graph object) representing a 2-step DBN (compact or unrolled)}
 
 \item{struct}{option used to determine if the initial or the transition structure should be plotted; accaptable values are init or trans}
 
-\item{n.dynamic}{number of dynamic variables in one time slice of a DBN}
+\item{b}{number of static variables in the DBN, 0 by default; note that for function to work correctly all static variables have to be in the first b columns of the matrix}
 
-\item{n.static}{number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix}
+\item{...}{optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}}
 }
 \value{
 plots the DBN defined by the adjacency matrix 'DBN' and number of static and dynamic variables. When 'struct' equals "trans" the transition structure is plotted,
@@ -23,8 +23,8 @@ otherwise initial structure is plotted
 This function can be used for plotting initial and transition structures of a dynamic Bayesian network.
 }
 \examples{
-plotDBN(DBNmat, "init", n.dynamic=12,n.static=3)
-plotDBN(DBNmat, "trans", n.dynamic=12,n.static=3)
+plotDBN(DBNmat, "init", b=3)
+plotDBN(DBNmat, "trans", b=3)
 
 }
 \author{

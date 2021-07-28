@@ -30,10 +30,10 @@ This function can be used to compare posterior probabilities of edges in a graph
 Asiascore<-scoreparameters("bde", Asia)
 \dontrun{
 orderfit<-list()
-orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE)
-orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE)
+orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE,chainout=TRUE)
+orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE,chainout=TRUE)
 pedges<-lapply(orderfit,edgep,pdag=TRUE)
-plotpcor(pedges, xlab="run1", ylab="run2")
+plotpcor(pedges, xlab="run1", ylab="run2",printedges=TRUE)
 }
 }
 \author{

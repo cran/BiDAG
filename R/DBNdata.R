@@ -1,5 +1,6 @@
 #' Simulated data set from a 2-step dynamic Bayesian network
 #'  
+#' @description 
 #' A synthetic dataset containing 100 observations generated from a random dynamic Bayesian network with 12 continuous dynamic nodes and 3 static nodes.
 #' The DBN includes observations from 5 time slices.
 #'

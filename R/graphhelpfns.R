@@ -166,27 +166,27 @@ compareDAGs<-function(egraph, truegraph, cpdag=FALSE, rnd=2) {
 #'
 #'@param eDBN an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the DBN which should be compared to a ground truth DBN 
 #'@param trueDBN an object of class \code{\link[graph]{graphNEL}} (or an ajacency matrix corresponding to this DBN), representing the ground truth DBN 
-#'@param n.dynamic number of dynamic variables in one time slice of a DBN
-#'@param n.static number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first n.static columns of the matrix
 #'@param struct option used to determine if the initial or the transitional structure should be compared; accaptable values are init or trans
+#'@param b number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first b columns of the matrix
 #'@return a vector of 5: SHD, number of true positive edges, number of false positive edges, number of false negative edges and true positive rate
 #'@examples
 #'testscore<-scoreparameters("bge", DBNdata, DBN=TRUE, 
 #'dbnpar=list(samestruct=TRUE, slices=5, b=3))
 #'\dontrun{
 #'DBNfit<-iterativeMCMC(testscore, moveprobs=c(0.11,0.84,0.04,0.01))
-#'compareDBNs(DBNfit$DAG,DBNmat, struct="trans", n.dynamic=12, n.static=3)
+#'compareDBNs(DBNfit$DAG,DBNmat, struct="trans", b=3)
 #'}
 #'@export
-compareDBNs<-function(eDBN, trueDBN, n.dynamic, n.static, struct=c("init","trans")) {
+compareDBNs<-function(eDBN, trueDBN, struct=c("init","trans"), b=0) {
   
   if(length(struct)>1) {
     struct<-"trans"
     warning("parameter struct was not defined, 'trans' used by default")
   }
 
-  n<-n.static+n.dynamic
-  matsize<-n.static+2*n.dynamic
+  dyn<-(ncol(eDBN)-b)/2
+  n<-b+dyn
+  matsize<-b+2*dyn
   
   if(!is.matrix(eDBN)) {
     adj1<-graph2m(eDBN)

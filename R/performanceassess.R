@@ -38,8 +38,8 @@ edgep<-function(MCMCchain,pdag=FALSE,burnin=0.2,endstep=1) {
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
   if(DBN) {
-    incidence<-DBNcut(incidence,n.dynamic=MCMCinfo$nsmall,n.static=MCMCinfo$bgn)
-    incidence.init<-DBNinit(incidence,n.dynamic=MCMCinfo$nsmall,n.static=MCMCinfo$bgn)
+    incidence<-DBNcut(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
+    incidence.init<-DBNinit(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
     incidence[1:(MCMCinfo$nsmall+MCMCinfo$bgn),1:(MCMCinfo$nsmall+MCMCinfo$bgn)]<-incidence.init
   }
   return(incidence)
@@ -83,8 +83,8 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
   if(DBN) {
-      incidence<-DBNcut(incidence,n.dynamic=MCMCinfo$nsmall,n.static=MCMCinfo$bgn)
-      incidence.init<-DBNinit(incidence,n.dynamic=MCMCinfo$nsmall,n.static=MCMCinfo$bgn)
+      incidence<-DBNcut(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
+      incidence.init<-DBNinit(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
       incidence[1:(MCMCinfo$nsmall+MCMCinfo$bgn),1:(MCMCinfo$nsmall+MCMCinfo$bgn)]<-incidence.init
   }
   return(incidence)
@@ -122,11 +122,11 @@ itercomp<-function(MCMCmult, truedag, cpdag=TRUE, p=0.5,trans=TRUE) {
      
        if(trans) {
         if(!is.matrix(truedag)) truedag<-graph2m(truedag)
-        truedag<-m2graph(DBNcut(truedag,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn))
+        truedag<-m2graph(DBNcut(truedag,dyn=MCMCmult$info$nsmall,b=MCMCmult$info$bgn))
         trueskeleton<-graph2skeleton(truedag)
       } else {
         if(!is.matrix(truedag)) truedag<-graph2m(truedag)
-        truedag<-m2graph(DBNinit(truedag,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn))
+        truedag<-m2graph(DBNinit(truedag,dyn=MCMCmult$info$nsmall,b=MCMCmult$info$bgn))
         trueskeleton<-graph2skeleton(truedag)
       }
       
@@ -141,12 +141,12 @@ itercomp<-function(MCMCmult, truedag, cpdag=TRUE, p=0.5,trans=TRUE) {
       } else {
           newtrace<-lapply(MCMCmult$maxtrace,function(x)x$DAG)
           if(trans) {
-            newtrace<-lapply(newtrace,DBNcut,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn)
+            newtrace<-lapply(newtrace,DBNcut,dyn=MCMCmult$info$nsmall,b=MCMCmult$info$bgn)
             for(i in 1:length(newtrace)) {
               MCMCmult$maxtrace[[i]]$DAG<-newtrace[[i]]
             }
           } else {
-            newtrace<-lapply(newtrace,DBNinit,n.dynamic=MCMCmult$info$nsmall,n.static=MCMCmult$info$bgn)
+            newtrace<-lapply(newtrace,DBNinit,dyn=MCMCmult$info$nsmall,b=MCMCmult$info$bgn)
             for(i in 1:length(newtrace)) {
               MCMCmult$maxtrace[[i]]$DAG<-newtrace[[i]]
             }
@@ -225,9 +225,9 @@ samplecomp<-function(MCMCchain, truedag, p=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0
   
   if(MCMCchain$info$DBN){
     if(trans) {
-    dags<-lapply(dags,DBNcut,n.dynamic=MCMCchain$info$nsmall,n.static=MCMCchain$info$bgn)
+    dags<-lapply(dags,DBNcut,dyn=MCMCchain$info$nsmall,b=MCMCchain$info$bgn)
     } else {
-      dags<-lapply(dags,DBNinit,n.dynamic=MCMCchain$info$nsmall,n.static=MCMCchain$info$bgn)
+      dags<-lapply(dags,DBNinit,dyn=MCMCchain$info$nsmall,b=MCMCchain$info$bgn)
     }
   }
   postprobmat<-Reduce('+', dags)/(endstep-startstep+1)
@@ -256,7 +256,7 @@ samplecomp<-function(MCMCchain, truedag, p=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0
   return(res)
 }
 
-modelpcore<-function(MCMCchain, p, pdag=FALSE, burnin=0.2, DBN=FALSE, nsmall=0, n.dynamic=0, n.static=0) {
+modelpcore<-function(MCMCchain, p, pdag=FALSE, burnin=0.2, DBN=FALSE, nsmall=0, dyn=0, b=0) {
   
   varlabels<-colnames(MCMCchain[[1]])
   n<-nrow(MCMCchain[[1]])
@@ -272,9 +272,9 @@ modelpcore<-function(MCMCchain, p, pdag=FALSE, burnin=0.2, DBN=FALSE, nsmall=0, 
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
   if(DBN) {
-    incidence<-DBNcut(incidence,n.dynamic=n.dynamic,n.static=n.static)
-    incidence.init<-DBNinit(incidence,n.dynamic=n.dynamic,n.static=n.static)
-    incidence[1:(n.dynamic+n.static),1:(n.dynamic+n.static)]<-incidence.init
+    incidence<-DBNcut(incidence,dyn=dyn,b=b)
+    incidence.init<-DBNinit(incidence,dyn=dyn,b=b)
+    incidence[1:(dyn+b),1:(dyn+b)]<-incidence.init
   }
   return(incidence)
 }
