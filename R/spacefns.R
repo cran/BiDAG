@@ -125,10 +125,13 @@ definestartspace<-function(alpha,param,cpdag=FALSE,algo="pc") {
       skels<-list()
       skels[[1]]<-definestartspace(alpha,param$paramsets[[1]],cpdag=FALSE,algo="pc")
       startspace<-skels[[1]]
-      for(i in 2:length(param$paramsets)) {
+      for(i in 2:(length(param$paramsets)-1)) {
         skels[[i]]<-definestartspace(alpha,param$paramsets[[i]],cpdag=FALSE,algo="pc")
         startspace<-1*(skels[[i]]|startspace)
       }
+      firstsliceskel <- definestartspace(alpha,param$paramsets[[length(param$paramsets)]],cpdag=FALSE,algo="pc")
+      startspace[param$intstr$rows,param$intstr$cols] <- 1*(startspace[param$intstr$rows,param$intstr$cols] | firstsliceskel[param$intstr$rows,param$intstr$cols])
+      
 }
   } else { # otherwise use old versions
     

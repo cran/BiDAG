@@ -35,7 +35,6 @@ compact2full<-function(DBNmat,slices,b=0) {
     
     nbig<-slices*dyn+b
     DBNbig<-matrix(0,nrow=nbig,ncol=nbig)
-    print(baseall)
     colnames(DBNbig)<-baseall
     rownames(DBNbig)<-baseall
     
@@ -99,31 +98,48 @@ DBNtransform.init<-function(DBNmat,param) {
   }
 }
 #turns user-friendly representation into internal
-DBNbacktransform<-function(DBNmat,param) {
+DBNbacktransform<-function(DBNmat,param,coln=FALSE,nozero=FALSE) {
   if(!is.null(colnames(DBNmat))) {
     oldnodelabels<-colnames(DBNmat)
     newnodelabels<-oldnodelabels
     newnodelabels[param$intstr$cols]<-oldnodelabels[param$usrtrans$cols]
+    if(param$bgn==0) newnodelabels[param$trans$rows]<-oldnodelabels[param$usrinitstr$rows] else {
+      newnodelabels[c(param$intstr$rows[1:param$bgn],param$trans$rows)]<-oldnodelabels[param$usrinitstr$rows]
+    }
   }
+  if(nozero) newDBNmat<-DBNmat else {
   newDBNmat<-matrix(0,nrow=param$n+param$nsmall,ncol=param$n+param$nsmall)
+  }
   newDBNmat[param$intstr$rows,param$intstr$cols]<-1*(DBNmat[param$usrintstr$rows,param$usrintstr$cols]|DBNmat[param$usrinitstr$rows,param$usrinitstr$cols])
   newDBNmat[param$trans$rows,param$trans$cols]<-DBNmat[param$usrtrans$rows,param$usrtrans$cols]
+  
   if(!param$split) {
+    if(coln) colnames(newDBNmat)<-rownames(newDBNmat)<-newnodelabels
     return(newDBNmat)
   } else {
     res<-list()
     initDBNmat<-DBNmat[1:param$n,1:param$n]
     newinitDBNmat<-DBNmat[1:param$n,1:param$n]
     
+    if(param$bgn>0) {
     newinitDBNmat[,1:param$bgn+param$nsmall]<-initDBNmat[,1:param$bgn]
+    }
     newinitDBNmat[,1:param$nsmall]<-initDBNmat[,1:param$nsmall+param$bgn]
     initDBNmat<-newinitDBNmat
+    
+    if(param$bgn>0) {
     newinitDBNmat[1:param$bgn+param$nsmall,]<-initDBNmat[1:param$bgn,]
+    }
     newinitDBNmat[1:param$nsmall,]<-initDBNmat[1:param$nsmall+param$bgn,]
     res$init<-newinitDBNmat
     
-    transDBNmat<-matrix(0,nrow=param$otherslices$n,ncol=param$otherslices$n)
-    DBNmat<-DBNcut(DBNmat,dyn=param$nsmall,b=param$bgn)
+    if(nozero) {
+      transDBNmat<-DBNmat
+    } else { 
+      transDBNmat<-matrix(0,nrow=2*param$nsmall+param$bgn,ncol=2*param$nsmall+param$bgn)
+      DBNmat<-DBNcut(DBNmat,dyn=param$nsmall,b=param$bgn)}
+   
+
     transDBNmat[param$intstr$rows,param$intstr$cols]<-DBNmat[param$usrintstr$rows,param$usrintstr$cols]
     transDBNmat[param$trans$rows,param$trans$cols]<-DBNmat[param$usrtrans$rows,param$usrtrans$cols]
     res$trans<-transDBNmat

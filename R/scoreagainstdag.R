@@ -13,8 +13,7 @@
 #'  scoreagainstDAG(Asiascore, Asiamat) 
 #'
 #'@export
-#'@author  Jack Kuipers
-
+#'@author  Jack Kuipers, Polina Suter
 scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=FALSE, onlymain=FALSE){
   
  
@@ -61,8 +60,6 @@ scoreagainstDAG <- function(scorepar, incidence, datatoscore=NULL, marginalise=F
 
 # this function scores a nodes against its parents based on the BGe or BDe (binary) score
 # author Jack Kuipers
-
-
 scoreagainstDAGcore<-function(j,parentnodes,n,param,datatoscore) {
   samplenodescores<-rep(0,nrow(datatoscore)) # store
   lp<-length(parentnodes) # number of parents

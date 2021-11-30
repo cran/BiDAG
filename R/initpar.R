@@ -26,6 +26,8 @@
 #' \item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure of all other time slices
 #' \item slices integer representing the number of time slices in a DBN
 #' \item b the number of static variables; all static variables have to be in the first b columns of the data;  for DBNs static variables have the same meaning as bgnodes for usual Bayesian networks; for DBNs parameters parameter \code{bgnodes} is ignored
+#' \item rowids optional vector of time IDs; usefull for identifying data for initial time slice
+#' \item datalist indicates is data is passed as a list for a two step DBN; useful for unbalanced number of samples in timi slices
 #' }
 #'@param mixedpar a list which contains parameters for the BGe and BDe score for mixed data
 #' \itemize{
@@ -35,6 +37,7 @@
 #' \itemize{
 #' \item pctesttype (optional) conditional independence test ("bde","bge","bdecat")
 #' }
+#'@param MDAG logical, when TRUE the score is initialized for a model with multiple sets of parameters but the same structure
 #'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
 #'@param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
 #'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element b of the parameters dbnpar
@@ -56,22 +59,41 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
                           bgepar=list(am=1, aw=NULL),
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(samestruct=TRUE, slices=2, b=0), 
+                          dbnpar=list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL), 
                           usrpar=list(pctesttype=c("bge","bde","bdecat")), 
                           mixedpar=list(nbin=0),
+                          MDAG=FALSE,
                           DBN=FALSE,
                           weightvector=NULL,
                           bgnodes=NULL, 
                           edgepmat=NULL, nodeslabels=NULL) {
+  initparam<-list()
   
   if(DBN) {
+    if(is.null(dbnpar)) {
+      dbnpar<-list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL)
+    }
     if(is.null(dbnpar$b)) bgnodes<-NULL else if(dbnpar$b>0) bgnodes<-c(1:dbnpar$b) else bgnodes<-NULL
+    if(is.null(dbnpar$stationary)) dbnpar$stationary<-TRUE
+    if(is.null(dbnpar$samestruct)) dbnpar$samestruct<-TRUE
+    if(is.null(dbnpar$slices)) dbnpar$slices<-2
+    
+    if (!is.null(dbnpar$samestruct)) {
+      initparam$split<-!dbnpar$samestruct
+    } else {
+      initparam$split<-FALSE
+    }
+    if(dbnpar$slices>2 & !dbnpar$stationary) MDAG<-TRUE
   }
   
   bgn<-length(bgnodes)
-  
-  if(DBN) n<-(ncol(data)-bgn)/dbnpar$slices+bgn else n<-ncol(data)
-  
+  if(DBN) {
+    if(is.null(dbnpar$datalist)) {
+      n<-(ncol(data)-bgn)/dbnpar$slices+bgn
+    } else {
+      n<-(ncol(data[[2]])-bgn)/2+bgn
+    }} else n<-ncol(data)
+
   nsmall<-n-bgn #number of nodes in the network excluding background nodes
   if (!(scoretype%in%c("bge", "bde", "bdecat","usr","mixed"))) { #add mixed later
     stop("Scoretype should be bge (for continuous data), bde (for binary data) bdecat (for categorical data) or usr (for user defined)")
@@ -85,10 +107,11 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     stop("n and the number of columns in the data do not match")
   }
   } else {
-    if(is.null(dbnpar$stationary)) dbnpar$stationary<-TRUE
     if(dbnpar$stationary) {
-    if (ncol(data)!=nsmall*dbnpar$slices+bgn) {
-      stop("n, bgn and the number of columns in the data do not match")
+      if(is.null(dbnpar$datalist)) {
+        if (ncol(data)!=nsmall*dbnpar$slices+bgn) {
+         stop("n, bgn and the number of columns in the data do not match")
+      }
     }
     }
   } 
@@ -121,7 +144,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
       nodeslabels<-sapply(c(1:n), function(x)paste("v",x,sep=""))
     }
     } else {
-      if(dbnpar$stationary) {
+      if(dbnpar$stationary & is.null(dbnpar$datalist)) {
       if(all(is.character(colnames(data)))){
         nodeslabels<-colnames(data)
       } else {
@@ -139,14 +162,15 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
         }
         }
       }
+      } else {
+        nodeslabels<-colnames(data[[2]])
       }
     }
   }
-  MDAG<-FALSE
   multwv<-NULL
-  colnames(data)<-nodeslabels
   
-  initparam<-list()
+  if (is.null(dbnpar$datalist)) colnames(data)<-nodeslabels
+  
   initparam$labels<-nodeslabels
   initparam$type<-scoretype
   initparam$DBN<-DBN
@@ -193,10 +217,10 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     
     if(!dbnpar$stationary) {
       
-      initparam$split=FALSE
+      #initparam$split=FALSE #changed
       
       initparam$stationary<-FALSE
-      initparam$slices<-2
+      initparam$slices<-length(data)
       
       initparam$intstr<-list()
       initparam$trans<-list()
@@ -222,10 +246,31 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
       initparam$trans$cols<-c(1:nsmall)
       
       initparam$paramsets<-list()
+      #initparam$split<-FALSE
+      if(!is.null(edgepmat)) {
+        edgepmatfirst<-edgepmat[1:n,1:n]
+        edgepmat <-DBNbacktransform(edgepmat,initparam,nozero=TRUE)$trans
+        #initparam$logedgepmat <- log(edgepmat)
+      } else {
+        edgepmatfirst<-NULL
+      }
       
-      for(i in 1:length(data)) {
+      initparam$nsets<-length(data)
+      
+      datalocal<-data[[length(data)]]
+      if(bgn>0) datalocal <- datalocal[,c(1:nsmall+bgn,1:bgn)] 
+      initparam$paramsets[[length(data)]]<-scoreparameters(scoretype=scoretype, 
+                                                datalocal, weightvector=NULL, 
+                                                bgnodes=NULL,
+                                                bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
+                                                edgepmat=edgepmatfirst, DBN=FALSE)
+      
+      for(i in 1:(length(data)-1)) {
         datalocal<-data[[i]]
-        datalocal <- datalocal[,c(1:nsmall+nsmall+bgn,1:bgn,1:nsmall+bgn)] 
+        if(bgn>0) datalocal <- datalocal[,c(1:nsmall+nsmall+bgn,1:bgn,1:nsmall+bgn)] else {
+          datalocal <- datalocal[,c(1:nsmall+nsmall,1:nsmall)]
+        }
+        
         initparam$paramsets[[i]]<-scoreparameters(scoretype=scoretype, 
                                                  datalocal, weightvector=NULL, 
                                                  bgnodes=initparam$bgnodes,
@@ -235,39 +280,42 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
       
       
     } else { 
-    
+
     initparam$stationary<-TRUE
     initparam$slices<-dbnpar$slices
     
-    if (!is.null(dbnpar$samestruct)) {
-      initparam$split<-!dbnpar$samestruct
-    } else {
-      initparam$split<-FALSE
-    }
-    
     # other slices we layer the data, 
-    datalocal <- data[,1:(2*nsmall+bgn)]
-    collabels<-colnames(datalocal)
+    if(!is.null(dbnpar$datalist)) {
+        datalocal<-data[[2]]
+        collabels<-colnames(datalocal)
+        if(bgn>0) newbgnodes<-bgnodes+nsmall else  newbgnodes<-bgnodes
+        
+    } else {
+      datalocal <- data[,1:(2*nsmall+bgn)]
+      collabels<-colnames(datalocal)
       if (bgn>0){
         bgdata<-data[,bgnodes]
-         if(dbnpar$slices > 2){ # layer on later time slices
-            for(jj in 1:(dbnpar$slices-2)){
-              datatobind<-cbind(bgdata,data[,nsmall*jj+1:(2*nsmall)+bgn])
-              colnames(datatobind)<-collabels
-              datalocal <- rbind(datalocal,datatobind)
-            }
-         }
-        newbgnodes<-bgnodes+nsmall #since we change data columns bgnodes change indices
-    } else {
-      if(dbnpar$slices > 2){ # layer on later time slices
-        for(jj in 1:(dbnpar$slices-2)){
-          datatobind<-data[,n*jj+1:(2*n)]
-          colnames(datatobind)<-collabels
-          datalocal <- rbind(datalocal,datatobind)
+        if(dbnpar$slices > 2){ # layer on later time slices
+          for(jj in 1:(dbnpar$slices-2)){
+            datatobind<-cbind(bgdata,data[,nsmall*jj+1:(2*nsmall)+bgn])
+            colnames(datatobind)<-collabels
+            datalocal <- rbind(datalocal,datatobind)
+          }
         }
+        newbgnodes<-bgnodes+nsmall #since we change data columns bgnodes change indices
+      } else {
+        if(dbnpar$slices > 2){ # layer on later time slices
+          for(jj in 1:(dbnpar$slices-2)){
+            datatobind<-data[,n*jj+1:(2*n)]
+            colnames(datatobind)<-collabels
+            datalocal <- rbind(datalocal,datatobind)
+          }
+        }
+        newbgnodes<-bgnodes
       }
-      newbgnodes<-bgnodes
     }
+
+
     
     # and have earlier times on the right hand side! (bgnodes if present go between two time slices)
     if(bgn>0) {
@@ -319,7 +367,17 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
         weightvector.other<-weightvector.other[-NArows]
       } 
     }
-    
+    if(!is.null(edgepmat)) {
+      edgepmatfirst<-edgepmat[1:n,1:n]
+      edgepmat <-DBNbacktransform(edgepmat,initparam,nozero=TRUE)
+      if(initparam$split) {
+        edgepmat<-edgepmat$trans
+      } else {
+        initparam$logedgepmat <- log(edgepmat)
+      }
+    } else {
+      edgepmatfirst<-NULL
+    }
     initparam$otherslices <- scoreparameters(scoretype=scoretype, 
                                              datalocal, weightvector=weightvector.other, 
                                              bgnodes=initparam$bgnodes,
@@ -329,12 +387,22 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     # first slice we just take the first block
     bdecatpar$edgepf <- 1 # we don't want any additional edge penalisation
     bdepar$edgepf <- 1
-    if(bgn==0) {
-      datalocal <- data[,c(1:nsmall)]
+    
+    if (!is.null(dbnpar$datalist)) {
+      datalocal<-data[[1]]
     } else {
-      datalocal <- data[,c(1:nsmall+bgn,1:bgn)] #move static variables to the right hand side
+      datalocal<-data[,1:(nsmall+bgn)]
     }
     
+    if(bgn==0) {
+      datalocal <- datalocal[,c(1:nsmall)]
+    } else {
+      datalocal <- datalocal[,c(1:nsmall+bgn,1:bgn)] #move static variables to the right hand side
+    }
+    
+    if(!is.null(dbnpar$rowids)) {
+        datalocal<-datalocal[which(dbnpar$rowids==1),]
+    }
     #removing rows containing missing data
     if (anyNA(datalocal)) { 
       NArows<-which(apply(datalocal,1,anyNA)==TRUE)
@@ -347,11 +415,10 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     if(lNA>0) {
       cat(paste(lNA, "rows were removed due to missing data"),"\n")
     }
-
     initparam$firstslice <- scoreparameters(scoretype=scoretype, 
                                             datalocal, weightvector=weightvector, bgnodes=newbgnodes,
                                             bgepar=bgepar, bdepar=bdepar, bdecatpar=bdecatpar, dbnpar=dbnpar, 
-                                            edgepmat=edgepmat, DBN=FALSE)
+                                            edgepmat=edgepmatfirst, DBN=FALSE)
   }
   } else if(scoretype=="bge") {
     if (is.null(weightvector)) {
@@ -376,6 +443,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     initparam$means <- means # store means
     
     mu0<-numeric(n)
+    #https://arxiv.org/pdf/1302.6808.pdf page 10
     T0scale <- bgepar$am*(bgepar$aw-n-1)/(bgepar$am+1) # This follows from equations (19) and (20) of [GH2002]
     T0<-diag(T0scale,n,n)
     initparam$TN <- T0 + covmat + ((bgepar$am*N)/(bgepar$am+N))* (mu0 - means)%*%t(mu0 - means)

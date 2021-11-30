@@ -38,5 +38,5 @@ This function calculates the score of a given sample against a DAG represented b
 Heckerman D and Geiger D, (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284, 1995.
 }
 \author{
-Jack Kuipers
+Jack Kuipers, Polina Suter
 }

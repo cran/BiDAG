@@ -5,13 +5,16 @@ DAGcorescore<-function(j,parentnodes,n,param) {
     if(param$stationary) {
       internalparents <- parentnodes[which(parentnodes<=param$nsmall)]
       corescore <- DAGcorescore(j,parentnodes,param$n+param$nsmall,param$otherslices)+
-        DAGcorescore(j,internalparents,param$n,param$firstslice) 
+      DAGcorescore(j,internalparents,param$n,param$firstslice) 
     } else {
       corescore<-0
-      for(i in 1:length(param$paramsets)) {
+      for(i in 1:(length(param$paramsets)-1)) {
         corescore<-corescore+DAGcorescore(j,parentnodes,param$n+param$nsmall,
                                           param$paramsets[[i]])
       }
+      internalparents <- parentnodes[which(parentnodes<=param$nsmall)]
+      corescore<-corescore+DAGcorescore(j,internalparents,param$n,
+                                        param$paramsets[[length(param$paramsets)]])
     }
   } else if(param$MDAG) {
     corescore<-0

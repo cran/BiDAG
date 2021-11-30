@@ -100,33 +100,42 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
   
     
     if(scorepar$split) { #we learn initial and transition structures separately
-      
+      if(scorepar$MDAG) {
+        param1<-scorepar$paramsets[[scorepar$nsets]]
+        param2<-scorepar$paramsets[[1]]
+        param2$paramsets<-scorepar$paramsets[1:(scorepar$nsets-1)]
+        param2$MDAG<-TRUE
+      } else {
+        param1<-scorepar$firstslice
+        param2<-scorepar$otherslices
+      }
       if(scoreout | !is.null(scoretable)) {
         cat("option scoreout always equals FALSE for DBNs with samestruct=FALSE, scoretable parameter is ignored \n")
       }    
-      result.init<-orderMCMCmain(param=scorepar$firstslice,iterations,stepsave,startorder=startorder$init,
+      result.init<-orderMCMCmain(param=param1,iterations,stepsave,startorder=startorder$init,
                                moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
                                plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
                                startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,verbose=verbose,
                                hardlimit=hardlimit)
     
-      result.trans<-orderMCMCmain(param=scorepar$otherslices,iterations,stepsave,startorder=startorder$trans,
+      result.trans<-orderMCMCmain(param=param2,iterations,stepsave,startorder=startorder$trans,
                                 moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
                                 plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
                                 startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,verbose=verbose,
                                 hardlimit=hardlimit)
     
       result<-mergeDBNres(result.init,result.trans,scorepar,algo="order")
-    } else {
+    } else  {
       
       result<-orderMCMCmain(param=scorepar,iterations,stepsave,startorder=startorder,
                             moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
                             plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
                             startspace=startspace,blacklist=blacklist,gamma=gamma,verbose=verbose,
                             hardlimit=hardlimit)
+    } 
     }
     
-   } else {
+    else {
      result<-orderMCMCmain(param=scorepar,iterations,stepsave,startorder=startorder,
                         moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
                         plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
@@ -248,18 +257,26 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
     } 
     
     if(scorepar$split) { #we learn initial and transition structures separately
-      
+      if(scorepar$MDAG) {
+        param1<-scorepar$paramsets[[scorepar$nsets]]
+        param2<-scorepar$paramsets[[1]]
+        param2$paramsets<-scorepar$paramsets[1:(scorepar$nsets-1)]
+        param2$MDAG<-TRUE
+      } else {
+        param1<-scorepar$firstslice
+        param2<-scorepar$otherslices
+      }
       if(!is.null(scoretable)) {
         warning("for DBNs with samestruct=FALSE 'scoretable' parameter is ignored")
       }  
         
-      result.init<-partitionMCMCplus1sample(param=scorepar$firstslice,startspace=startspace$init,
+      result.init<-partitionMCMCplus1sample(param=param1,startspace=startspace$init,
                                             blacklist=blacklist$init,moveprobs=moveprobs,
                                             numit=iterations,DAG=startDAG$init,stepsave=stepsave,
                                             scoretable=NULL,
                                             verbose=verbose,gamma=gamma)
       
-      result.trans<-partitionMCMCplus1sample(param=scorepar$otherslices,startspace=startspace$trans,
+      result.trans<-partitionMCMCplus1sample(param=param2,startspace=startspace$trans,
                                              blacklist=blacklist$trans,moveprobs=moveprobs,
                                              numit=iterations,DAG=startDAG$trans,stepsave=stepsave,
                                              scoretable=NULL,
@@ -449,20 +466,29 @@ iterativeMCMC<-function(scorepar, MAP=TRUE, posterior=0.5, softlimit=9, hardlimi
     }
     
     if(scorepar$split) { #we learn initial and transition structures separately
-      
+      if(scorepar$MDAG) {
+        param1<-scorepar$paramsets[[scorepar$nsets]]
+        param2<-scorepar$paramsets[[1]]
+        param2$paramsets<-scorepar$paramsets[1:(scorepar$nsets-1)]
+        param2$MDAG<-TRUE
+
+      } else {
+        param1<-scorepar$firstslice
+        param2<-scorepar$otherslices
+      }
       if(scoreout | !is.null(scoretable)) {
         cat("option scoreout always equals FALSE for DBNs with samestruct=FALSE, scoretable parameter is ignored \n")
       }
       
 
       cat("learning initial structure...\n")
-      result.init<-iterativeMCMCplus1(param=scorepar$firstslice,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
+      result.init<-iterativeMCMCplus1(param=param1,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
                                       moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                                       startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,
                                       verbose=verbose, chainout=chainout,scoreout=FALSE,mergecp=mergetype,
                                       addspace=addspace$init,scoretable=NULL,startorder=startorder$init,accum=accum)
       cat("learning transition structure...\n")
-      result.trans<-iterativeMCMCplus1(param=scorepar$otherslices,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
+      result.trans<-iterativeMCMCplus1(param=param2,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
                                        moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                                        startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,
                                        verbose=verbose, chainout=chainout,scoreout=FALSE,mergecp=mergetype,

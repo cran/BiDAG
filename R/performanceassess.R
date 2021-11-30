@@ -83,8 +83,8 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
   if(DBN) {
-      incidence<-DBNcut(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
       incidence.init<-DBNinit(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
+      incidence<-DBNcut(incidence,dyn=MCMCinfo$nsmall,b=MCMCinfo$bgn)
       incidence[1:(MCMCinfo$nsmall+MCMCinfo$bgn),1:(MCMCinfo$nsmall+MCMCinfo$bgn)]<-incidence.init
   }
   return(incidence)

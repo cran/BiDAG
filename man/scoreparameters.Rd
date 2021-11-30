@@ -12,9 +12,11 @@ scoreparameters(
   bgepar = list(am = 1, aw = NULL),
   bdepar = list(chi = 0.5, edgepf = 2),
   bdecatpar = list(chi = 0.5, edgepf = 2),
-  dbnpar = list(samestruct = TRUE, slices = 2, b = 0),
+  dbnpar = list(samestruct = TRUE, slices = 2, b = 0, stationary = TRUE, rowids = NULL,
+    datalist = NULL),
   usrpar = list(pctesttype = c("bge", "bde", "bdecat")),
   mixedpar = list(nbin = 0),
+  MDAG = FALSE,
   DBN = FALSE,
   weightvector = NULL,
   bgnodes = NULL,
@@ -57,6 +59,8 @@ scoreparameters(
 \item samestruct logical, when TRUE the structure of the first time slice is assumed to be the same as internal structure of all other time slices
 \item slices integer representing the number of time slices in a DBN
 \item b the number of static variables; all static variables have to be in the first b columns of the data;  for DBNs static variables have the same meaning as bgnodes for usual Bayesian networks; for DBNs parameters parameter \code{bgnodes} is ignored
+\item rowids optional vector of time IDs; usefull for identifying data for initial time slice
+\item datalist indicates is data is passed as a list for a two step DBN; useful for unbalanced number of samples in timi slices
 }}
 
 \item{usrpar}{a list which contains parameters for the user defined score
@@ -68,6 +72,8 @@ scoreparameters(
 \itemize{
 \item nbin a positive integer number of binary nodes in the network (the binary nodes are always assumed in first nbin columns of the data)
 }}
+
+\item{MDAG}{logical, when TRUE the score is initialized for a model with multiple sets of parameters but the same structure}
 
 \item{DBN}{logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default}
 

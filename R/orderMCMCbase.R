@@ -59,7 +59,7 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
                  sampledpos<-sample.int(nsmall,1)
                },
                {# if neither is chosen, we have a problem
-                 print('The move sampling has failed!')
+                 cat('The move sampling has failed!')
                }) #end switch
 
         if(chosenmove<3){
