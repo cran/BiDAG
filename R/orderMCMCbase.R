@@ -1,12 +1,9 @@
 #implements order MCMC on a defined search space, sampling version
 #partly derived from <doi:10.1080/01621459.2015.1133426>
 orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,scoretable,aliases,numparents,
-                        rowmaps,scoresmatrices,numberofparentsvec,gamma=1,bgnodes,matsize) {
+                        rowmaps,scoresmatrices,numberofparentsvec,gamma=1,bgnodes,matsize,chainout=FALSE,compress=TRUE) {
   
-  #n - number of nodes (background included)
-  #nsmall - number of nodes excluding background
-  #matsize - number of rows/columns in adjacency matrix 
-  
+  result<-list()
   
   if(!is.null(bgnodes)) {
     mainnodes<-c(1:matsize)[-bgnodes]
@@ -34,6 +31,8 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
   L2[1]<-currentDAG$logscore #starting DAG score
   L3[1]<-currenttotallogscore #starting order score
   L4[[1]]<-currentpermy[1:nsmall] #starting order
+  maxdag<-currentDAG$incidence
+  maxscore<-L2[1]
 
   moveprobsstart<-moveprobs
 
@@ -93,16 +92,28 @@ orderMCMCbase<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,parent
     }
     currentDAG<-samplescoreplus1(matsize,mainnodes,currentorderscores,plus1lists=NULL,scoretable,scoresmatrices,
                                  parenttable,numberofparentsvec,aliases)
-    L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
+    if(chainout) {
+    if(compress) {
+      L1[[z]]<-Matrix(currentDAG$incidence,sparse=TRUE) #store compressed adjacency matrix of a sampled DAG each 'stepsave'
+    } else {
+      L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
+    }
+    }
+    
     L2[z]<-currentDAG$logscore #and log score of a sampled DAG
     L3[z]<-currenttotallogscore #and the current order score
     L4[[z]]<-currentpermy[1:nsmall] #and store current order
+    if(L2[z]>maxscore) {
+      maxscore<-L2[z]
+      maxdag<-currentDAG$incidence
+    } 
   }
-  result<-list()
   result$incidence<-L1
   result$DAGscores<-L2
   result$orderscores<-L3
   result$orders<-L4
+  result$maxscore<-maxscore
+  result$maxdag<-maxdag
   
   return(result)
 }

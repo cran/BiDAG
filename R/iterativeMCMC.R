@@ -2,7 +2,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
                              startorder=NULL,moveprobs,softlimit=9,hardlimit=14,chainout=FALSE,
                              scoreout=FALSE,startspace=NULL,blacklist=NULL,gamma=1,verbose=FALSE,alpha=NULL,
                              cpdag=FALSE,mergecp="skeleton",addspace=NULL,scoretable=NULL,
-                             accum) {
+                             accum,alphainit=NULL,compress=TRUE) {
   n<-param$n
   nsmall<-param$nsmall
   matsize<-ifelse(param$DBN,n+nsmall,n)
@@ -43,7 +43,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
     scoretable<-scoretable$tables
   } else {
     if (is.null(startspace)){
-      startspace<-definestartspace(alpha,param,cpdag=cpdag,algo="pc")
+      startspace<-definestartspace(alpha,param,cpdag=cpdag,algo="pc",alphainit=alphainit)
     }
     startskeleton<-1*(startspace&!blacklist)
     if(!is.null(addspace)) { startskel<-1*((addspace|startskeleton)&!blacklist)
@@ -144,12 +144,12 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
         if(MAP) {
           MCMCresult<-orderMCMCplus1max(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                         scoretable,aliases,numparents,rowmaps,plus1lists,maxmatrices,numberofparentsvec,
-                                        gamma=gamma,bgnodes=param$bgnodes,matsize=matsize)
+                                        gamma=gamma,bgnodes=param$bgnodes,matsize=matsize,chainout=chainout,compress=compress)
         } else {
           MCMCresult<-orderMCMCplus1(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                      scoretable,aliases,numparents,rowmaps,plus1lists,
                                      bannedscore,numberofparentsvec,gamma=gamma,bgnodes=param$bgnodes,
-                                     matsize=matsize)
+                                     matsize=matsize,chainout=chainout,compress=compress)
         }
         
         
@@ -184,17 +184,20 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
           maxorder<-maxobj$order
           maxit<-1
         }
-        if (MAP) {
+        
+      if (MAP) {
           newadj<-newspacemap(n,startskeleton,oldadj,softlimit,hardlimit,blacklist,
-                               maxN=maxN,MCMCtrace=MCMCresult[[1]],mergetype=mergecp,
+                               maxdag=MCMCresult$maxdag,mergetype=mergecp,
                                accum=accum)
-        } else {
-          newadj<-newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior,
+          } else {
+            newadj<-newspaceskel(n,startskeleton,oldadj,softlimit,hardlimit,posterior,
                                 blacklist,MCMCtrace=MCMCresult[[1]],mergetype=mergecp)
-        }
+          }
         updatenodes<-which(apply(newadj==oldadj,2,all)==FALSE)
         updatenodeslist[[i]]<-updatenodes
-        oldadj<-newadj
+        if(is.null(plus1it)) {
+          oldadj<-newadj
+        } else if(i<plus1it) oldadj<-newadj
         startorder<-c(MCMCresult$orders[[maxN]],param$bgnodes)
         i<-i+1
       }

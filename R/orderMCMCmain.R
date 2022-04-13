@@ -2,7 +2,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
                         startorder=c(1:n),moveprobs,plus1=FALSE,chainout=TRUE,
                         scoreout=FALSE,startspace=NULL,blacklist=NULL,gamma=1,verbose=FALSE,alpha=NULL,
                         hardlimit=ifelse(plus1,15,22),
-                        cpdag=FALSE,addspace=NULL,scoretable=NULL){
+                        cpdag=FALSE,addspace=NULL,scoretable=NULL,compress=TRUE){
   result<-list()
   maxobj<-list()
   MCMCtraces<-list()
@@ -90,7 +90,8 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     tableend<-Sys.time()
     MCMCresult<-orderMCMCbasemax(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                  scoretable,aliases,numparents,rowmaps,maxmatrices,
-                                 numberofparentsvec,gamma=gamma,bgnodes=param$bgnodes,matsize=matsize)
+                                 numberofparentsvec,gamma=gamma,bgnodes=param$bgnodes,matsize=matsize,
+                                 chainout=chainout,compress=compress)
 
     mcmcend<-Sys.time()
   } else {
@@ -100,7 +101,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     MCMCresult<-orderMCMCbase(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                               scoretable,aliases,numparents,rowmaps,
                               bannedscore,numberofparentsvec,gamma=gamma,
-                              bgnodes=param$bgnodes,matsize=matsize)
+                              bgnodes=param$bgnodes,matsize=matsize,chainout=chainout,compress=compress)
     mcmcend<-Sys.time()
     
   }
@@ -137,13 +138,13 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   if(MAP) {
     MCMCresult<-orderMCMCplus1max(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                       scoretable,aliases,numparents,rowmaps,plus1lists,maxmatrices,numberofparentsvec,
-                                      gamma=gamma,bgnodes=param$bgnodes,matsize=matsize)
+                                      gamma=gamma,bgnodes=param$bgnodes,matsize=matsize,chainout=chainout,compress=compress)
     
     } else {
     MCMCresult<-orderMCMCplus1(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                    scoretable,aliases,numparents,rowmaps,plus1lists,
                                    bannedscore,numberofparentsvec,gamma=gamma,
-                                   bgnodes=param$bgnodes,matsize=matsize)
+                                   bgnodes=param$bgnodes,matsize=matsize,chainout=chainout,compress=compress)
     }
     
    mcmcend<-Sys.time()

@@ -131,7 +131,13 @@ m2graph<-function(adj,nodes=NULL) {
 #'@export
 compareDAGs<-function(egraph, truegraph, cpdag=FALSE, rnd=2) {
   
-   if(is.matrix(egraph)) egraph<-m2graph(egraph)
+   if(is.matrix(egraph)) {
+     egraph<-m2graph(egraph) 
+     } else if (is(egraph,"dgCMatrix") | is(egraph,"dtCMatrix")) { 
+       egraph<-as.matrix(egraph)
+       egraph<-m2graph(egraph) 
+     }
+  
    if(is.matrix(truegraph)) truegraph<-m2graph(truegraph)
    
    skeleton1<-graph2skeleton(egraph)
@@ -188,10 +194,12 @@ compareDBNs<-function(eDBN, trueDBN, struct=c("init","trans"), b=0) {
   n<-b+dyn
   matsize<-b+2*dyn
   
-  if(!is.matrix(eDBN)) {
-    adj1<-graph2m(eDBN)
-  } else {
+  if(is.matrix(eDBN)) {
     adj1<-eDBN
+    } else if (is(eDBN,"dtCMatrix") | is(eDBN,"dgCMatrix")) {
+    adj1<-as.matrix(eDBN)
+  } else {
+    adj1<-graph2m(eDBN)
   }
   
   if(!is.matrix(trueDBN)) {
@@ -349,13 +357,18 @@ adjacency2edgel<-function(adj,nodes=NULL) {
 #myDAG<-pcalg::randomDAG(20, prob=0.15, lB = 0.4, uB = 2)
 #graph2skeleton.m(myDAG)
 graph2skeleton<-function(g,upper=TRUE,outmat=TRUE) {
-  if(!is.matrix(g)) {
-    adj<-graph2m(g)
-    colnames(adj)<-g@nodes
-    rownames(adj)<-g@nodes
-  } else {
+ 
+  if (is.matrix(g)) {
     adj<-g
+  } else if(is(g,"graphNEL")) {
+     adj<-graph2m(g)
+     colnames(adj)<-g@nodes
+     rownames(adj)<-g@nodes
+   }else {
+    adj<-as.matrix(g)
   }
+  
+  
   skel<-1*(adj|t(adj))
   if(upper) {
   skel<-ifelse(upper.tri(skel)==TRUE,skel,0)

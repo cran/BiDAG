@@ -16,6 +16,7 @@ partitionMCMC(
   gamma = 1,
   verbose = FALSE,
   scoreout = FALSE,
+  compress = TRUE,
   startspace = NULL,
   blacklist = NULL,
   scoretable = NULL,
@@ -58,6 +59,8 @@ partitionMCMC(
 \item{verbose}{logical, if set to TRUE (default) messages about progress will be printed}
 
 \item{scoreout}{logical, if TRUE the search space and score tables are returned, FALSE by default}
+
+\item{compress}{logical, if TRUE adjacency matrices representing sampled graphs will be stored as a sparse Matrix (recommended); TRUE by default}
 
 \item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.}
 

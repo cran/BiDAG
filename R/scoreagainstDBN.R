@@ -1,6 +1,6 @@
 #'Score against DBN
 #'
-#'Scoring observations against DBN structures
+#'Scoring observations against a DBN structure
 #'
 #'@param scorepar object of class 'scoreparameters'
 #'@param incidence adjacency matrix of a DAG
@@ -78,7 +78,7 @@ scoreagainstDBN<-function(scorepar, incidence, datatoscore=NULL,
 
 #'Score against DBN
 #'
-#'Scoring observations against DBN structures
+#'Scoring observations against a DBN structure
 #'
 #'@param scorepar object of class 'scoreparameters'
 #'@param incidence adjacency matrix of a DAG

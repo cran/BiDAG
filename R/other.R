@@ -130,11 +130,11 @@ storemaxMCMC<-function(MCMCres,param) {
   maxobj<-list()
   maxN<-which.max(unlist(MCMCres[[2]]))
   if(param$DBN) {
-    maxobj$DAG<-DBNtransform(MCMCres[[1]][[maxN]],param)
-    maxobj$DAGorig<-MCMCres[[1]][[maxN]]
+    maxobj$DAG<-DBNtransform(MCMCres$maxdag,param)
+    maxobj$DAGorig<-MCMCres$maxdag
     maxobj$order<-order2var(MCMCres[[4]][[maxN]],param$firstslice$labels)
   } else {
-    maxobj$DAG<-MCMCres[[1]][[maxN]]
+    maxobj$DAG<-MCMCres$maxdag
     colnames(maxobj$DAG)<-param$labels
     rownames(maxobj$DAG)<-param$labels
     maxobj$order<-order2var(MCMCres[[4]][[maxN]],param$labels)

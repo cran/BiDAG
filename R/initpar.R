@@ -59,7 +59,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
                           bgepar=list(am=1, aw=NULL),
                           bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL), 
+                          dbnpar=list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL, learninit=TRUE), 
                           usrpar=list(pctesttype=c("bge","bde","bdecat")), 
                           mixedpar=list(nbin=0),
                           MDAG=FALSE,
@@ -77,6 +77,8 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     if(is.null(dbnpar$stationary)) dbnpar$stationary<-TRUE
     if(is.null(dbnpar$samestruct)) dbnpar$samestruct<-TRUE
     if(is.null(dbnpar$slices)) dbnpar$slices<-2
+    if(is.null(dbnpar$learninit)) dbnpar$learninit<-TRUE
+    
     
     if (!is.null(dbnpar$samestruct)) {
       initparam$split<-!dbnpar$samestruct

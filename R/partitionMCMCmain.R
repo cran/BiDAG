@@ -4,7 +4,7 @@
 
 partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
                                    startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE,
-                                   scoreout=FALSE){
+                                   scoreout=FALSE,chainout=TRUE,compress=TRUE){
 
   MCMCtraces<-list()
   
@@ -150,7 +150,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
                                  aliases,plus1neededpart,plus1allowedpart,plus1lists,rowmapsneeded,rowmapsallowed,
                                  needednodetable,ptab$numberofparentsvec,
                                  numberofpartitionparentsvec,needednodebannedrow,
-                                 neededposetparentsvec,moveprobs,param$bgnodes,matsize=matsize)
+                                 neededposetparentsvec,moveprobs,param$bgnodes,matsize=matsize,chainout=TRUE,compress=compress)
   endmcmc<-Sys.time()
 
   

@@ -73,7 +73,7 @@ full2compact<-function(DBNmat,b=0) {
 
 #turns internal representation into user-friendly
 DBNtransform<-function(DBNmat,param) {
-  newDBNmat<-matrix(0,nrow=param$n+param$nsmall,ncol=param$n+param$nsmall)
+  newDBNmat<-Matrix(0,nrow=param$n+param$nsmall,ncol=param$n+param$nsmall,sparse=TRUE)
   colnames(newDBNmat)<-param$labels.short
   rownames(newDBNmat)<-param$labels.short
   newDBNmat[param$usrinitstr$rows,param$usrinitstr$cols]<-DBNmat[param$intstr$rows,param$intstr$cols]
@@ -108,7 +108,7 @@ DBNbacktransform<-function(DBNmat,param,coln=FALSE,nozero=FALSE) {
     }
   }
   if(nozero) newDBNmat<-DBNmat else {
-  newDBNmat<-matrix(0,nrow=param$n+param$nsmall,ncol=param$n+param$nsmall)
+  newDBNmat<-Matrix(0,nrow=param$n+param$nsmall,ncol=param$n+param$nsmall)
   }
   newDBNmat[param$intstr$rows,param$intstr$cols]<-1*(DBNmat[param$usrintstr$rows,param$usrintstr$cols]|DBNmat[param$usrinitstr$rows,param$usrinitstr$cols])
   newDBNmat[param$trans$rows,param$trans$cols]<-DBNmat[param$usrtrans$rows,param$usrtrans$cols]
@@ -136,7 +136,7 @@ DBNbacktransform<-function(DBNmat,param,coln=FALSE,nozero=FALSE) {
     if(nozero) {
       transDBNmat<-DBNmat
     } else { 
-      transDBNmat<-matrix(0,nrow=2*param$nsmall+param$bgn,ncol=2*param$nsmall+param$bgn)
+      transDBNmat<-Matrix(0,nrow=2*param$nsmall+param$bgn,ncol=2*param$nsmall+param$bgn)
       DBNmat<-DBNcut(DBNmat,dyn=param$nsmall,b=param$bgn)}
    
 

@@ -29,6 +29,7 @@
 #'space, if FALSE (default) the full undirected skeleton will be used as the search space
 #' @param hardlimit integer, limit on the size of parent sets in the search space; by default 14 when MAP=TRUE and 20 when MAP=FALSE
 #' @param verbose logical, if TRUE messages about the algorithm's progress will be printed, FALSE by default
+#' @param compress logical, if TRUE adjacency matrices representing sampled graphs will be stored as a sparse Matrix (recommended); TRUE by default
 #' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.
 #' @param blacklist (optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space. If \code{blacklist[i,j]} equals to 1 it means that the edge from node \code{i} to node \code{j} is excluded from the search space.
 #' @param scoretable (optional) object of class \code{scorespace} containing list of score tables calculated for example by the last iteration of the function \code{iterativeMCMC}. When not NULL, parameter \code{startspace} is ignored.
@@ -57,7 +58,7 @@
 #'@export
 orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALSE, moveprobs=NULL, 
                     iterations=NULL, stepsave=NULL, alpha=0.05, cpdag=FALSE, gamma=1,
-                    hardlimit=ifelse(plus1,14,20),verbose=FALSE,
+                    hardlimit=ifelse(plus1,14,20),verbose=FALSE,compress=TRUE,
                     startspace=NULL, blacklist=NULL,startorder=NULL, scoretable=NULL) {
   if (is.null(moveprobs)) { 
     prob1<-99
@@ -93,6 +94,11 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
       blacklist<-DBNbacktransform(blacklist,scorepar)
     } 
     
+    if(!is.null(scoretable)) {
+      scoretable$adjacency<-DBNbacktransform(scoretable$adjacency,scorepar)
+      scoretable$blacklist<-DBNbacktransform(scoretable$blacklist,scorepar)
+    } 
+    
     if(!is.null(startspace)) {
       startspace<-DBNbacktransform(startspace,scorepar)
     } 
@@ -112,26 +118,32 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
       if(scoreout | !is.null(scoretable)) {
         cat("option scoreout always equals FALSE for DBNs with samestruct=FALSE, scoretable parameter is ignored \n")
       }    
-      result.init<-orderMCMCmain(param=param1,iterations,stepsave,startorder=startorder$init,
-                               moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
-                               plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
-                               startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,verbose=verbose,
-                               hardlimit=hardlimit)
-    
+
       result.trans<-orderMCMCmain(param=param2,iterations,stepsave,startorder=startorder$trans,
                                 moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
                                 plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
                                 startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,verbose=verbose,
-                                hardlimit=hardlimit)
+                                hardlimit=hardlimit,compress=compress)
+      
+      if(scorepar$dbnpar$learninit) {
+        result.init<-orderMCMCmain(param=param1,iterations,stepsave,startorder=startorder$init,
+                                   moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
+                                   plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
+                                   startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,verbose=verbose,
+                                   hardlimit=hardlimit,compress=compress)
+        result<-mergeDBNres(result.init,result.trans,scorepar,algo="order")
+      } else {
+        result<-result.trans
+      }
+      
     
-      result<-mergeDBNres(result.init,result.trans,scorepar,algo="order")
     } else  {
       
       result<-orderMCMCmain(param=scorepar,iterations,stepsave,startorder=startorder,
                             moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
                             plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
                             startspace=startspace,blacklist=blacklist,gamma=gamma,verbose=verbose,
-                            hardlimit=hardlimit)
+                            hardlimit=hardlimit,compress=compress)
     } 
     }
     
@@ -140,7 +152,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
                         moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=scoretable,
                         plus1=plus1,MAP=MAP,chainout=chainout, scoreout=scoreout,
                         startspace=startspace,blacklist=blacklist,gamma=gamma,verbose=verbose,
-                        hardlimit=hardlimit)
+                        hardlimit=hardlimit,compress=compress)
       }
 
   
@@ -195,6 +207,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #' @param gamma tuning parameter which transforms the score by raising it to this power, 1 by default
 #' @param verbose logical, if set to TRUE (default) messages about progress will be printed
 #' @param scoreout logical, if TRUE the search space and score tables are returned, FALSE by default
+#' @param compress logical, if TRUE adjacency matrices representing sampled graphs will be stored as a sparse Matrix (recommended); TRUE by default
 #' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.
 #' @param blacklist (optional) a square matrix, of dimensions equal to the number of nodes, which defines edges to exclude from the search space; if \code{blacklist[i,j]=1} it means that the edge from node \code{i} to node \code{j} is excluded from the search space
 #' @param scoretable (optional) object of class \code{scorespace} containing list of score tables calculated for example by the last iteration of the function \code{iterativeMCMC}. When not NULL, parameter \code{startspace} is ignored
@@ -218,7 +231,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #'@author Polina Suter, Jack Kuipers, the code partly derived from the partition MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 #'@export
 partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NULL,gamma=1,verbose=FALSE,
-                        scoreout=FALSE,startspace=NULL, blacklist=NULL,scoretable=NULL, startDAG=NULL) {
+                        scoreout=FALSE,compress=TRUE,startspace=NULL, blacklist=NULL,scoretable=NULL, startDAG=NULL) {
   if (is.null(moveprobs)) {
     prob1start<-40/100
     prob1<-prob1start*100
@@ -274,13 +287,13 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
                                             blacklist=blacklist$init,moveprobs=moveprobs,
                                             numit=iterations,DAG=startDAG$init,stepsave=stepsave,
                                             scoretable=NULL,
-                                            verbose=verbose,gamma=gamma)
+                                            verbose=verbose,gamma=gamma,compress=compress)
       
       result.trans<-partitionMCMCplus1sample(param=param2,startspace=startspace$trans,
                                              blacklist=blacklist$trans,moveprobs=moveprobs,
                                              numit=iterations,DAG=startDAG$trans,stepsave=stepsave,
                                              scoretable=NULL,
-                                             verbose=verbose,gamma=gamma)
+                                             verbose=verbose,gamma=gamma,compress=compress)
       
       result<-mergeDBNres(result.init,result.trans,scorepar,algo="partition")
       
@@ -289,14 +302,14 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
       result<-partitionMCMCplus1sample(param=scorepar,startspace=startspace,blacklist=blacklist,
                                        moveprobs=moveprobs,numit=iterations,DAG=startDAG,
                                        stepsave=stepsave,scoretable=scoretable,verbose=verbose,
-                                       gamma=gamma)
+                                       gamma=gamma,compress=compress)
     }
     
   } else {
     result<-partitionMCMCplus1sample(param=scorepar,startspace=startspace,blacklist=blacklist,
                                      moveprobs=moveprobs,numit=iterations,DAG=startDAG,
                                      stepsave=stepsave,scoretable=scoretable,verbose=verbose,
-                                     gamma=gamma)
+                                     gamma=gamma,compress=compress)
   }
   
   
@@ -359,6 +372,7 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #'  space, when FALSE (default) the undirected skeleton used as a search space
 #' @param mergetype defines which edges are added to the search space at each expansion iteration; three options are available 'dag', 'cpdag', 'skeleton'; 'skeleton' by default
 #' @param accum logical, when TRUE at each search step expansion new edges are added to the current search space; when FALSE (default) the new edges are added to the starting space
+#' @param compress logical, if TRUE adjacency matrices representing sampled graphs will be stored as a sparse Matrix (recommended); TRUE by default
 #' @param plus1it (optional) integer, a number of iterations of search space expansion; by default the algorithm iterates until no score improvement can be achieved by further expanding the search space
 #' @param startspace (optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used; if \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1
 #' @param scoretable (optional) object of class \code{scorespace}. When not NULL, parameters \code{startspace} and \code{addspace} are ignored.
@@ -372,6 +386,7 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #' @param verbose logical, if TRUE (default) prints messages on the progress of execution
 #' @param chainout logical, if TRUE the saved MCMC steps are returned, FALSE by default
 #' @param scoreout logical, if TRUE the search space from the last plus1 iterations and the corresponding score tables are returned, FALSE by default
+#' @param alphainit (optional) numerical, defines alpha that is used by the PC algorithm to learn initial structure of a DBN, ignored in static case
 #' @return Object of class \code{iterativeMCMC}, which contains log-score trace as well as adjacency matrix of the maximum scoring DAG, its score and the order score. 
 #' The output can optionally include DAGs sampled in MCMC iterations and the score tables. Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{iterativeMCMC class}} for a detailed class structure.
 #' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
@@ -413,13 +428,15 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #'@importFrom Rcpp evalCpp
 #'@importFrom graphics abline
 #'@importFrom utils head
+#'@importFrom Matrix Matrix
+#'@importFrom methods is
 #'@useDynLib BiDAG, .registration=TRUE
 #'@rdname iterativeMCMC
 #'@export iterativeMCMC
 #'@author Polina Suter, Jack Kuipers
-iterativeMCMC<-function(scorepar, MAP=TRUE, posterior=0.5, softlimit=9, hardlimit=12, alpha=0.05, gamma=1, verbose=TRUE, chainout=FALSE, scoreout=FALSE, cpdag=FALSE, 
-                        mergetype="skeleton", iterations=NULL, moveprobs=NULL, stepsave=NULL,startorder=NULL,
-                        accum=FALSE, plus1it=NULL, startspace=NULL, blacklist=NULL,addspace=NULL,scoretable=NULL) {
+iterativeMCMC<-function(scorepar, MAP=TRUE,posterior=0.5, softlimit=9, hardlimit=12, alpha=0.05, gamma=1, verbose=TRUE, chainout=FALSE, scoreout=FALSE, cpdag=FALSE, 
+                        mergetype="skeleton",iterations=NULL,moveprobs=NULL,stepsave=NULL,startorder=NULL,
+                        accum=FALSE, compress=TRUE,plus1it=NULL,startspace=NULL,blacklist=NULL,addspace=NULL,scoretable=NULL, alphainit=NULL) {
   
   if (is.null(moveprobs)) {
     prob1<-99
@@ -442,8 +459,6 @@ iterativeMCMC<-function(scorepar, MAP=TRUE, posterior=0.5, softlimit=9, hardlimi
   
   ordercheck<-checkstartorder(startorder,varnames=scorepar$labels.short,mainnodes=scorepar$mainnodes,
                               bgnodes=scorepar$static,DBN=scorepar$DBN,split=scorepar$split)
-  
-  #checkstartorder(NULL,dbnsplit$labels.short,dbnsplit$mainnodes,c(1:3),DBN=TRUE, split=TRUE) 
   
   if(ordercheck$errorflag) {
     stop(ordercheck$message)
@@ -486,13 +501,13 @@ iterativeMCMC<-function(scorepar, MAP=TRUE, posterior=0.5, softlimit=9, hardlimi
                                       moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                                       startspace=startspace$init,blacklist=blacklist$init,gamma=gamma,
                                       verbose=verbose, chainout=chainout,scoreout=FALSE,mergecp=mergetype,
-                                      addspace=addspace$init,scoretable=NULL,startorder=startorder$init,accum=accum)
+                                      addspace=addspace$init,scoretable=NULL,startorder=startorder$init,accum=accum,alphainit=alphainit,compress=compress)
       cat("learning transition structure...\n")
       result.trans<-iterativeMCMCplus1(param=param2,iterations,stepsave,plus1it=plus1it, MAP=MAP, posterior=posterior,alpha=alpha,cpdag=cpdag,
                                        moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                                        startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,
                                        verbose=verbose, chainout=chainout,scoreout=FALSE,mergecp=mergetype,
-                                       addspace=addspace$trans,scoretable=NULL,startorder=startorder$trans,accum=accum)
+                                       addspace=addspace$trans,scoretable=NULL,startorder=startorder$trans,accum=accum, alphainit=alphainit,compress=compress)
       
       result<-mergeDBNres.it(result.init,result.trans,scorepar)
       
@@ -502,7 +517,7 @@ iterativeMCMC<-function(scorepar, MAP=TRUE, posterior=0.5, softlimit=9, hardlimi
                                  moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                                  startspace=startspace,blacklist=blacklist,gamma=gamma,
                                  verbose=verbose, chainout=chainout,scoreout=scoreout,mergecp=mergetype,
-                                 addspace=addspace,scoretable=scoretable,startorder=startorder,accum=accum)
+                                 addspace=addspace,scoretable=scoretable,startorder=startorder,accum=accum, alphainit=alphainit,compress=compress)
     }
     
   } else {
@@ -510,7 +525,7 @@ iterativeMCMC<-function(scorepar, MAP=TRUE, posterior=0.5, softlimit=9, hardlimi
                              moveprobs=moveprobs,softlimit=softlimit,hardlimit=hardlimit,
                              startspace=startspace,blacklist=blacklist,gamma=gamma,
                              verbose=verbose, chainout=chainout,scoreout=scoreout,mergecp=mergetype,
-                             addspace=addspace,scoretable=scoretable,startorder=startorder,accum=accum)
+                             addspace=addspace,scoretable=scoretable,startorder=startorder,accum=accum,compress=compress)
       }
   result$info<-list()
   result$info$DBN<-scorepar$DBN

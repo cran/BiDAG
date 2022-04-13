@@ -45,10 +45,10 @@ newspaceskel<-function(n,startspace,currspace,softlimit,hardlimit,posterior,blac
 }
 
 newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist, 
-                      maxN,MCMCtrace=NULL,mergetype="skeleton",accum) {
+                      maxdag=NULL,mergetype="skeleton",accum) {
   switch(mergetype,
          "dag" = { 
-           maxdag<-MCMCtrace[[maxN]]
+           maxdag<-maxdag
            newadj<-1*(!blacklist&(startspace|maxdag))
            toomanyneib<-which(apply(newadj,2,sum)>hardlimit)
            if(length(toomanyneib)>0){newadj[,toomanyneib]<-(1*(!blacklist&maxdag))[,toomanyneib]}
@@ -62,14 +62,14 @@ newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist,
            }
          },
          "cpdag" = { 
-           maxcp<-dagadj2cpadj(MCMCtrace[[maxN]])
+           maxcp<-dagadj2cpadj(maxdag)
            newadj<-1*(!blacklist&(startspace|maxcp))
            toomanyneib<-which(apply(newadj,2,sum)>softlimit)
            if(length(toomanyneib)>0) {
-             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|MCMCtrace[[maxN]])))[,toomanyneib]
+             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|maxdag)))[,toomanyneib]
            }
            tootoomanyneib<-which(apply(newadj,2,sum)>hardlimit)
-           if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-MCMCtrace[[maxN]][,tootoomanyneib]}
+           if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-maxdag[,tootoomanyneib]}
            tootoomanyneib<-which(apply(newadj,2,sum)>hardlimit)
            if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-currspace[,tootoomanyneib]}
            if(accum) {
@@ -80,18 +80,18 @@ newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist,
            }
          },
          "skeleton" = { 
-           maxskel<-1*(MCMCtrace[[maxN]]|t(MCMCtrace[[maxN]]))
+           maxskel<-1*(maxdag|t(maxdag))
            newadj<-1*(!blacklist&(startspace|maxskel))
            toomanyneib<-which(apply(newadj,2,sum)>7)
            if(length(toomanyneib)>0) {
-             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|dagadj2cpadj(MCMCtrace[[maxN]]))))[,toomanyneib]
+             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|dagadj2cpadj(maxdag))))[,toomanyneib]
            }
            toomanyneib<-which(apply(newadj,2,sum)>softlimit)
            if(length(toomanyneib)>0) {
-             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|MCMCtrace[[maxN]])))[,toomanyneib]
+             newadj[,toomanyneib]<-(1*(!blacklist&(startspace|maxdag)))[,toomanyneib]
            }
            tootoomanyneib<-which(apply(newadj,2,sum)>hardlimit)
-           if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-MCMCtrace[[maxN]][,tootoomanyneib]}
+           if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-maxdag[,tootoomanyneib]}
            tootoomanyneib<-which(apply(newadj,2,sum)>hardlimit)
            if(length(tootoomanyneib)>0) {newadj[,tootoomanyneib]<-currspace[,tootoomanyneib]}
            if(accum) {
@@ -105,8 +105,8 @@ newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist,
   return(newadj)
 }
 
-definestartspace<-function(alpha,param,cpdag=FALSE,algo="pc") {
-  if(is.null(alpha)) {alpha<-0.1}
+definestartspace<-function(alpha,param,cpdag=FALSE,algo="pc",alphainit=NULL) {
+  if(is.null(alphainit)) {alphainit<-alpha}
   
   local_type <- param$type
   if(local_type=="usr") {
@@ -118,20 +118,21 @@ definestartspace<-function(alpha,param,cpdag=FALSE,algo="pc") {
   if(param$DBN){
     if(param$stationary) {
     othersliceskel <- definestartspace(alpha,param$otherslices,cpdag=FALSE,algo="pc")
-    firstsliceskel <- definestartspace(alpha,param$firstslice,cpdag=FALSE,algo="pc")
+    firstsliceskel <- definestartspace(alphainit,param$firstslice,cpdag=FALSE,algo="pc")
     startspace <- othersliceskel
     startspace[param$intstr$rows,param$intstr$cols] <- 1*(startspace[param$intstr$rows,param$intstr$cols] | firstsliceskel[param$intstr$rows,param$intstr$cols])
+    #diag(startspace[param$trans$rows,param$trans$cols])<-1
     } else {
       skels<-list()
-      skels[[1]]<-definestartspace(alpha,param$paramsets[[1]],cpdag=FALSE,algo="pc")
+      skels[[1]]<-definestartspace(alphainit,param$paramsets[[1]],cpdag=FALSE,algo="pc")
       startspace<-skels[[1]]
       for(i in 2:(length(param$paramsets)-1)) {
         skels[[i]]<-definestartspace(alpha,param$paramsets[[i]],cpdag=FALSE,algo="pc")
         startspace<-1*(skels[[i]]|startspace)
       }
-      firstsliceskel <- definestartspace(alpha,param$paramsets[[length(param$paramsets)]],cpdag=FALSE,algo="pc")
+      firstsliceskel <- definestartspace(alphainit,param$paramsets[[length(param$paramsets)]],cpdag=FALSE,algo="pc")
       startspace[param$intstr$rows,param$intstr$cols] <- 1*(startspace[param$intstr$rows,param$intstr$cols] | firstsliceskel[param$intstr$rows,param$intstr$cols])
-      
+      #diag(startspace[param$trans$rows,param$trans$cols])<-1
 }
   } else { # otherwise use old versions
     

@@ -13,7 +13,7 @@ scoreparameters(
   bdepar = list(chi = 0.5, edgepf = 2),
   bdecatpar = list(chi = 0.5, edgepf = 2),
   dbnpar = list(samestruct = TRUE, slices = 2, b = 0, stationary = TRUE, rowids = NULL,
-    datalist = NULL),
+    datalist = NULL, learninit = TRUE),
   usrpar = list(pctesttype = c("bge", "bde", "bdecat")),
   mixedpar = list(nbin = 0),
   MDAG = FALSE,

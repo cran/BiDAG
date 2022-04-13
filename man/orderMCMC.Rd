@@ -22,6 +22,7 @@ orderMCMC(
   gamma = 1,
   hardlimit = ifelse(plus1, 14, 20),
   verbose = FALSE,
+  compress = TRUE,
   startspace = NULL,
   blacklist = NULL,
   startorder = NULL,
@@ -77,6 +78,8 @@ space, if FALSE (default) the full undirected skeleton will be used as the searc
 \item{hardlimit}{integer, limit on the size of parent sets in the search space; by default 14 when MAP=TRUE and 20 when MAP=FALSE}
 
 \item{verbose}{logical, if TRUE messages about the algorithm's progress will be printed, FALSE by default}
+
+\item{compress}{logical, if TRUE adjacency matrices representing sampled graphs will be stored as a sparse Matrix (recommended); TRUE by default}
 
 \item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix. If NULL, the skeleton obtained from the PC-algorithm will be used. If \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space. To include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1.}
 

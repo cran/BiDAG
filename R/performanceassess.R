@@ -31,9 +31,9 @@ edgep<-function(MCMCchain,pdag=FALSE,burnin=0.2,endstep=1) {
   startstep<-max(as.integer(burnin*endstep),1)
   if (pdag) {
     cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
-    incidence<-Reduce('+', cpdags)/(endstep-startstep+1)
+    incidence<-as.matrix(Reduce('+', cpdags))/(endstep-startstep+1)
   } else {
-    incidence<-Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1)
+    incidence<-as.matrix(Reduce('+', MCMCchain[startstep:endstep]))/(endstep-startstep+1)
   }
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
@@ -76,9 +76,9 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
   startstep<-max(as.integer(burnin*endstep),1)
   if (pdag) {
     cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
-    incidence[which(Reduce('+', cpdags)/(endstep-startstep+1)>p)]<-1
+    incidence[which(as.matrix(Reduce('+', cpdags)/(endstep-startstep+1))>p)]<-1
   } else {
-    incidence[which(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1)>p)]<-1
+    incidence[which(as.matrix(Reduce('+', MCMCchain[startstep:endstep]))/(endstep-startstep+1)>p)]<-1
   }
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
@@ -129,7 +129,7 @@ itercomp<-function(MCMCmult, truedag, cpdag=TRUE, p=0.5,trans=TRUE) {
         truedag<-m2graph(DBNinit(truedag,dyn=MCMCmult$info$nsmall,b=MCMCmult$info$bgn))
         trueskeleton<-graph2skeleton(truedag)
       }
-      
+    
       if(MCMCmult$info$split) {
         if(trans) {
           MCMCmult$maxtrace<-MCMCmult$trans$maxtrace
@@ -152,7 +152,7 @@ itercomp<-function(MCMCmult, truedag, cpdag=TRUE, p=0.5,trans=TRUE) {
             }
             }
       }
-    } 
+  } 
   
   mapdags<-lapply(MCMCmult$maxtrace, function(x)x$DAG)
   score<-unlist(lapply(MCMCmult$maxtrace, function(x)x$score))
@@ -230,7 +230,7 @@ samplecomp<-function(MCMCchain, truedag, p=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0
       dags<-lapply(dags,DBNinit,dyn=MCMCchain$info$nsmall,b=MCMCchain$info$bgn)
     }
   }
-  postprobmat<-Reduce('+', dags)/(endstep-startstep+1)
+  postprobmat<-as.matrix(Reduce('+', dags))/(endstep-startstep+1)
  
   if(length(p)==1) {
     mlist<-matrix(0, nrow=n,ncol=n)

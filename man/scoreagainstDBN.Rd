@@ -30,7 +30,7 @@ scoreagainstDBN(
 vector of log-scores
 }
 \description{
-Scoring observations against DBN structures
+Scoring observations against a DBN structure
 }
 \author{
 Polina Suter

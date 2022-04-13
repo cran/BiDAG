@@ -223,10 +223,12 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
   a<-d<-1.2
   c<-12
   
-  if(!is.matrix(eDBN)) {
-    adj<-graph2m(eDBN)
-  } else {
+  if(is.matrix(eDBN)) {
     adj<-eDBN
+  } else if (is(eDBN,"dtCMatrix")) {
+    adj<-as.matrix(eDBN)
+  } else {
+    adj<-graph2m(eDBN)
   }
   
   dyn<-(ncol(adj)-b)/2

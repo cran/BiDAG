@@ -4,11 +4,9 @@
 partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,parenttable,scoretable,scoretab,
                              aliases,scoresneeded,scoresallowed,plus1lists, rowmapsneeded,rowmapsallowed,
                              needednodetable,numberofparentsvec,numberofpartitionparentsvec,needednodebannedrow,
-                             neededparentsvec,moveprobs,bgnodes,matsize) {
+                             neededparentsvec,moveprobs,bgnodes,matsize,chainout=TRUE,compress=TRUE) {
   
-  #n - number of nodes (background included)
-  #nsmall - number of nodes excluding background
-  #matsize - number of rows/columns in adjacency matrix, used for DBNs
+  result<-list()
   
   if(!is.null(bgnodes)) {
     mainnodes<-c(1:matsize)[-bgnodes]
@@ -48,6 +46,8 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
   L3[1]<-currenttotallogscore #starting partition score
   L4[[1]]<-currentpermy #starting permutation
   L5[[1]]<-currentparty #starting partition
+  maxdag<-currentDAG$incidence
+  maxscore<-L2[1]
 
   # Set some flags for when we need to recalculate neighbourhoods
   permdiffelemflag<-1
@@ -213,18 +213,30 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
     currentDAG<-samplescore.partition.plus1(matsize,mainnodes,currentpartitionscores,
                                             scoretable,scoresallowed,scoresneeded,scoretab,parenttable,needednodetable,numberofparentsvec,
                                             needednodebannedrow,numberofpartitionparentsvec,plus1lists)
-    L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG
+    if(chainout) {
+      if(compress) {
+        L1[[z]]<-Matrix(currentDAG$incidence,sparse=TRUE) #store compressed adjacency matrix of a sampled DAG each 'stepsave'
+      } else {
+        L1[[z]]<-currentDAG$incidence #store adjacency matrix of a sampled DAG each 'stepsave'
+      }
+    }    
     L2[z]<-currentDAG$logscore #and its log score
     L3[z]<-currenttotallogscore #store the current total partition score
     L4[[z]]<-currentpermy[1:nsmall] #store current permutation each 'stepsave'
     L5[[z]]<-currentparty #store current partition each 'stepsave'
+    if(L2[z]>maxscore) {
+      maxscore<-L2[z]
+      maxdag<-currentDAG$incidence
+    } 
   }
 
-  result<-list()
   result$incidence<-L1
   result$DAGscores<-L2
   result$partitionscores<-L3
   result$order<-L4
   result$partition<-L5
+  result$maxscore<-maxscore
+  result$maxdag<-maxdag
+  
   return(result)
 }

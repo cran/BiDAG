@@ -26,11 +26,13 @@ iterativeMCMC(
   stepsave = NULL,
   startorder = NULL,
   accum = FALSE,
+  compress = TRUE,
   plus1it = NULL,
   startspace = NULL,
   blacklist = NULL,
   addspace = NULL,
-  scoretable = NULL
+  scoretable = NULL,
+  alphainit = NULL
 )
 
 \method{plot}{iterativeMCMC}(
@@ -93,6 +95,8 @@ space, when FALSE (default) the undirected skeleton used as a search space}
 
 \item{accum}{logical, when TRUE at each search step expansion new edges are added to the current search space; when FALSE (default) the new edges are added to the starting space}
 
+\item{compress}{logical, if TRUE adjacency matrices representing sampled graphs will be stored as a sparse Matrix (recommended); TRUE by default}
+
 \item{plus1it}{(optional) integer, a number of iterations of search space expansion; by default the algorithm iterates until no score improvement can be achieved by further expanding the search space}
 
 \item{startspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the search space for the order MCMC in the form of an adjacency matrix; if NULL, the skeleton obtained from the PC-algorithm will be used; if \code{startspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{startspace[i,j]} and \code{startspace[j,i]} should be 1}
@@ -107,6 +111,8 @@ space, when FALSE (default) the undirected skeleton used as a search space}
 \item{addspace}{(optional) a square matrix, of dimensions equal to the number of nodes, which defines the edges, which are added at to the search space only at the first iteration of iterative seach and do not necessarily stay afterwards; defined in the form of an adjacency matrix;  if \code{addspace[i,j]} equals to 1 (0) it means that the edge from node \code{i} to node \code{j} is included (excluded) from the search space; to include an edge in both directions, both \code{addspace[i,j]} and \code{addspace[j,i]} should be 1}
 
 \item{scoretable}{(optional) object of class \code{scorespace}. When not NULL, parameters \code{startspace} and \code{addspace} are ignored.}
+
+\item{alphainit}{(optional) numerical, defines alpha that is used by the PC algorithm to learn initial structure of a DBN, ignored in static case}
 
 \item{x}{object of class 'iterativeMCMC'}
 
