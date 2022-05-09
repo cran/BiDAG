@@ -13,6 +13,7 @@ partitionMCMC(
   moveprobs = NULL,
   iterations = NULL,
   stepsave = NULL,
+  alpha = 0.05,
   gamma = 1,
   verbose = FALSE,
   scoreout = FALSE,
@@ -53,6 +54,8 @@ partitionMCMC(
 \item{iterations}{integer, the number of MCMC steps, the default value is \eqn{20n^{2}\log{n}}}
 
 \item{stepsave}{integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}}
+
+\item{alpha}{numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage}
 
 \item{gamma}{tuning parameter which transforms the score by raising it to this power, 1 by default}
 

@@ -1,5 +1,5 @@
 #samples maximum scoring DAG from a given order, returns incidence matrix of this DAG
-#added samplenodes for background nodes, so we sample only for nodes which can have parents
+#added samplenodes for root nodes, so we sample only for nodes which can have parents
 samplescoreplus1.max<-function(matsize,samplenodes,scores,plus1lists,maxmatrices,scoretable,parenttable,
                                numberofparentsvec,aliases) {
   incidence<-matrix(0,ncol=matsize,nrow=matsize) # store the adjacency matrix

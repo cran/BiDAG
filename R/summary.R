@@ -28,7 +28,7 @@ summary.scoreparameters <-function(object, ...){
     }
   } else {
     if(object$bgn>0) {
-      cat("background nodes (no parents are allowed):", object$bgnodes, "\n")
+      cat("root nodes (no parents are allowed):", object$bgnodes, "\n")
     }
   }
   

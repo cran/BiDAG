@@ -62,7 +62,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     stop("the size of maximal parent set is higher that the hardlimit; redifine the search space or increase the hardlimit!")
   }
   
-  tablestart<-Sys.time()
+  #tablestart<-Sys.time()
   #computing score tables
   ptab<-listpossibleparents.PC.aliases(startskel,isgraphNEL=FALSE,n,updatenodes)
   
@@ -78,6 +78,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
     numberofparentsvec<-ptab$numberofparentsvec
     numparents<-ptab$numparents
     rowmaps<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
+    tablestart<-Sys.time()
     if(is.null(scoretable)) {
       scoretable<-scorepossibleparents.alias(parenttable,aliases,n,param,updatenodes,rowmaps,
                                          numparents,numberofparentsvec)
@@ -113,10 +114,11 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   numparents<-ptab$numparents
   plus1lists<-PLUS1(matsize,aliases,updatenodes,blacklistparents)
   rowmaps<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
+  tablestart<-Sys.time()
   if(is.null(scoretable)) {
     scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,
                                            rowmaps,numparents,numberofparentsvec) 
-    }
+  }
     posetparenttable<-poset(parenttable,numberofparentsvec,rowmaps,n,updatenodes)
   
   if(MAP==TRUE){
@@ -179,7 +181,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   }
   
   result$DAG<-maxobj$DAG
-  result$CPDAG<-graph2m(dag2cpdag(m2graph(result$DAG)))
+  result$CPDAG<-Matrix(graph2m(dag2cpdag(m2graph(result$DAG))),sparse=TRUE)
   result$score<-maxobj$score
   result$maxorder<-maxobj$order
   result$info<-list()

@@ -216,7 +216,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
     result$maxtrace<-maxlist
     
     result$DAG<-maxobj$DAG
-    result$CPDAG<-graph2m(dag2cpdag(m2graph(result$DAG)))
+    result$CPDAG<-Matrix(graph2m(dag2cpdag(m2graph(result$DAG))),sparse = TRUE)
     result$score<-maxobj$score
     result$maxorder<-maxobj$order
     

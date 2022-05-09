@@ -25,8 +25,10 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
   a<-d<-1.2
   c<-12
   
-  if(!is.matrix(DBN)) {
+  if(is(DBN,"graphNEL")) {
     DBN<-graph2m(DBN)
+  } else if (!is.matrix(DBN)){
+    DBN<-as.matrix(DBN)
   }
   
   nodelabs<-colnames(DBN)
@@ -722,15 +724,15 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
   old.par<-par(no.readonly = TRUE)
   on.exit(par(old.par))
   
-  if(!is.matrix(graph1)) {
+  if(is(graph1,"graphNEL")) {
     adj<-graph2m(graph1)
   } else {
-    adj<-graph1
+    adj<-as.matrix(graph1)
   }
-  if(!is.matrix(graph2)) {
+  if(is(graph2,"graphNEL")) {
     adjt<-graph2m(graph2)
   } else {
-    adjt<-graph2
+    adjt<-as.matrix(graph2)
   }
   
   nodelabs<-colnames(adj)
@@ -1108,6 +1110,19 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
 #'@author Polina Suter
 #'@export
 plot2in1<-function(graph1, graph2, bidir=FALSE, ...) {
+  
+  if(is(graph1,"graphNEL")) {
+    graph1<-graph2m(graph1)
+  } else if (!is.matrix(graph1)){
+    graph1<-as.matrix(graph1)
+  }
+  
+  if(is(graph2,"graphNEL")) {
+    graph2<-graph2m(graph2)
+  } else if (!is.matrix(graph2)){
+    graph2<-as.matrix(graph2)
+  }
+  
   if(!all(colnames(graph1)==colnames(graph2))) stop("adjacency matrices 'graph1' and 'graph2' have different column names!")
   
   old.par<-par(no.readonly = TRUE)

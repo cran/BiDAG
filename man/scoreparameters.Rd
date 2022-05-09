@@ -79,7 +79,7 @@ scoreparameters(
 
 \item{weightvector}{(optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data}
 
-\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element b of the parameters dbnpar}
+\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining the nodes that are forced to be root nodes in the sampled graphs; root nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element \code{b} of the parameters \code{dbnpar}; parameter \code{bgnodes} is ignored for DBNs}
 
 \item{edgepmat}{(optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default}
 

@@ -80,7 +80,7 @@ newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist,
            }
          },
          "skeleton" = { 
-           maxskel<-1*(maxdag|t(maxdag))
+           maxskel<-1*(maxdag|transp(maxdag))
            newadj<-1*(!blacklist&(startspace|maxskel))
            toomanyneib<-which(apply(newadj,2,sum)>7)
            if(length(toomanyneib)>0) {

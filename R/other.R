@@ -300,7 +300,12 @@ order2var<-function(order,varnames) {
 }
 
 
-
-
+transp<-function(x) {
+  if(is.matrix(x)) {
+    return(t(x))
+  } else {
+    return(t(as.matrix(x)))
+  }
+}
 
 

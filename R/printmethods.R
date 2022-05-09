@@ -192,22 +192,30 @@ print.scorespace <-function(x, ...){
   cat("$adjacency \n")
   cat("matrix", n,"x",n, "\n\n")
   n<-length(x$tables)
-  if(is.list(x$tables[[1]])) {
+  notnull<-which(unlist(lapply(x$tables,function(x)!is.null(x))))
+  if(length(notnull)<n) {  
+    nullnodes<-which(unlist(lapply(x$tables,is.null)))
+    cat("forced root nodes (no score tables): ")
+    for(i in nullnodes) {
+      cat(nullnodes[i]," ") 
+    }
+    cat("\n\n")
+  }
+  if(is.list(x$tables[[notnull[1]]])) {
     cat("$tables", "\n")
-    cat("[[1]][[1]]", "\n")
-    cat(x$tables[[1]][[1]][1,],"\n")
+    cat("[[",notnull[1],"]][[1]]", "\n",sep="")
+    cat(x$tables[[notnull[1]]][[1]][1,],"\n")
     cat("...", "\n")
     lastt<-length(x$tables[[n]])
     cat("[[",n,"]][[",lastt,"]]\n", sep="")
-    cat(x$tables[[n]][[lastt]][1,],"\n")
+    cat(x$tables[[notnull[length(notnull)]]][[lastt]][1,],"\n")
     cat("...", "\n")
-    
   } else {
-    cat("$tables[[1]]", "\n")
-    cat(x$tables[[1]][1,], "...\n")
+    cat("$tables[[",notnull[1],"]]", "\n")
+    cat(x$tables[[notnull[1]]][1,], "...\n",sep="")
     cat("...\n")
     cat("$tables[[", length(x$tables),"]]\n",sep="")
-    cat(x$tables[[length(x$tables)]][1,],"...\n")
+    cat(x$tables[[notnull[length(notnull)]]][1,],"...\n")
   }
  
   cat("\n")

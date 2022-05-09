@@ -117,7 +117,7 @@ orderMCMCplus1max<-function(n,nsmall,startorder,iterations,stepsave,moveprobs,
   result$orderscores<-L3
   result$orders<-L4
   result$maxscore<-maxscore
-  result$maxdag<-maxdag
+  result$maxdag<-Matrix(maxdag,sparse=TRUE)
 
   return(result)
 }

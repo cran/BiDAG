@@ -4,7 +4,7 @@
 
 partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,numit,stepsave,
                                    startorder=NULL,scoretable=NULL,DAG,gamma=1,verbose=TRUE,
-                                   scoreout=FALSE,chainout=TRUE,compress=TRUE){
+                                   scoreout=FALSE,chainout=TRUE,compress=TRUE,alpha=NULL){
 
   MCMCtraces<-list()
   
@@ -25,10 +25,10 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   if(is.null(startspace) & is.null(scoretable)) {
     if(verbose) cat("defining a search space with iterativeMCMC \n")
     searchspace<-iterativeMCMC(scorepar=param,moveprobs=NULL,plus1it=NULL,
-                                     iterations=NULL,stepsave=NULL,softlimit=9,hardlimit=14,alpha=NULL,
+                                     iterations=NULL,stepsave=NULL,softlimit=9,hardlimit=14,
                                      verbose=verbose,chainout=FALSE,scoreout=TRUE,
                                      gamma=gamma,cpdag=FALSE,mergetype="skeleton",
-                                     blacklist=blacklist)
+                                     blacklist=blacklist,alpha=alpha,alphainit = 0.01)
     startspace<-searchspace$scoretable$adjacency
     if(param$DBN) {
       maxDAG<-DBNbacktransform(searchspace$DAG,param)
@@ -37,9 +37,11 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
       scoretable<-searchspace$scoretable$tables
     }
 
-
+    if(!is.matrix(maxDAG)) maxDAG<-as.matrix(maxDAG)
+    
     if(!is.null(param$bgnodes)) {
       forpart<-DAGtopartition(param$nsmall,maxDAG[updatenodes,updatenodes])
+      forpart$permy<-updatenodes[forpart$permy]
     } else {
       forpart<-DAGtopartition(n,maxDAG)
     }
@@ -99,9 +101,10 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
         updatenodes<-c(1:n)[-param$bgnodes]
       }
     } else {
-      
+      if(!is.matrix(DAG)) DAG<-as.matrix(DAG)
       if(!is.null(param$bgnodes)) {
         forpart<-DAGtopartition(param$nsmall,DAG[updatenodes,updatenodes])
+        forpart$permy<-updatenodes[forpart$permy]
       } else {
         forpart<-DAGtopartition(n,DAG)
       }
@@ -112,7 +115,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   if(verbose) cat("core space defined, score table are being computed \n")
   permy<-forpart$permy
   party<-forpart$party
-  starttable<-Sys.time()
+  #starttable<-Sys.time()
   ptab<-listpossibleparents.PC.aliases(startspace,isgraphNEL=FALSE,n,updatenodes=updatenodes)
   parenttable<-ptab$parenttable
   aliases<-ptab$aliases
@@ -120,10 +123,11 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
   numparents<-ptab$numparents
   plus1lists<-PLUS1(n,aliases,updatenodes,blacklistparents)
   rowmapsallowed<-parentsmapping(parenttable,numberofparentsvec,n,updatenodes)
+  starttable<-Sys.time()
   if (is.null(scoretable)) {
     scoretable<-scorepossibleparents.PLUS1(parenttable,plus1lists,n,param,updatenodes,
                                            rowmapsallowed,numparents,numberofparentsvec)
-    }
+  }
   scoretab<-list()
   for (i in updatenodes) {
   scoretab[[i]]<-matrix(sapply(scoretable[[i]], unlist),nrow=nrow(scoretable[[i]][[1]]))}
@@ -145,6 +149,7 @@ partitionMCMCplus1sample<-function(param,startspace,blacklist=NULL,moveprobs,num
                                            ptab$numberofparentsvec,rowmapsallowed,needednodebannedrow,scoretable,
                                            plus1lists,n,updatenodes)
   endtable<-Sys.time()
+  
   if(verbose) cat("score tables calculated, partition MCMC is running \n")
     partres<-partitionMCMCplus1(n,param$nsmall,permy,party,numit,stepsave,parenttable,scoretable,scoretab,
                                  aliases,plus1neededpart,plus1allowedpart,plus1lists,rowmapsneeded,rowmapsallowed,

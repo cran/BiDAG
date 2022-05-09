@@ -40,7 +40,7 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
   counter<-1
   posteriors[[1]]<-countmatrix/counter
   for (i in 2:lchain) {
-    countmatrix<-countmatrix+MCMCtrace[[i]]
+    countmatrix<-as.matrix(countmatrix+MCMCtrace[[i]])
     counter<-counter+1
     posteriors[[i]]<-countmatrix/counter
   }
@@ -54,6 +54,7 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
   if(is.null(highlight)) {
     redi<-c()
   } else {
+    highlight<-as.matrix(highlight)
     redi<-which(highlight==1) 
   }
 

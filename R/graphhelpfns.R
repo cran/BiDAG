@@ -313,7 +313,7 @@ dagadj2cpadj<-function(adj) {
 #returns a symmetric matrix of a skeleton corresponding to a given CPDAG
 #UPPER TRIANGULAR VERSION!
 adjacency2skeleton<-function(adj) {
-  skel<-1*(adj|t(adj))
+  skel<-1*(adj|transp(adj))
   skel<-ifelse(upper.tri(skel)==TRUE,skel,0)
   return(skel)
 }
@@ -369,7 +369,7 @@ graph2skeleton<-function(g,upper=TRUE,outmat=TRUE) {
   }
   
   
-  skel<-1*(adj|t(adj))
+  skel<-1*(adj|transp(adj))
   if(upper) {
   skel<-ifelse(upper.tri(skel)==TRUE,skel,0)
   }

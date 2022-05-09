@@ -236,7 +236,7 @@ partitionMCMCplus1<-function(n,nsmall,startpermy,startparty,iterations,stepsave,
   result$order<-L4
   result$partition<-L5
   result$maxscore<-maxscore
-  result$maxdag<-maxdag
+  result$maxdag<-Matrix(maxdag,sparse=TRUE)
   
   return(result)
 }

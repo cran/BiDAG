@@ -40,7 +40,7 @@
 #'@param MDAG logical, when TRUE the score is initialized for a model with multiple sets of parameters but the same structure
 #'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
 #'@param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
-#'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining background nodes, background nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element b of the parameters dbnpar
+#'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining the nodes that are forced to be root nodes in the sampled graphs; root nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element \code{b} of the parameters \code{dbnpar}; parameter \code{bgnodes} is ignored for DBNs
 #'@param edgepmat (optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default
 #'@param nodeslabels (optional) a vector of characters which denote the names of nodes in the Bayesian network; by default column names of the data will be taken
 #'@return an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
@@ -56,17 +56,12 @@
 #'@export
 # a constructor function for the "scoreparameters" class
 scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data, 
-                          bgepar=list(am=1, aw=NULL),
-                          bdepar=list(chi=0.5, edgepf=2),
-                          bdecatpar=list(chi=0.5, edgepf=2),
-                          dbnpar=list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL, learninit=TRUE), 
-                          usrpar=list(pctesttype=c("bge","bde","bdecat")), 
-                          mixedpar=list(nbin=0),
-                          MDAG=FALSE,
-                          DBN=FALSE,
-                          weightvector=NULL,
-                          bgnodes=NULL, 
-                          edgepmat=NULL, nodeslabels=NULL) {
+                          bgepar=list(am=1, aw=NULL), bdepar=list(chi=0.5, edgepf=2),
+                          bdecatpar=list(chi=0.5, edgepf=2), dbnpar=list(samestruct=TRUE, 
+                            slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL, 
+                            learninit=TRUE), usrpar=list(pctesttype=c("bge","bde","bdecat")), 
+                          mixedpar=list(nbin=0), MDAG=FALSE, DBN=FALSE, weightvector=NULL,
+                          bgnodes=NULL, edgepmat=NULL, nodeslabels=NULL) {
   initparam<-list()
   
   if(DBN) {
@@ -96,7 +91,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
       n<-(ncol(data[[2]])-bgn)/2+bgn
     }} else n<-ncol(data)
 
-  nsmall<-n-bgn #number of nodes in the network excluding background nodes
+  nsmall<-n-bgn #number of nodes in the network excluding root nodes
   if (!(scoretype%in%c("bge", "bde", "bdecat","usr","mixed"))) { #add mixed later
     stop("Scoretype should be bge (for continuous data), bde (for binary data) bdecat (for categorical data) or usr (for user defined)")
   }

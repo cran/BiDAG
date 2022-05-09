@@ -179,7 +179,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
   } else {
     result$info$sampletype<-"sample"
   }
-  
+  result$info$startorder<-startorder
   result$info$fncall<-match.call()
   
   attr(result,"class")<-"orderMCMC"
@@ -204,6 +204,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #' }
 #' @param iterations integer, the number of MCMC steps, the default value is \eqn{20n^{2}\log{n}}
 #' @param stepsave integer, thinning interval for the MCMC chain, indicating the number of steps between two output iterations, the default is \code{iterations/1000}
+#' @param alpha numerical significance value in \code{\{0,1\}} for the conditional independence tests at the PC algorithm stage
 #' @param gamma tuning parameter which transforms the score by raising it to this power, 1 by default
 #' @param verbose logical, if set to TRUE (default) messages about progress will be printed
 #' @param scoreout logical, if TRUE the search space and score tables are returned, FALSE by default
@@ -230,7 +231,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #'@import pcalg
 #'@author Polina Suter, Jack Kuipers, the code partly derived from the partition MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 #'@export
-partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NULL,gamma=1,verbose=FALSE,
+partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NULL, alpha = 0.05, gamma=1,verbose=FALSE,
                         scoreout=FALSE,compress=TRUE,startspace=NULL, blacklist=NULL,scoretable=NULL, startDAG=NULL) {
   if (is.null(moveprobs)) {
     prob1start<-40/100
@@ -286,14 +287,14 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
       result.init<-partitionMCMCplus1sample(param=param1,startspace=startspace$init,
                                             blacklist=blacklist$init,moveprobs=moveprobs,
                                             numit=iterations,DAG=startDAG$init,stepsave=stepsave,
-                                            scoretable=NULL,
-                                            verbose=verbose,gamma=gamma,compress=compress)
+                                            scoretable=NULL,verbose=verbose,
+                                            gamma=gamma,compress=compress,alpha=alpha)
       
       result.trans<-partitionMCMCplus1sample(param=param2,startspace=startspace$trans,
                                              blacklist=blacklist$trans,moveprobs=moveprobs,
                                              numit=iterations,DAG=startDAG$trans,stepsave=stepsave,
-                                             scoretable=NULL,
-                                             verbose=verbose,gamma=gamma,compress=compress)
+                                             scoretable=NULL,verbose=verbose,gamma=gamma,compress=compress,
+                                             alpha=alpha)
       
       result<-mergeDBNres(result.init,result.trans,scorepar,algo="partition")
       
@@ -302,14 +303,14 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
       result<-partitionMCMCplus1sample(param=scorepar,startspace=startspace,blacklist=blacklist,
                                        moveprobs=moveprobs,numit=iterations,DAG=startDAG,
                                        stepsave=stepsave,scoretable=scoretable,verbose=verbose,
-                                       gamma=gamma,compress=compress)
+                                       gamma=gamma,compress=compress,alpha=alpha)
     }
     
   } else {
     result<-partitionMCMCplus1sample(param=scorepar,startspace=startspace,blacklist=blacklist,
                                      moveprobs=moveprobs,numit=iterations,DAG=startDAG,
                                      stepsave=stepsave,scoretable=scoretable,verbose=verbose,
-                                     gamma=gamma,compress=compress)
+                                     gamma=gamma,compress=compress,alpha=alpha)
   }
   
   
@@ -430,6 +431,8 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #'@importFrom utils head
 #'@importFrom Matrix Matrix
 #'@importFrom methods is
+#'@importFrom coda mcmc
+#'@importFrom coda mcmc.list
 #'@useDynLib BiDAG, .registration=TRUE
 #'@rdname iterativeMCMC
 #'@export iterativeMCMC

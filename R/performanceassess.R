@@ -265,9 +265,9 @@ modelpcore<-function(MCMCchain, p, pdag=FALSE, burnin=0.2, DBN=FALSE, nsmall=0, 
   startstep<-max(as.integer(burnin*endstep),1)
   if (pdag) {
     cpdags<-lapply(MCMCchain[startstep:endstep],dagadj2cpadj)
-    incidence[which(Reduce('+', cpdags)/(endstep-startstep+1)>p)]<-1
+    incidence[which(as.matrix(Reduce('+', cpdags)/(endstep-startstep+1))>p)]<-1
   } else {
-    incidence[which(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1)>p)]<-1
+    incidence[which(as.matrix(Reduce('+', MCMCchain[startstep:endstep])/(endstep-startstep+1))>p)]<-1
   }
   colnames(incidence)<-varlabels
   rownames(incidence)<-varlabels
