@@ -23,7 +23,7 @@ a maximum scoring DAG from the result of the MCMC run.
 \examples{
 myscore<-scoreparameters("bge", Boston)
 \dontrun{
-itfit<-iterativeMCMC(myscore)
+itfit<-learnBN(myscore,algorithm="orderIter")
 maxEC<-getDAG(itfit,cp=TRUE)
 }
 }

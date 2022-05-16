@@ -1,19 +1,20 @@
 #' Converting a single BiDAG chain to mcmc object 
 #' 
 #' This function converts a single object of one of the BiDAG classes,
-#' namely 'orderMCMC' and 'partitionMCMC' to an object of class 'mcmc'. This object can
+#' namely 'orderMCMC' or 'partitionMCMC' to an object of class 'mcmc'. This object can
 #' be further used for convergence and mixing diagnostics implemented in the package coda
 #'  
 #' @param MCMCtrace object of class \code{orderMCMC} or \code{partitionMCMC} 
-#' @param edges logical, when FALSE (default), then only DAG score trace is extracted; when TRUE, a trace of posterior probabilities is extracted for every edge (based on the last 200 sampled structures) resulting in n*(n-1)) trace vectors, where n is the number of nodes in the network
-#' @param pdag logical, when edges=TRUE, defines is the DAGs ar converted to CPDAGs prior to computing posterior probabilities; ignored otherwise
+#' @param edges logical, when FALSE (default), then only DAG score trace is extracted; when TRUE, a trace of posterior probabilities is extracted for every edge (based on the sampled DAGs defined by parameters 'window' and 'cumulative') resulting in up to n^2 trace vectors, where n is the number of nodes in the network
+#' @param pdag logical, when edges=TRUE, defines if the DAGs are converted to CPDAGs prior to computing posterior probabilities; ignored otherwise
 #' @param p numeric, between 0 and 1; defines the minimum probability for including posterior traces in the returned objects (for probabilities close to 0 PRSF diagnostics maybe too conservative)
 #' @param burnin numeric between \code{0} and \code{1}, indicates the percentage of the samples which will be discarded as 'burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
 #' @param window integer, defines a number of DAG samples for averaging and computing edges' posterior probabilities; ignored when edges=FALSE 
-#' @param cumulative logical, indicates is posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of first samples are discarded
+#' @param cumulative logical, indicates if posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of the first samples are discarded
 #' @return Object of class \code{mcmc} from the package \pkg{coda}
 #'@examples
 #'\dontrun{
+#'library(coda)
 #'myscore<-scoreparameters("bde",Asia)
 #'ordersample<-sampleBN(myscore,"order")
 #'order_mcmc<-bidag2coda(ordersample)
@@ -74,19 +75,20 @@ bidag2coda<-function(MCMCtrace, edges=FALSE, pdag=TRUE, p=0.1,burnin=0.2,window=
 #' Converting multiple BiDAG chains to mcmc.list
 #' 
 #' This function converts a list of objects of classes
-#' 'orderMCMC' and 'partitionMCMC' to an object of class 'mcmc.list'. This object can
+#' 'orderMCMC' or 'partitionMCMC' to an object of class 'mcmc.list'. This object can
 #' be further used for convergence and mixing diagnostics implemented in the R-package coda.
 #'  
 #' @param MCMClist a list of objects of classes \code{orderMCMC} or \code{partitionMCMC} 
-#' @param edges logical, when FALSE (default), then only DAG score traces are extracted from each element of MCMClist and all other parameters are ignored; when TRUE, a trace of posterior probabilities is computed for every edge resulting in a maximum of n*n trace vectors, where n is the number of nodes in the network
-#' @param pdag logical, when edges=TRUE, defines is the DAGs ar converted to CPDAGs prior to computing posterior probabilities; ignored otherwise
+#' @param edges logical, when FALSE (default), then only DAG score trace is extracted; when TRUE, a trace of posterior probabilities is extracted for every edge (based on the sampled DAGs defined by parameters 'window' and 'cumulative') resulting in up to n^2 trace vectors, where n is the number of nodes in the network
+#' @param pdag logical, when edges=TRUE, defines if the DAGs are converted to CPDAGs prior to computing posterior probabilities; ignored otherwise
 #' @param p numeric, between 0 and 1; defines the minimum probability for including posterior traces in the returned objects (for probabilities close to 0, PRSF diagnostics maybe too conservative; the threshold above 0 is recommended)
 #' @param burnin numeric between \code{0} and \code{1}, indicates the percentage of the samples which will be discarded as 'burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
 #' @param window integer, defines a number of DAG samples for averaging and computing edges' posterior probabilities; ignored when edges=FALSE 
-#' @param cumulative logical, indicates is posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of first samples are discarded
+#' @param cumulative logical, indicates if posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of the first samples are discarded
 #' @return Object of class \code{mcmc.list} from the package \pkg{coda}
 #'@examples
 #'\dontrun{
+#'library(coda)
 #'scoreBoston<-scoreparameters("bge",Boston)
 #'ordershort<-list()
 #'#run very short chains -> convergence issues
@@ -95,6 +97,7 @@ bidag2coda<-function(MCMCtrace, edges=FALSE, pdag=TRUE, p=0.1,burnin=0.2,window=
 #'codashort_edges<-bidag2codalist(ordershort,edges=TRUE,pdag=TRUE,p=0.05,burnin=0.2,window=10)
 #'gd_short<-gelman.diag(codashort_edges, transform=FALSE, autoburnin=FALSE, multivariate=FALSE)
 #'length(which(gd_short$psrf[,1]>1.1))/(length(gd_short$psrf[,1]))
+#'#=>more MCMC iterations are needed, try 100000
 #'}
 #'@author Polina Suter
 #'@references Robert J. B. Goudie and Sach Mukherjee (2016). A Gibbs Sampler for Learning DAGs. J Mach Learn Res. 2016 Apr; 17(30): 1–39.

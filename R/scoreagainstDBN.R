@@ -76,18 +76,18 @@ scoreagainstDBN<-function(scorepar, incidence, datatoscore=NULL,
   return(totscore)
 }
 
-#'Score against DBN
-#'
-#'Scoring observations against a DBN structure
-#'
-#'@param scorepar object of class 'scoreparameters'
-#'@param incidence adjacency matrix of a DAG
-#'@param datatoscore matrix or vector containing observations to be scored
-#'@param marginalise (logical) should marginal score be used?
-#'@param onlymain (logical) should static nodes be included in the score?
-#'@param datainit optional, in case of unbalanced design, the mean score of available samples for T0 are computed
-#'@return vector of log-scores
-#'@author Polina Suter
+#Score against DBN
+#
+#Scoring observations against a DBN structure
+#
+#@param scorepar object of class 'scoreparameters'
+#@param incidence adjacency matrix of a DAG
+#@param datatoscore matrix or vector containing observations to be scored
+#@param marginalise (logical) should marginal score be used?
+#@param onlymain (logical) should static nodes be included in the score?
+#@param datainit optional, in case of unbalanced design, the mean score of available samples for T0 are computed
+#@return vector of log-scores
+#@author Polina Suter
 scoreagainstDBN3<-function(scorepar, incidence, datatoscore=NULL,
                           marginalise=FALSE, onlymain=FALSE, datainit=NULL){
   backDBN<-DBNbacktransform_l(incidence,scorepar,coln=TRUE)

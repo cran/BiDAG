@@ -9,7 +9,7 @@
 scoreparameters(
   scoretype = c("bge", "bde", "bdecat", "usr"),
   data,
-  bgepar = list(am = 1, aw = NULL),
+  bgepar = list(am = 1, aw = NULL, edgepf = 1),
   bdepar = list(chi = 0.5, edgepf = 2),
   bdecatpar = list(chi = 0.5, edgepf = 2),
   dbnpar = list(samestruct = TRUE, slices = 2, b = 0, stationary = TRUE, rowids = NULL,
@@ -40,6 +40,7 @@ scoreparameters(
 \itemize{
 \item am (optional) a positive numerical value, 1 by default
 \item aw (optional) a positive numerical value should be more than \code{n+1}, \code{n+am+1} by default
+\item edgepf (optional) a positive numerical value providing the edge penalization factor to be combined with the BGe score, 1 by default (no penalization)
 }}
 
 \item{bdepar}{a list which contains parameters for BDe score for binary data:
@@ -79,7 +80,7 @@ scoreparameters(
 
 \item{weightvector}{(optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data}
 
-\item{bgnodes}{(optional) a numerical vector which contains numbers of columns in the data defining the nodes that are forced to be root nodes in the sampled graphs; root nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element \code{b} of the parameters \code{dbnpar}; parameter \code{bgnodes} is ignored for DBNs}
+\item{bgnodes}{(optional) a vector that contains  column indices in the data defining the nodes that are forced to be root nodes in the sampled graphs; root nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element \code{b} of the parameters \code{dbnpar}; parameter \code{bgnodes} is ignored for DBNs}
 
 \item{edgepmat}{(optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default}
 

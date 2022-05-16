@@ -1,7 +1,7 @@
-#'Bayesian network structure learning from the posterior distribution
+#'Bayesian network structure learning 
 #'
-#'This function can be used finding the maximum a posteriori (MAP) DAG using stochastic search implemented via MCMC schemes. Due to the superexponential size of the search space as the number of nodes increases, the 
-#'MCMC search is performed on a reduced search space. By default the search space is limited to the skeleton found through the PC algorithm by means of conditional independence tests 
+#'This function can be used finding the maximum a posteriori (MAP) DAG using stochastic search relying on MCMC schemes. Due to the superexponential size of the search space, it 
+#'must be reduced. By default the search space is limited to the skeleton found through the PC algorithm by means of conditional independence tests 
 #'(using the functions \code{\link[pcalg]{skeleton}} and \code{\link[pcalg]{pc}} from the `pcalg' package [Kalisch et al, 2012]).
 #'It is also possible to define an arbitrary search space by inputting an adjacency matrix, for example estimated by partial correlations or other network algorithms. Order MCMC scheme (\code{algorithm="order"})
 #'performs the search of a maximum scoring order and selects a maximum scoring DAG from this order as MAP. To avoid discovering a suboptimal graph due to the absence
@@ -9,8 +9,8 @@
 #'This offers improvements in the learning of Bayesian networks. The iterative MCMC (\code{algorithm="orderIter"}) scheme allows for iterative expansions of the search space.
 #'This is useful in cases when the initial search space is poor in a sense that it contains only a limited number of true positive edges. Iterative expansions of the search space
 #'efficiently solve this issue. However this scheme requires longer runtimes due to the need of running multiple consecutive MCMC chains.  
-#'This function is a wrapper for the three individual structure learning and sampling functions that implement each of the described algorithms; for details see \code{\link{orderMCMC}},
-#'\code{\link{partitionMCMC}},\code{\link{iterativeMCMC}}.
+#'This function is a wrapper for the individual structure learning functions that implement each of the described algorithms; for details see \code{\link{orderMCMC}},
+#' and \code{\link{iterativeMCMC}}.
 #' @param scorepar an object of class \code{scoreparameters}, containing the data and score parameters, see constructor function \code{\link{scoreparameters}}
 #' @param algorithm MCMC scheme to be used for MAP structure learning "order" (\code{\link{orderMCMC}}) or "itereorder" (\code{\link{iterativeMCMC}})
 #' @param chainout logical, if TRUE the saved MCMC steps are returned, TRUE by default
@@ -33,9 +33,9 @@
 #' @param plus1 logical, if TRUE (default) the search is performed on the extended search space; only changable for orderMCMC; for other algorithms is fixed to TRUE
 #' @param iterpar addition list of parameters for the MCMC scheme implemeting iterative expansions of the search space; for more details see \code{\link{iterativeMCMC}}; list(posterior = 0.5, softlimit = 9, mergetype = "skeleton", accum = FALSE, 
 #'plus1it = NULL, addspace = NULL, alphainit = NULL)
-#' @return Depending on the value or the parameter \code{algorithm} returns an object of class \code{orderMCMC}, \code{partitionMCMC} or \code{iterativeMCMC} which contains log-score trace of sampled DAGs as well 
+#' @return Depending on the value or the parameter \code{algorithm} returns an object of class \code{orderMCMC} or \code{iterativeMCMC} which contains log-score trace of sampled DAGs as well 
 #' as adjacency matrix of the maximum scoring DAG(s), its score and the order or partition score. The output can optionally include DAGs sampled in MCMC iterations and the score tables. 
-#' Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{orderMCMC class}}, \code{\link{partitionMCMC class}}, \code{\link{iterativeMCMC class}} for a detailed description of the classes' structures.
+#' Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{orderMCMC class}}, \code{\link{iterativeMCMC class}} for a detailed description of the classes' structures.
 #' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
 #'@references Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.
 #'@references Kalisch M, Maechler M, Colombo D, Maathuis M and Buehlmann P (2012). Causal inference using graphical models with the R package pcalg. Journal of Statistical Software 47, 1-26.
@@ -131,12 +131,11 @@ learnBN<-function(scorepar, algorithm = c("order", "orderIter"), chainout = FALS
 #'@examples
 #'\dontrun{
 #'myScore<-scoreparameters("bge",Boston)
-#'samplefit1<-sampleBN(myScore,"orderIter",iterpar=list(posterior=0.2))
-#'samplefit2<-sampleBN(myScore,"orderIter",iterpar=list(posterior=0.5))
-#'summary(samplefit1)
-#'summary(samplefit2)
-#'plot(samplefit1)
-#'plot(samplefit2)
+#'MCMCchains<-list()
+#'MCMCchains[[1]]<-sampleBN(myScore,"partition")
+#'MCMCchains[[2]]<-sampleBN(myScore,"partition")
+#'edge_posterior<-lapply(MCMCchains,edgep,pdag=TRUE)
+#'plotpcor(edge_posterior)
 #'}
 #'@author Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 #'@export

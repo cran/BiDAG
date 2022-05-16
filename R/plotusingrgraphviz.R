@@ -3,8 +3,9 @@
 #' This function can be used for plotting initial and transition structures of a dynamic Bayesian network.
 #'
 #'@param DBN binary matrix (or a graph object) representing a 2-step DBN (compact or unrolled)
-#'@param struct option used to determine if the initial or the transition structure should be plotted; accaptable values are init or trans
+#'@param struct option used to determine if the initial or the transition structure should be plotted; acceptable values are init or trans
 #'@param b number of static variables in the DBN, 0 by default; note that for function to work correctly all static variables have to be in the first b columns of the matrix
+#'@param shape string, defining the shape of the box around each node; possible values are circle, ellipse, box
 #'@param ... optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}
 #'@return plots the DBN defined by the adjacency matrix 'DBN' and number of static and dynamic variables. When 'struct' equals "trans" the transition structure is plotted,
 #'otherwise initial structure is plotted
@@ -14,7 +15,7 @@
 #'
 #' @author Polina Suter
 #' @export
-plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
+plotDBN<-function(DBN,struct=c("init","trans"),b=0,shape="circle",...){
   dyn<-(ncol(DBN)-b)/2
   
   old.par<-par(no.readonly = TRUE)
@@ -25,9 +26,11 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
   a<-d<-1.2
   c<-12
   
-  if(is(DBN,"graphNEL")) {
+  if(is.matrix(DBN)) {
+    DBN<-DBN
+  } else if (is(DBN,"graphNEL")) {
     DBN<-graph2m(DBN)
-  } else if (!is.matrix(DBN)){
+  } else {
     DBN<-as.matrix(DBN)
   }
   
@@ -39,6 +42,7 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
   
   if(struct=="init") {
     
+    shapevec <- rep(shape, dyn+b) 
     nodelabs<-nodelabs[1:(dyn+b)]
     
     if(b>0){
@@ -48,10 +52,8 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
       legendG<-m2graph(legadj)
       staticnames<-nodelabs[1:b]
       legcol<-c(statcol,dyn1col)
-      legw<-rep(a,2)
-      legh<-rep(d,2)
-      legf<-rep(c,2)
-      names(legcol)<-names(legw)<- names(legh)<-names(legf)<-c("stat","1")
+    } else {
+      staticnames<-c()
     }
     
     dynamicnames<-nodelabs[1:dyn+b]
@@ -63,18 +65,20 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
     subGList<-list()
     sg<-list()
     
-    graph.par(list(nodes=list(col=dyn1col, lty="solid", lwd=2, ...),graph=list(...,cex.main=1.5)))
+ 
+    
+    graph.par(list(nodes=list(col=dyn1col, lty="solid", lwd=1, ...),graph=list(...,cex.main=1.5)))
     if(b!=0) {  
       sg1 = subGraph(dynamicnames, graph.obj)
       sg2 = subGraph(staticnames, graph.obj)
       sgL = list(list(graph=sg1, cluster = TRUE),
                  list(graph=sg2, cluster = TRUE))
-      graph.obj <- Rgraphviz::layoutGraph(graph.obj, subGList= sgL)
+      graph.obj <- Rgraphviz::layoutGraph(graph.obj, subGList= sgL,nodeAttrs = list(shape = shapevec))
       graph::nodeRenderInfo(graph.obj)[["fill"]][staticnames] = statcol
       graph::nodeRenderInfo(graph.obj)[["fill"]][dynamicnames] = dyn1col
-      
+      graph::nodeRenderInfo(graph.obj)[["shape"]][c(staticnames,dynamicnames)] = shape
     } else {
-      graph.obj <- Rgraphviz::layoutGraph(graph.obj)
+      graph.obj <- Rgraphviz::layoutGraph(graph.obj,nodeAttrs = list(shape = shapevec))
     }
     
     if(b>0) {
@@ -82,20 +86,22 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
                       1,1,1,1,1,2,2,
                       1,1,1,1,1,3,3), nrow = 3, ncol = 7, byrow = TRUE))
       
+      legendG <- Rgraphviz::layoutGraph(legendG,nodeAttrs = list(shape = shapevec))
       graph::nodeRenderInfo(legendG)[["fill"]]["stat"] = statcol
       graph::edgeRenderInfo(legendG)[["lwd"]]["stat~1"] = 0
-      Rgraphviz::renderGraph(graph.obj )
+      graph::nodeRenderInfo(legendG)[["shape"]][c("stat","1")] = shape
+      Rgraphviz::renderGraph(graph.obj,nodeAttrs = list(shape = shapevec))
+      graph.par(list(graph=list(main="nodes(t):")))
+      Rgraphviz::renderGraph(legendG,nodeAttrs = list(shape = shapevec))
       
-      graph::plot(legendG,attrs=list(graph=list(rankdir="TB"),edge=list(lwd=0)),
-                  nodeAttrs=list(fillcolor=legcol,height=legh,width=legw,fontsize=legf),
-                  main="nodes (t):",cex.main=1.5)
     } else {
-      graph.par(list(nodes=list(col=dyn1col, lty="solid", lwd=2, ...),graph=list(main="nodes (t):")))
-      Rgraphviz::renderGraph(graph.obj )
+      graph.par(list(nodes=list(col=dyn1col, lty="solid", lwd=1, ...)))
+      Rgraphviz::renderGraph(graph.obj,nodeAttrs = list(shape = shape))
     }
   }
   
   if(struct=="trans") {
+    shapevec = rep(shape, 2*dyn+b) #added
     if(b>0) {
       legadj<-matrix(0,nrow=3,ncol=3)
       legadj[1,2]<-1
@@ -104,29 +110,12 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
       legendG<-m2graph(legadj)
       legcol<-c(statcol,dyn1col,dyn2col)
       names(legcol)<-c("stat","i","i+1")
-      legw<-rep(a,3)
-      legh<-rep(d,3)
-      legf<-rep(c,3)
-      names(legw)<- names(legh)<-names(legf)<-c("stat","i","i+1")
-      
-      colvector = c(rep(statcol,b), rep(dyn1col,dyn),rep(dyn2col,dyn))
-      shapevec = c(rep("triangle",b),rep("circle",dyn),rep("box",dyn))
-      wvec=c(rep(7,b),rep(6,dyn),rep(5,dyn))
-      names(colvector)<-names(shapevec)<-names(wvec)<-nodelabs
     } else {
       legadj<-matrix(0,nrow=2,ncol=2)
       legadj[1,2]<-1
-      legw<-rep(a,2)
-      legh<-rep(d,2)
-      legf<-rep(c,2)
       colnames(legadj)<-c("i","i+1")
       legendG<-m2graph(legadj)
-      legcol<-c(dyn1col,dyn2col)
-      names(legcol)<-names(legw)<- names(legh)<-names(legf)<-c("i","i+1")
-      colvector = c(rep(dyn1col,dyn),rep(dyn2col,dyn))
-      names(colvector)<-nodelabs
-      shapevec = c(rep("circle",dyn),rep("box",dyn))
-      names(colvector)<-names(shapevec)<-nodelabs
+      staticnames<-c()
     }
     
     adjt<-DBNcut(DBN[1:(b+2*dyn),1:(b+2*dyn)],dyn,b)
@@ -140,33 +129,47 @@ plotDBN<-function(DBN,struct=c("init","trans"),b=0,...){
     if(b>0) {
       staticnames<-nodelabs[1:b]
       sgStat = subGraph(staticnames, graph.obj)
-      sgL = list(list(graph=sgStat, cluster = TRUE, attrs = c(rankdir="TB",rank="sink")),
-                 list(graph=sgDyn1, cluster = TRUE, attrs = c(rank="same")),
-                 list(graph=sgDyn2, cluster = TRUE, attrs = c(rank="same")))
+      sgL = list(list(graph=sgStat, cluster = TRUE),
+                 list(graph=sgDyn1, cluster = TRUE),
+                 list(graph=sgDyn2, cluster = TRUE))
     } else {
-      sgL = list(list(graph=sgDyn1, cluster = TRUE, attrs = c(rank="same")),
-                 list(graph=sgDyn2, cluster = TRUE, attrs = c(rank="same")))
+      sgL = list(list(graph=sgDyn1, cluster = TRUE),
+                 list(graph=sgDyn2, cluster = TRUE))
     }
     
-    graph.par(list(nodes=list(col=dyn1col, lty="solid", lwd=2, ...),graph=list(...)))
-    graph.obj <- Rgraphviz::layoutGraph(graph.obj, subGList= sgL)
+    graph.par(list(nodes=list(col=dyn1col, lty="solid", lwd=1, ...),graph=list(...)))
+    graph.obj <- Rgraphviz::layoutGraph(graph.obj, subGList= sgL,nodeAttrs = list(shape = shape))
     
     if(b>0) graph::nodeRenderInfo(graph.obj)[["fill"]][staticnames] = statcol
     graph::nodeRenderInfo(graph.obj)[["fill"]][dyn1names] = dyn1col
     graph::nodeRenderInfo(graph.obj)[["fill"]][dyn2names] = dyn2col
+    graph::nodeRenderInfo(graph.obj)[["shape"]][c(staticnames,dyn1names,dyn2names)]<-shape
     
     layout(matrix(c(1,1,1,1,1,3,3,
                     1,1,1,1,1,2,2,
                     1,1,1,1,1,3,3), nrow = 3, ncol = 7, byrow = TRUE))
-    Rgraphviz::renderGraph(graph.obj)
+    Rgraphviz::renderGraph(graph.obj,nodeAttrs = list(shape = shape))
     
-    graph::plot(legendG,attrs=list(graph=list(rankdir="TB"),edge=list(lwd=0)),
-                  nodeAttrs=list(fillcolor=legcol,height=legh,width=legw,fontsize=legf),
-                  main="nodes (t):",cex.main=1.5)
+    legendG <- Rgraphviz::layoutGraph(legendG)
+    if(b>0) {
+      graph::nodeRenderInfo(legendG)[["shape"]][c("stat","i","i+1")] <- shape
+      graph::nodeRenderInfo(legendG)[["fill"]]["stat"] = statcol
+      graph::nodeRenderInfo(legendG)[["fill"]]["i"] = dyn1col
+      graph::nodeRenderInfo(legendG)[["fill"]]["i+1"] = dyn2col
+      graph::edgeRenderInfo(legendG)[["lwd"]]["stat~i"] = 0
+      graph::edgeRenderInfo(legendG)[["lwd"]]["i~i+1"] = 0
+    } else {
+      graph::nodeRenderInfo(legendG)[["shape"]][c("i","i+1")] <- shape
+      graph::nodeRenderInfo(legendG)[["fill"]]["i"] = dyn1col
+      graph::nodeRenderInfo(legendG)[["fill"]]["i+1"] = dyn2col
+      graph::edgeRenderInfo(legendG)[["lwd"]]["i~i+1"] = 0
+    }
+    #plot graph
+    graph.par(list(graph=list(main="nodes(t):",cex.main=1.8),nodes=list(fontsize=16)))
+    #plot legend
+    Rgraphviz::renderGraph(legendG,nodeAttrs = list(shape = shapevec))
   }
 }
-
-
 assigncolor<-function(nit,ncol) {
   colind<-1:(ncol-1)
   ncolsmall<-ncol-1
@@ -203,6 +206,7 @@ assigncolor<-function(nit,ncol) {
 #'@param struct option used to determine if the initial or the transition structure should be plotted; accaptable values are init or trans
 #'@param b number of static variables in one time slice of a DBN; note that for function to work correctly all static variables have to be in the first b columns of the matrix
 #'@param showcl logical, when TRUE (default) nodes are shown in clusters according to the time slice the belong to
+#'@param orientation orientation of the graph layout, possible options are 'TB' (top-bottom) and 'LR' (left-right)
 #'@param ... optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}
 #'@return plots the graph highlights differences between 'eDBN' (estimated DBN) and 'trueDBN' (ground truth); edges which are different in 'eDBN' compared to 'trueDBN' are coloured according to the type of a difference: false-positive, false-negative and error in direction.
 #'@examples
@@ -210,33 +214,39 @@ assigncolor<-function(nit,ncol) {
 #'dbnpar = list(samestruct=TRUE, slices=5, b=3),
 #'DBN=TRUE)
 #'\dontrun{
-#'orderDBNfit<-iterativeMCMC(dbnscore,chainout = TRUE, mergetype = "skeleton",scoreout=TRUE,alpha=0.4)
+#'orderDBNfit<-learnBN(dbnscore,algorithm="order")
+#'iterDBNfit<-learnBN(dbnscore,algorithm="orderIter")
 #'plotdiffsDBN(getDAG(orderDBNfit),DBNmat,struct="trans",b=3)
-#'plotdiffsDBN(getDAG(orderDBNfit),DBNmat,struct="init",b=3)
+#'plotdiffsDBN(getDAG(iterDBNfit),DBNmat,struct="trans",b=3)
 #'}
 #'@export
 #'@author Polina Suter
-plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, ...) {
+plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, orientation="TB",...) {
+  
   old.par<-par(no.readonly = TRUE)
   oldgraphpar<-graph.par()
   on.exit(par(old.par))
   on.exit(graph.par(oldgraphpar),add=TRUE)
-  
+  shape<-"circle"
   a<-d<-1.2
   c<-12
   
   if(is.matrix(eDBN)) {
     adj<-eDBN
-  } else if (is(eDBN,"dtCMatrix")) {
-    adj<-as.matrix(eDBN)
-  } else {
+  } else if (is(eDBN,"graphNEL")) {
     adj<-graph2m(eDBN)
+  } else {
+    adj<-as.matrix(eDBN)
   }
   
   dyn<-(ncol(adj)-b)/2
   
   if(!is.matrix(trueDBN)) {
-    adjt<-graph2m(trueDBN)
+    if (is(trueDBN,"graphNEL")) {
+      adjt<-graph2m(trueDBN)
+    } else {
+      adjt<-as.matrix(trueDBN)
+    }
   } else {
     adjt<-trueDBN
   }
@@ -257,10 +267,12 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
       legendG<-m2graph(legadj)
       staticnames<-nodelabs[1:b]
       legcol<-c(statcol,dyn1col)
-      legw<-rep(a,2)
-      legh<-rep(d,2)
-      legf<-rep(c,2)
-      names(legcol)<-names(legw)<- names(legh)<-names(legf)<-c("stat","1")
+      colvector = c(rep(statcol,b),rep(dyn1col,dyn))
+      names(colvector)<-nodelabs
+    } else {
+      legcol<-c(dyn1col)
+      colvector = c(rep(dyn1col,dyn))
+      names(colvector)<-nodelabs
     }
     
     dynamicnames<-nodelabs[1:dyn+b]
@@ -360,7 +372,7 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
       } else {
         graph.plot = Rgraphviz::layoutGraph(graph.obj)
       }
-    graph::nodeRenderInfo(graph.plot)<-list(fill=colvector,shape="circle")
+
     if(!is.null(FPlist)) {
       FP<-apply(FPlist, 1, paste, collapse = "~")
       graph::edgeRenderInfo(graph.plot)[["col"]][FP] = "red"
@@ -439,19 +451,36 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
       tpname<-NULL
     }
     
+    graph::nodeRenderInfo(graph.plot)<-list(fill=colvector,shape="circle",...)
+    
+    layout(matrix(c(1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    2,2,2,3,3,3,4,4,4,
+                    2,2,2,3,3,3,4,4,4), nrow = 9, ncol = 9, byrow = TRUE))
+    
     if(b>0) {
-      layout(matrix(c(1,1,1,1,1,1,1,4,4,
-                      1,1,1,1,1,1,1,2,2,
-                      1,1,1,1,1,1,1,3,3,
-                      1,1,1,1,1,1,1,3,3), nrow = 4, ncol = 9, byrow = TRUE))
+      #graph
       Rgraphviz::renderGraph(graph.plot)
-      graph::plot(legendG,attrs=list(graph=list(rankdir="TB"), edge=list(lwd=0)),
-                  nodeAttrs=list(fillcolor=legcol,height=legh,width=legw,fontsize=legf),
-                  main="nodes (t):",cex.main=1.5)
+      #graph legend
+      graph.par(list(graph=list(main="nodes(t):",cex.main=1.8),...))
+      legendG <- Rgraphviz::layoutGraph(legendG,attrs = list(graph = list(rankdir = "TB")))
+      graph::nodeRenderInfo(legendG)[["shape"]][c("stat","1")] <- shape
+      graph::nodeRenderInfo(legendG)[["fill"]]["stat"] = statcol
+      graph::nodeRenderInfo(legendG)[["fill"]]["1"] = dyn1col
+      graph::edgeRenderInfo(legendG)[["lwd"]]["stat~1"] = 0
+     
+      Rgraphviz::renderGraph(legendG)
+
     } else {
       Rgraphviz::renderGraph(graph.plot)
     }
     par(mar = c(0,0,0,0))
+    plot(1:10,1:10,type="n", axes = FALSE, xlab = "", ylab = "")
     plot(1:10,1:10,type="n", axes = FALSE, xlab = "", ylab = "")
     op <- par(cex = 1.7)
     legend("topleft",legend=c(tpname,
@@ -472,30 +501,17 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
       colnames(legadj)<-c("stat","i","i+1")
       legendG<-m2graph(legadj)
       legcol<-c(statcol,dyn1col,dyn2col)
-      names(legcol)<-c("stat","i","i+1")
-      legw<-rep(a,3)
-      legh<-rep(d,3)
-      legf<-rep(c,3)
-      names(legw)<- names(legh)<-names(legf)<-c("stat","i","i+1")
-      
-      colvector = c(rep(statcol,b), rep(dyn1col,dyn),rep(dyn2col,dyn))
-      shapevec = c(rep("triangle",b),rep("circle",dyn),rep("box",dyn))
-      wvec=c(rep(7,b),rep(6,dyn),rep(5,dyn))
-      names(colvector)<-names(shapevec)<-names(wvec)<-nodelabs
+      colvector = c(rep(statcol,b),rep(dyn1col,dyn),rep(dyn2col,dyn))
+      names(colvector)<-nodelabs
+      names(colvector)<-nodelabs
     } else {
       legadj<-matrix(0,nrow=2,ncol=2)
       legadj[1,2]<-1
-      legw<-rep(a,2)
-      legh<-rep(d,2)
-      legf<-rep(c,2)
       colnames(legadj)<-c("i","i+1")
       legendG<-m2graph(legadj)
       legcol<-c(dyn1col,dyn2col)
-      names(legcol)<-names(legw)<- names(legh)<-names(legf)<-c("i","i+1")
       colvector = c(rep(dyn1col,dyn),rep(dyn2col,dyn))
       names(colvector)<-nodelabs
-      shapevec = c(rep("circle",dyn),rep("box",dyn))
-      names(colvector)<-names(shapevec)<-nodelabs
     }
     
     adj<-DBNcut(adj[1:(b+2*dyn),1:(b+2*dyn)],dyn,b)
@@ -520,10 +536,11 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
     
     
     if(showcl) {
-      graph.plot = Rgraphviz::layoutGraph(graph.obj, subGList = sgL) 
+      graph.plot = Rgraphviz::layoutGraph(graph.obj, subGList = sgL,attrs = list(graph = list(rankdir = orientation))) 
     } else {
-      graph.plot = Rgraphviz::layoutGraph(graph.obj)
+      graph.plot = Rgraphviz::layoutGraph(graph.obj,attrs = list(graph = list(rankdir = orientation)))
     }    
+    
     graph::nodeRenderInfo(graph.plot)<-list(fill=colvector,shape="circle",...)
     
     
@@ -675,20 +692,44 @@ plotdiffsDBN<-function(eDBN,trueDBN,struct=c("init","trans"),b=0, showcl=TRUE, .
     graph.par(list(graph=list(...,cex.main=1.5),
                    nodes=list(lty="solid", lwd=1, fixedsize=FALSE,...)))
 
-    layout(matrix(c(1,1,1,1,1,1,1,2,2,
-                    1,1,1,1,1,1,1,2,2,
-                    1,1,1,1,1,1,1,3,3,
-                    1,1,1,1,1,1,1,3,3), nrow = 4, ncol = 9, byrow = TRUE))
     
+    layout(matrix(c(1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,
+                    2,2,2,3,3,4,4,4,4,
+                    2,2,2,3,3,4,4,4,4), nrow = 9, ncol = 9, byrow = TRUE))
+    
+
+   #plot graph
    Rgraphviz::renderGraph(graph.plot)
-   graph::plot(legendG,attrs=list(graph=list(rankdir="TB"),edge=list(lwd=0)),
-               nodeAttrs=list(fillcolor=legcol,height=legh,width=legw,fontsize=legf),
-               main="nodes (t):",cex.main=1.5)
+   #plot legend
+   legendG <- Rgraphviz::layoutGraph(legendG,attrs = list(graph = list(rankdir = "TB")))
+   if(b>0) {
+     graph::nodeRenderInfo(legendG)[["shape"]][c("stat","i","i+1")] <- shape
+     graph::nodeRenderInfo(legendG)[["fill"]]["stat"] = statcol
+     graph::nodeRenderInfo(legendG)[["fill"]]["i"] = dyn1col
+     graph::nodeRenderInfo(legendG)[["fill"]]["i+1"] = dyn2col
+     graph::edgeRenderInfo(legendG)[["lwd"]]["stat~i"] = 0
+     graph::edgeRenderInfo(legendG)[["lwd"]]["i~i+1"] = 0
+   } else {
+     graph::nodeRenderInfo(legendG)[["shape"]][c("i","i+1")] <- shape
+     graph::nodeRenderInfo(legendG)[["fill"]]["i"] = dyn1col
+     graph::nodeRenderInfo(legendG)[["fill"]]["i+1"] = dyn2col
+     graph::edgeRenderInfo(legendG)[["lwd"]]["i~i+1"] = 0
+   }
+   
+   graph.par(list(graph=list(main="nodes(t):",cex.main=1.8),...))
+   Rgraphviz::renderGraph(legendG)
     
     par(mar = c(0,0,0,0))
     plot(1:10,1:10,type="n", axes = FALSE, xlab = "", ylab = "")
+    plot(1:10,1:10,type="n", axes = FALSE, xlab = "", ylab = "")
     op <- par(cex = 1.7)
-    legend("center",legend=c(tpname,
+    legend(1,10,legend=c(tpname,
                              fpname,
                              fnname,
                              edname),lty=c(tplty,fplty,fnlty,edlty),
@@ -1086,7 +1127,7 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
                     1,1,1,1,
                     1,1,1,1,
                     1,1,1,1,
-                    2,2,2,2), nrow = 6, ncol = 4, byrow = TRUE))
+                    2,2,3,3), nrow = 6, ncol = 4, byrow = TRUE))
     Rgraphviz::renderGraph(graph.plot)
     
     par(mar = c(0,0,0,0))
@@ -1204,10 +1245,4 @@ plot2in1<-function(graph1, graph2, bidir=FALSE, ...) {
   graph::edgeRenderInfo(graph.plot)[["lwd"]]<-2
   Rgraphviz::renderGraph(graph.plot)
 }
-
-
-
-
-
-
 

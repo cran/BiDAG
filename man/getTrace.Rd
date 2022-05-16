@@ -29,7 +29,7 @@ work only when the parameter 'scoreout' was set to TRUE.
 \examples{
 myscore<-scoreparameters("bge",Boston)
 \dontrun{
-orderfit<-orderMCMC(myscore,chainout=TRUE)
+orderfit<-sampleBN(myscore,algorithm="order")
 DAGscores<-getTrace(orderfit,which=0)
 DAGtrace<-getTrace(orderfit,which=1)
 orderscores<-getTrace(orderfit,which=3)

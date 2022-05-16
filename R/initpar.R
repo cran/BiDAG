@@ -10,6 +10,7 @@
 #' \itemize{
 #' \item am (optional) a positive numerical value, 1 by default
 #' \item aw (optional) a positive numerical value should be more than \code{n+1}, \code{n+am+1} by default
+#' \item edgepf (optional) a positive numerical value providing the edge penalization factor to be combined with the BGe score, 1 by default (no penalization)
 #' }
 #' @param bdepar a list which contains parameters for BDe score for binary data:
 #' \itemize{
@@ -40,7 +41,7 @@
 #'@param MDAG logical, when TRUE the score is initialized for a model with multiple sets of parameters but the same structure
 #'@param DBN logical, when TRUE the score is initialized for a dynamic Baysian network; FALSE by default
 #'@param weightvector (optional) a numerical vector of positive values representing the weight of each observation; should be NULL(default) for non-weighted data 
-#'@param bgnodes (optional) a numerical vector which contains numbers of columns in the data defining the nodes that are forced to be root nodes in the sampled graphs; root nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element \code{b} of the parameters \code{dbnpar}; parameter \code{bgnodes} is ignored for DBNs
+#'@param bgnodes (optional) a vector that contains  column indices in the data defining the nodes that are forced to be root nodes in the sampled graphs; root nodes are nodes which have no parents but can be parents of other nodes in the network; in case of DBNs bgnodes represent static variables and defined via element \code{b} of the parameters \code{dbnpar}; parameter \code{bgnodes} is ignored for DBNs
 #'@param edgepmat (optional) a matrix of positive numerical values providing the per edge penalization factor to be added to the score, NULL by default
 #'@param nodeslabels (optional) a vector of characters which denote the names of nodes in the Bayesian network; by default column names of the data will be taken
 #'@return an object of class \code{scoreparameters}, which includes all necessary information for calculating the BDe/BGe score
@@ -56,7 +57,7 @@
 #'@export
 # a constructor function for the "scoreparameters" class
 scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data, 
-                          bgepar=list(am=1, aw=NULL), bdepar=list(chi=0.5, edgepf=2),
+                          bgepar=list(am=1, aw=NULL, edgepf=1), bdepar=list(chi=0.5, edgepf=2),
                           bdecatpar=list(chi=0.5, edgepf=2), dbnpar=list(samestruct=TRUE, 
                             slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL, 
                             learninit=TRUE), usrpar=list(pctesttype=c("bge","bde","bdecat")), 
@@ -65,14 +66,12 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
   initparam<-list()
   
   if(DBN) {
-    if(is.null(dbnpar)) {
-      dbnpar<-list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL)
-    }
+    
+    dbnpardef<-list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL)
+    dbnpardef[names(dbnpar)]<-dbnpar[names(dbnpar)]
+    dbnpar<-dbnpardef
     if(is.null(dbnpar$b)) bgnodes<-NULL else if(dbnpar$b>0) bgnodes<-c(1:dbnpar$b) else bgnodes<-NULL
-    if(is.null(dbnpar$stationary)) dbnpar$stationary<-TRUE
-    if(is.null(dbnpar$samestruct)) dbnpar$samestruct<-TRUE
-    if(is.null(dbnpar$slices)) dbnpar$slices<-2
-    if(is.null(dbnpar$learninit)) dbnpar$learninit<-TRUE
+
     
     
     if (!is.null(dbnpar$samestruct)) {
@@ -418,6 +417,17 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
                                             edgepmat=edgepmatfirst, DBN=FALSE)
   }
   } else if(scoretype=="bge") {
+    
+    if(is.null(bgepar$am)) {
+      bgepar$am<-1
+    }
+    if(is.null(bgepar$aw)) {
+      bgepar$aw<-n+bgepar$am+1
+    }
+    if(is.null(bgepar$edgepf)) {
+      bgepar$edgepf<-1
+    }
+    
     if (is.null(weightvector)) {
       N<-nrow(data)
       covmat<-cov(data)*(N-1)
@@ -428,13 +438,11 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
       covmat<-forcov$cov*N
       means<-forcov$center
     }
-    if (is.null(bgepar$aw)) {
-      bgepar$aw<-n+bgepar$am+1
-    }
     
     initparam$am <- bgepar$am # store parameters
     initparam$aw <- bgepar$aw
-    
+    initparam$pf <- bgepar$edgepf
+
     initparam$N <- N # store effective sample size
     #initparam$covmat <- (N-1)*covmat
     initparam$means <- means # store means
@@ -453,7 +461,7 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
     initparam$scoreconstvec<-numeric(n)
     for (j in (1:n)) {# j represents the number of parents plus 1
       awp<-bgepar$aw-n+j
-      initparam$scoreconstvec[j]<-constscorefact - lgamma(awp/2) + lgamma((awp+N)/2) + ((awp+j-1)/2)*log(T0scale)
+      initparam$scoreconstvec[j]<-constscorefact - lgamma(awp/2) + lgamma((awp+N)/2) + ((awp+j-1)/2)*log(T0scale) - j*log(initparam$pf)
     }
   } else if (scoretype=="bde") {
     if(is.null(bdepar$chi)) {bdepar$chi<-0.5}

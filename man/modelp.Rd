@@ -7,7 +7,7 @@
 modelp(MCMCchain, p, pdag = FALSE, burnin = 0.2)
 }
 \arguments{
-\item{MCMCchain}{object of class \code{partitionMCMC} or \code{orderMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE;}
+\item{MCMCchain}{object of class \code{partitionMCMC}, \code{orderMCMC} or \code{iterativeMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE;}
 
 \item{p}{threshold such that only edges with a higher posterior probability will be retained in the directed graph summarising the sample of DAGs}
 
@@ -24,8 +24,8 @@ This function constructs a directed graph (not necessarily acyclic) including al
 \examples{
 Bostonscore<-scoreparameters("bge", Boston)
 \dontrun{
-orderfit<-orderMCMC(Bostonscore, MAP=FALSE, iterations=25000, chainout=TRUE)
-hdag<-modelp(orderfit, p=0.9)
+partfit<-sampleBN(Bostonscore, "partition")
+hdag<-modelp(partfit, p=0.9)
 }
 }
 \author{

@@ -18,7 +18,7 @@ This function extracts the score of a maximum DAG sampled in the MCMC run.
 \examples{
 myscore<-scoreparameters("bge", Boston)
 \dontrun{
-itfit<-iterativeMCMC(myscore)
+itfit<-learnBN(myscore,algorithm="orderIter")
 getMCMCscore(itfit)
 }
 }

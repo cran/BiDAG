@@ -7,7 +7,7 @@
 edgep(MCMCchain, pdag = FALSE, burnin = 0.2, endstep = 1)
 }
 \arguments{
-\item{MCMCchain}{an object of class \code{partitionMCMC} or \code{orderMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE;}
+\item{MCMCchain}{an object of class \code{partitionMCMC}, \code{orderMCMC} or \code{iterativeMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE;}
 
 \item{pdag}{logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging}
 
@@ -25,7 +25,7 @@ obtained via an MCMC scheme.
 \examples{
 Bostonscore<-scoreparameters("bge", Boston)
 \dontrun{
-samplefit<-orderMCMC(Bostonscore, iterations=25000,chainout=TRUE)
+samplefit<-sampleBN(Bostonscore, "order")
 edgesposterior<-edgep(samplefit, pdag=TRUE, burnin=0.2)
 }
 }

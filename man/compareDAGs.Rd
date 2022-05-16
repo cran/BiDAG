@@ -7,9 +7,9 @@
 compareDAGs(egraph, truegraph, cpdag = FALSE, rnd = 2)
 }
 \arguments{
-\item{egraph}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the graph which should be compared to a ground truth graph or an ajacency matrix corresponding to the graph}
+\item{egraph}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the graph which should be compared to a ground truth graph or an ajecency matrix corresponding to the graph}
 
-\item{truegraph}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth graph or an ajacency matrix corresponding to this graph}
+\item{truegraph}{an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth graph or an ajecency matrix corresponding to this graph}
 
 \item{cpdag}{logical, if TRUE (FALSE by default) both graphs are first converted to their respective equivalence class (CPDAG); this affects SHD calculation}
 
@@ -35,7 +35,7 @@ This function compares one (estimated) graph to another graph (true graph), retu
 \examples{
 Asiascore<-scoreparameters("bde", Asia)
 \dontrun{
-eDAG<-orderMCMC(Asiascore)
+eDAG<-learnBN(Asiascore,algorithm="order")
 compareDAGs(eDAG$DAG,Asiamat)
 }
 }

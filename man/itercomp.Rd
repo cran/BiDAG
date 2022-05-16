@@ -56,7 +56,7 @@ see also \code{\link{compareDAGs}}.
 \examples{
 gsim.score<-scoreparameters("bge", gsim)
 \dontrun{
-MAPestimate<-iterativeMCMC(gsim.score)
+MAPestimate<-learnBN(gsim.score,"orderIter")
 itercomp(MAPestimate, gsimmat)
 }
 }

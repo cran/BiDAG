@@ -66,8 +66,8 @@ see also \code{\link{compareDAGs}}.
 \examples{
 gsim.score<-scoreparameters("bge", gsim)
 \dontrun{
-mapest<-iterativeMCMC(gsim.score)
-ordersample<-orderMCMC(gsim.score, MAP=FALSE, startspace=mapest$endspace)
+MAPestimate<-learnBN(gsim.score,"orderIter",scoreout=TRUE)
+ordersample<-sampleBN(gsim.score, "order", scoretable=getSpace(MAPestimate))
 samplecomp(ordersample, gsimmat)
 }
 }

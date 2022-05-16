@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrappers.R
 \name{learnBN}
 \alias{learnBN}
-\title{Bayesian network structure learning from the posterior distribution}
+\title{Bayesian network structure learning}
 \usage{
 learnBN(
   scorepar,
@@ -70,13 +70,13 @@ space, if FALSE (default) the full undirected skeleton will be used as the searc
 \item{hardlimit}{integer, limit on the size of parent sets in the search space; by default 14 when MAP=TRUE and 20 when MAP=FALSE}
 }
 \value{
-Depending on the value or the parameter \code{algorithm} returns an object of class \code{orderMCMC}, \code{partitionMCMC} or \code{iterativeMCMC} which contains log-score trace of sampled DAGs as well 
+Depending on the value or the parameter \code{algorithm} returns an object of class \code{orderMCMC} or \code{iterativeMCMC} which contains log-score trace of sampled DAGs as well 
 as adjacency matrix of the maximum scoring DAG(s), its score and the order or partition score. The output can optionally include DAGs sampled in MCMC iterations and the score tables. 
-Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{orderMCMC class}}, \code{\link{partitionMCMC class}}, \code{\link{iterativeMCMC class}} for a detailed description of the classes' structures.
+Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{orderMCMC class}}, \code{\link{iterativeMCMC class}} for a detailed description of the classes' structures.
 }
 \description{
-This function can be used finding the maximum a posteriori (MAP) DAG using stochastic search implemented via MCMC schemes. Due to the superexponential size of the search space as the number of nodes increases, the 
-MCMC search is performed on a reduced search space. By default the search space is limited to the skeleton found through the PC algorithm by means of conditional independence tests 
+This function can be used finding the maximum a posteriori (MAP) DAG using stochastic search relying on MCMC schemes. Due to the superexponential size of the search space, it 
+must be reduced. By default the search space is limited to the skeleton found through the PC algorithm by means of conditional independence tests 
 (using the functions \code{\link[pcalg]{skeleton}} and \code{\link[pcalg]{pc}} from the `pcalg' package [Kalisch et al, 2012]).
 It is also possible to define an arbitrary search space by inputting an adjacency matrix, for example estimated by partial correlations or other network algorithms. Order MCMC scheme (\code{algorithm="order"})
 performs the search of a maximum scoring order and selects a maximum scoring DAG from this order as MAP. To avoid discovering a suboptimal graph due to the absence
@@ -84,8 +84,8 @@ of some of the true positive edges in the search space, the function includes th
 This offers improvements in the learning of Bayesian networks. The iterative MCMC (\code{algorithm="orderIter"}) scheme allows for iterative expansions of the search space.
 This is useful in cases when the initial search space is poor in a sense that it contains only a limited number of true positive edges. Iterative expansions of the search space
 efficiently solve this issue. However this scheme requires longer runtimes due to the need of running multiple consecutive MCMC chains.  
-This function is a wrapper for the three individual structure learning and sampling functions that implement each of the described algorithms; for details see \code{\link{orderMCMC}},
-\code{\link{partitionMCMC}},\code{\link{iterativeMCMC}}.
+This function is a wrapper for the individual structure learning functions that implement each of the described algorithms; for details see \code{\link{orderMCMC}},
+and \code{\link{iterativeMCMC}}.
 }
 \note{
 see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.

@@ -25,7 +25,7 @@ This function compares one (estimated) DBN structure to another DBN (true DBN). 
 testscore<-scoreparameters("bge", DBNdata, DBN=TRUE, 
 dbnpar=list(samestruct=TRUE, slices=5, b=3))
 \dontrun{
-DBNfit<-iterativeMCMC(testscore, moveprobs=c(0.11,0.84,0.04,0.01))
+DBNfit<-learnBN(testscore, algorithm="orderIter",moveprobs=c(0.11,0.84,0.04,0.01))
 compareDBNs(DBNfit$DAG,DBNmat, struct="trans", b=3)
 }
 }

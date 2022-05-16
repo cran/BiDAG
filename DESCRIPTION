@@ -1,7 +1,7 @@
 Package: BiDAG
 Type: Package
 Title: Bayesian Inference for Directed Acyclic Graphs
-Version: 2.0.6
+Version: 2.0.7
 Date: 2022-05-05
 Author: Polina Suter [aut, cre], Jack Kuipers [aut]
 Maintainer: Polina Suter <polina.suter@bsse.ethz.ch>
@@ -34,6 +34,6 @@ RoxygenNote: 7.1.2
 Encoding: UTF-8
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2022-05-08 21:41:06 UTC; polinasuter
+Packaged: 2022-05-16 08:25:19 UTC; polinasuter
 Repository: CRAN
-Date/Publication: 2022-05-09 07:30:14 UTC
+Date/Publication: 2022-05-16 10:20:07 UTC

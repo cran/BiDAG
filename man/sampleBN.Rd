@@ -95,12 +95,11 @@ see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code
 \examples{
 \dontrun{
 myScore<-scoreparameters("bge",Boston)
-samplefit1<-sampleBN(myScore,"orderIter",iterpar=list(posterior=0.2))
-samplefit2<-sampleBN(myScore,"orderIter",iterpar=list(posterior=0.5))
-summary(samplefit1)
-summary(samplefit2)
-plot(samplefit1)
-plot(samplefit2)
+MCMCchains<-list()
+MCMCchains[[1]]<-sampleBN(myScore,"partition")
+MCMCchains[[2]]<-sampleBN(myScore,"partition")
+edge_posterior<-lapply(MCMCchains,edgep,pdag=TRUE)
+plotpcor(edge_posterior)
 }
 }
 \references{

@@ -53,7 +53,7 @@ summary.scorespace <-function(object, ...){
   possedges<-n*n-n
   cat("Core search space ($adjacency) contains ", sum(object$adjacency), " edges out of ", possedges,
       "edges in a full search space","\n")
-  if(is.list(object$tables[[1]])) {
+  if(is.list(object$tables[[length(object$tables)]])) {
     cat("Search space is extended", "\n")
   } else {
     cat("Search space is NOT extended", "\n")

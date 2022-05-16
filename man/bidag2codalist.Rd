@@ -17,9 +17,9 @@ bidag2codalist(
 \arguments{
 \item{MCMClist}{a list of objects of classes \code{orderMCMC} or \code{partitionMCMC}}
 
-\item{edges}{logical, when FALSE (default), then only DAG score traces are extracted from each element of MCMClist and all other parameters are ignored; when TRUE, a trace of posterior probabilities is computed for every edge resulting in a maximum of n*n trace vectors, where n is the number of nodes in the network}
+\item{edges}{logical, when FALSE (default), then only DAG score trace is extracted; when TRUE, a trace of posterior probabilities is extracted for every edge (based on the sampled DAGs defined by parameters 'window' and 'cumulative') resulting in up to n^2 trace vectors, where n is the number of nodes in the network}
 
-\item{pdag}{logical, when edges=TRUE, defines is the DAGs ar converted to CPDAGs prior to computing posterior probabilities; ignored otherwise}
+\item{pdag}{logical, when edges=TRUE, defines if the DAGs are converted to CPDAGs prior to computing posterior probabilities; ignored otherwise}
 
 \item{p}{numeric, between 0 and 1; defines the minimum probability for including posterior traces in the returned objects (for probabilities close to 0, PRSF diagnostics maybe too conservative; the threshold above 0 is recommended)}
 
@@ -27,18 +27,19 @@ bidag2codalist(
 
 \item{window}{integer, defines a number of DAG samples for averaging and computing edges' posterior probabilities; ignored when edges=FALSE}
 
-\item{cumulative}{logical, indicates is posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of first samples are discarded}
+\item{cumulative}{logical, indicates if posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of the first samples are discarded}
 }
 \value{
 Object of class \code{mcmc.list} from the package \pkg{coda}
 }
 \description{
 This function converts a list of objects of classes
-'orderMCMC' and 'partitionMCMC' to an object of class 'mcmc.list'. This object can
+'orderMCMC' or 'partitionMCMC' to an object of class 'mcmc.list'. This object can
 be further used for convergence and mixing diagnostics implemented in the R-package coda.
 }
 \examples{
 \dontrun{
+library(coda)
 scoreBoston<-scoreparameters("bge",Boston)
 ordershort<-list()
 #run very short chains -> convergence issues
@@ -47,6 +48,7 @@ ordershort[[2]] <- sampleBN(scoreBoston, algorithm = "order", iterations=2000)
 codashort_edges<-bidag2codalist(ordershort,edges=TRUE,pdag=TRUE,p=0.05,burnin=0.2,window=10)
 gd_short<-gelman.diag(codashort_edges, transform=FALSE, autoburnin=FALSE, multivariate=FALSE)
 length(which(gd_short$psrf[,1]>1.1))/(length(gd_short$psrf[,1]))
+#=>more MCMC iterations are needed, try 100000
 }
 }
 \references{

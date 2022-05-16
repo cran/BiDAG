@@ -116,8 +116,8 @@ m2graph<-function(adj,nodes=NULL) {
 #' \item FDR equals FP/(TP+FP)
 #' }
 #'
-#'@param egraph an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the graph which should be compared to a ground truth graph or an ajacency matrix corresponding to the graph
-#'@param truegraph an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth graph or an ajacency matrix corresponding to this graph
+#'@param egraph an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the graph which should be compared to a ground truth graph or an ajecency matrix corresponding to the graph
+#'@param truegraph an object of class \code{\link[graph]{graphNEL}} (package `graph'), representing the ground truth graph or an ajecency matrix corresponding to this graph
 #'@param cpdag logical, if TRUE (FALSE by default) both graphs are first converted to their respective equivalence class (CPDAG); this affects SHD calculation
 #'@param rnd integer, rounding integer indicating the number of decimal places (round) when computing TPR, FPR, FPRn and FDR
 #'@return a named numeric vector 8 elements: SHD, number of true positive edges (TP), number of false positive edges (FP), number of false negative edges (FN), true positive rate (TPR),
@@ -125,7 +125,7 @@ m2graph<-function(adj,nodes=NULL) {
 #'@examples
 #'Asiascore<-scoreparameters("bde", Asia)
 #'\dontrun{
-#'eDAG<-orderMCMC(Asiascore)
+#'eDAG<-learnBN(Asiascore,algorithm="order")
 #'compareDAGs(eDAG$DAG,Asiamat)
 #'}
 #'@export
@@ -138,8 +138,13 @@ compareDAGs<-function(egraph, truegraph, cpdag=FALSE, rnd=2) {
        egraph<-m2graph(egraph) 
      }
   
-   if(is.matrix(truegraph)) truegraph<-m2graph(truegraph)
-   
+  if(is.matrix(truegraph)) {
+    truegraph<-m2graph(truegraph) 
+  } else if (is(truegraph,"dgCMatrix") | is(truegraph,"dtCMatrix")) { 
+    truegraph<-as.matrix(truegraph)
+    truegraph<-m2graph(truegraph) 
+  }
+  
    skeleton1<-graph2skeleton(egraph)
    n<-ncol(skeleton1)
    skeleton2<-graph2skeleton(truegraph)
@@ -179,7 +184,7 @@ compareDAGs<-function(egraph, truegraph, cpdag=FALSE, rnd=2) {
 #'testscore<-scoreparameters("bge", DBNdata, DBN=TRUE, 
 #'dbnpar=list(samestruct=TRUE, slices=5, b=3))
 #'\dontrun{
-#'DBNfit<-iterativeMCMC(testscore, moveprobs=c(0.11,0.84,0.04,0.01))
+#'DBNfit<-learnBN(testscore, algorithm="orderIter",moveprobs=c(0.11,0.84,0.04,0.01))
 #'compareDBNs(DBNfit$DAG,DBNmat, struct="trans", b=3)
 #'}
 #'@export
@@ -203,8 +208,11 @@ compareDBNs<-function(eDBN, trueDBN, struct=c("init","trans"), b=0) {
   }
   
   if(!is.matrix(trueDBN)) {
-    adj2<-graph2m(trueDBN)
-  } else {
+    if(is(trueDBN,"graphNEL")) {
+      adj2<-graph2m(trueDBN)
+    } else {
+      adj2<-as.matrix(trueDBN)
+  }} else {
     adj2<-trueDBN
   }
   

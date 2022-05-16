@@ -99,8 +99,9 @@ plotpedges<-function(MCMCtrace,cutoff=0.2,pdag=FALSE,onlyedges=NULL,highlight=NU
 #'Asiascore<-scoreparameters("bde", Asia)
 #'\dontrun{
 #'orderfit<-list()
-#'orderfit[[1]]<-orderMCMC(Asiascore,MAP=FALSE,chainout=TRUE)
-#'orderfit[[2]]<-orderMCMC(Asiascore,MAP=FALSE,chainout=TRUE)
+#'orderfit[[1]]<-sampleBN(Asiascore,algorithm="order")
+#'orderfit[[2]]<-sampleBN(Asiascore,algorithm="order")
+#'orderfit[[3]]<-sampleBN(Asiascore,algorithm="order")
 #'pedges<-lapply(orderfit,edgep,pdag=TRUE)
 #'plotpcor(pedges, xlab="run1", ylab="run2",printedges=TRUE)
 #'}

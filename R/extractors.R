@@ -10,7 +10,7 @@
 #' @examples
 #'myscore<-scoreparameters("bge", Boston)
 #'\dontrun{
-#'itfit<-iterativeMCMC(myscore)
+#'itfit<-learnBN(myscore,algorithm="orderIter")
 #'maxEC<-getDAG(itfit,cp=TRUE)
 #'}
 #' @export
@@ -30,7 +30,7 @@ getDAG<-function(x,amat=TRUE,cp=FALSE) {
 #' @examples
 #'myscore<-scoreparameters("bge", Boston)
 #'\dontrun{
-#'itfit<-iterativeMCMC(myscore,scoreout=TRUE)
+#'itfit<-learnBN(myscore,algorithm="orderIter",scoreout=TRUE)
 #'itspace<-getSpace(itfit)
 #'}
 #' @export
@@ -53,7 +53,7 @@ getSpace<-function(x) {
 #' @examples
 #'myscore<-scoreparameters("bge", Boston)
 #'\dontrun{
-#'itfit<-iterativeMCMC(myscore)
+#'itfit<-learnBN(myscore,algorithm="orderIter")
 #'getMCMCscore(itfit)
 #'}
 #' @export
@@ -80,7 +80,7 @@ getMCMCscore<-function(x) {
 #' @examples
 #'myscore<-scoreparameters("bge",Boston)
 #'\dontrun{
-#'orderfit<-orderMCMC(myscore,chainout=TRUE)
+#'orderfit<-sampleBN(myscore,algorithm="order")
 #'DAGscores<-getTrace(orderfit,which=0)
 #'DAGtrace<-getTrace(orderfit,which=1)
 #'orderscores<-getTrace(orderfit,which=3)

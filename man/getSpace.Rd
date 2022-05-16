@@ -20,7 +20,7 @@ only adjacency matrix of the final search space without the score tables.
 \examples{
 myscore<-scoreparameters("bge", Boston)
 \dontrun{
-itfit<-iterativeMCMC(myscore,scoreout=TRUE)
+itfit<-learnBN(myscore,algorithm="orderIter",scoreout=TRUE)
 itspace<-getSpace(itfit)
 }
 }

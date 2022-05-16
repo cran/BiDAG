@@ -3,7 +3,7 @@
 #'This function estimates the posterior probabilities of edges by averaging over a sample of DAGs
 #'obtained via an MCMC scheme.
 #'
-#'@param MCMCchain an object of class \code{partitionMCMC} or \code{orderMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE; 
+#'@param MCMCchain an object of class \code{partitionMCMC}, \code{orderMCMC} or \code{iterativeMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE; 
 #'@param pdag logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging
 #'@param burnin number between \code{0} and \code{1}, indicates the percentage of the samples which will be discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
 #'@param endstep number between \code{0} and \code{1}; 1 by default 
@@ -11,12 +11,31 @@
 #'@examples
 #'Bostonscore<-scoreparameters("bge", Boston)
 #'\dontrun{
-#'samplefit<-orderMCMC(Bostonscore, iterations=25000,chainout=TRUE)
+#'samplefit<-sampleBN(Bostonscore, "order")
 #'edgesposterior<-edgep(samplefit, pdag=TRUE, burnin=0.2)
 #'}
 #'@author Polina Suter
 #'@export
 edgep<-function(MCMCchain,pdag=FALSE,burnin=0.2,endstep=1) {
+  if(is(MCMCchain,"orderMCMC") | is(MCMCchain,"partitionMCMC")) {
+    if(is.null(MCMCchain$traceadd)) {
+      stop("Model averaging is not possible! No DAG trace was saved. Try chainout=TRUE.")
+    }
+  } else if(is(MCMCchain,"iterativeMCMC")){
+    if(is.null(MCMCchain$traceadd)) {
+      stop("Model averaging is not possible! No DAG trace was saved. Try chainout=TRUE.")
+    } else {
+      ln<-length(MCMCchain$traceadd[[1]])
+      MCMCchain$traceadd[[1]]<-c(MCMCchain$traceadd[[1]][[ln-1]],MCMCchain$traceadd[[1]][[ln]])
+    }
+  } else {
+    stop("MCMCchain must be an object of classes 'orderMCMC','partitionMCMC' or 'iterativeMCMC'!")
+  }
+  
+  if(MCMCchain$info$sampletype=="MAP"){
+    warning("The algorithm was called for MAP search. This option is not recommended for model averaging! \n
+    Use sampleBN() or parameter MAP=FALSE in constructor functions.")
+  }
   
   DBN<-MCMCchain$info$DBN
   MCMCinfo<-MCMCchain$info
@@ -50,7 +69,7 @@ edgep<-function(MCMCchain,pdag=FALSE,burnin=0.2,endstep=1) {
 #'
 #'This function constructs a directed graph (not necessarily acyclic) including all edges with a posterior probability above a certain threshold.  The posterior probability is evaluated as the Monte Carlo estimate from a sample of DAGs obtained via an MCMC scheme.
 #'
-#'@param MCMCchain object of class \code{partitionMCMC} or \code{orderMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE; 
+#'@param MCMCchain object of class \code{partitionMCMC}, \code{orderMCMC} or \code{iterativeMCMC}, representing the output of structure sampling function \code{\link{partitionMCMC}} or \code{\link{orderMCMC}} (the latter when parameter \code{chainout}=TRUE; 
 #'@param p threshold such that only edges with a higher posterior probability will be retained in the directed graph summarising the sample of DAGs
 #'@param pdag logical, if TRUE (FALSE by default) all DAGs in the MCMCchain are first converted to equivalence class (CPDAG) before the averaging
 #'@param burnin number between \code{0} and \code{1}, indicates the percentage of the samples which will be  the discarded as `burn-in' of the MCMC chain; the rest  of the samples will be used to calculate the posterior probabilities; 0.2 by default
@@ -58,12 +77,31 @@ edgep<-function(MCMCchain,pdag=FALSE,burnin=0.2,endstep=1) {
 #'@examples
 #'Bostonscore<-scoreparameters("bge", Boston)
 #'\dontrun{
-#'orderfit<-orderMCMC(Bostonscore, MAP=FALSE, iterations=25000, chainout=TRUE)
-#'hdag<-modelp(orderfit, p=0.9)
+#'partfit<-sampleBN(Bostonscore, "partition")
+#'hdag<-modelp(partfit, p=0.9)
 #'}
 #'@author Polina Suter
 #'@export
 modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
+  if(is(MCMCchain,"orderMCMC") | is(MCMCchain,"partitionMCMC")) {
+    if(is.null(MCMCchain$traceadd)) {
+      stop("Model averaging is not possible! No DAG trace was saved. Try chainout=TRUE.")
+    }
+  } else if(is(MCMCchain,"iterativeMCMC")){
+    if(is.null(MCMCchain$traceadd)) {
+      stop("Model averaging is not possible! No DAG trace was saved. Try chainout=TRUE.")
+    } else {
+      ln<-length(MCMCchain$traceadd[[1]])
+      MCMCchain$traceadd[[1]]<-c(MCMCchain$traceadd[[1]][[ln-1]],MCMCchain$traceadd[[1]][[ln]])
+    }
+  } else {
+    stop("MCMCchain must be an object of classes 'orderMCMC','partitionMCMC' or 'iterativeMCMC'!")
+  }
+  
+  if(MCMCchain$info$sampletype=="MAP"){
+    warning("The algorithm was called for MAP search. This option is not recommended for model averaging! \n
+    Use sampleBN() or parameter MAP=FALSE in constructor functions.")
+  }
 
   DBN<-MCMCchain$info$DBN
   MCMCinfo<-MCMCchain$info
@@ -111,7 +149,7 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
 #' @examples
 #' gsim.score<-scoreparameters("bge", gsim)
 #' \dontrun{
-#' MAPestimate<-iterativeMCMC(gsim.score)
+#' MAPestimate<-learnBN(gsim.score,"orderIter")
 #' itercomp(MAPestimate, gsimmat)
 #' }
 #'@author Polina Suter
@@ -185,14 +223,34 @@ itercomp<-function(MCMCmult, truedag, cpdag=TRUE, p=0.5,trans=TRUE) {
 #' @examples
 #' gsim.score<-scoreparameters("bge", gsim)
 #' \dontrun{
-#' mapest<-iterativeMCMC(gsim.score)
-#' ordersample<-orderMCMC(gsim.score, MAP=FALSE, startspace=mapest$endspace)
+#' MAPestimate<-learnBN(gsim.score,"orderIter",scoreout=TRUE)
+#' ordersample<-sampleBN(gsim.score, "order", scoretable=getSpace(MAPestimate))
 #' samplecomp(ordersample, gsimmat)
 #' }
 #'@author Polina Suter
 #'@export
 samplecomp<-function(MCMCchain, truedag, p=c(0.99,0.95,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2),
                                          pdag=TRUE, burnin=0.2, trans=TRUE) {
+  if(is(MCMCchain,"orderMCMC") | is(MCMCchain,"partitionMCMC")) {
+    if(is.null(MCMCchain$traceadd)) {
+      stop("Model averaging is not possible! No DAG trace was saved. Try chainout=TRUE.")
+    }
+  } else if(is(MCMCchain,"iterativeMCMC")){
+    if(is.null(MCMCchain$traceadd)) {
+      stop("Model averaging is not possible! No DAG trace was saved. Try chainout=TRUE.")
+    } else {
+      ln<-length(MCMCchain$traceadd[[1]])
+      MCMCchain$traceadd[[1]]<-c(MCMCchain$traceadd[[1]][[ln-1]],MCMCchain$traceadd[[1]][[ln]])
+    }
+  } else {
+    stop("MCMCchain must be an object of classes 'orderMCMC','partitionMCMC' or 'iterativeMCMC'!")
+  }
+  
+  if(MCMCchain$info$sampletype=="MAP"){
+    warning("The algorithm was called for MAP search. This option is not recommended for model averaging! \n
+    Use sampleBN() or parameter MAP=FALSE in constructor functions.")
+  }
+  
   if(is.matrix(truedag)) truedag<-m2graph(truedag)
   MCMCmatlist<-MCMCchain$traceadd$incidence
   n<-nrow(MCMCmatlist[[1]])

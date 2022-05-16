@@ -17,9 +17,9 @@ bidag2coda(
 \arguments{
 \item{MCMCtrace}{object of class \code{orderMCMC} or \code{partitionMCMC}}
 
-\item{edges}{logical, when FALSE (default), then only DAG score trace is extracted; when TRUE, a trace of posterior probabilities is extracted for every edge (based on the last 200 sampled structures) resulting in n*(n-1)) trace vectors, where n is the number of nodes in the network}
+\item{edges}{logical, when FALSE (default), then only DAG score trace is extracted; when TRUE, a trace of posterior probabilities is extracted for every edge (based on the sampled DAGs defined by parameters 'window' and 'cumulative') resulting in up to n^2 trace vectors, where n is the number of nodes in the network}
 
-\item{pdag}{logical, when edges=TRUE, defines is the DAGs ar converted to CPDAGs prior to computing posterior probabilities; ignored otherwise}
+\item{pdag}{logical, when edges=TRUE, defines if the DAGs are converted to CPDAGs prior to computing posterior probabilities; ignored otherwise}
 
 \item{p}{numeric, between 0 and 1; defines the minimum probability for including posterior traces in the returned objects (for probabilities close to 0 PRSF diagnostics maybe too conservative)}
 
@@ -27,18 +27,19 @@ bidag2coda(
 
 \item{window}{integer, defines a number of DAG samples for averaging and computing edges' posterior probabilities; ignored when edges=FALSE}
 
-\item{cumulative}{logical, indicates is posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of first samples are discarded}
+\item{cumulative}{logical, indicates if posterior probabilities should be calculated based on a cumulative sample of DAGs, where 25\% of the first samples are discarded}
 }
 \value{
 Object of class \code{mcmc} from the package \pkg{coda}
 }
 \description{
 This function converts a single object of one of the BiDAG classes,
-namely 'orderMCMC' and 'partitionMCMC' to an object of class 'mcmc'. This object can
+namely 'orderMCMC' or 'partitionMCMC' to an object of class 'mcmc'. This object can
 be further used for convergence and mixing diagnostics implemented in the package coda
 }
 \examples{
 \dontrun{
+library(coda)
 myscore<-scoreparameters("bde",Asia)
 ordersample<-sampleBN(myscore,"order")
 order_mcmc<-bidag2coda(ordersample)

@@ -4,14 +4,16 @@
 \alias{plotDBN}
 \title{Plotting a DBN}
 \usage{
-plotDBN(DBN, struct = c("init", "trans"), b = 0, ...)
+plotDBN(DBN, struct = c("init", "trans"), b = 0, shape = "circle", ...)
 }
 \arguments{
 \item{DBN}{binary matrix (or a graph object) representing a 2-step DBN (compact or unrolled)}
 
-\item{struct}{option used to determine if the initial or the transition structure should be plotted; accaptable values are init or trans}
+\item{struct}{option used to determine if the initial or the transition structure should be plotted; acceptable values are init or trans}
 
 \item{b}{number of static variables in the DBN, 0 by default; note that for function to work correctly all static variables have to be in the first b columns of the matrix}
+
+\item{shape}{string, defining the shape of the box around each node; possible values are circle, ellipse, box}
 
 \item{...}{optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}}
 }

@@ -10,6 +10,7 @@ plotdiffsDBN(
   struct = c("init", "trans"),
   b = 0,
   showcl = TRUE,
+  orientation = "TB",
   ...
 )
 }
@@ -24,6 +25,8 @@ plotdiffsDBN(
 
 \item{showcl}{logical, when TRUE (default) nodes are shown in clusters according to the time slice the belong to}
 
+\item{orientation}{orientation of the graph layout, possible options are 'TB' (top-bottom) and 'LR' (left-right)}
+
 \item{...}{optional parameters passed to \code{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}}
 }
 \value{
@@ -37,9 +40,10 @@ dbnscore<-scoreparameters("bge",DBNdata,
 dbnpar = list(samestruct=TRUE, slices=5, b=3),
 DBN=TRUE)
 \dontrun{
-orderDBNfit<-iterativeMCMC(dbnscore,chainout = TRUE, mergetype = "skeleton",scoreout=TRUE,alpha=0.4)
+orderDBNfit<-learnBN(dbnscore,algorithm="order")
+iterDBNfit<-learnBN(dbnscore,algorithm="orderIter")
 plotdiffsDBN(getDAG(orderDBNfit),DBNmat,struct="trans",b=3)
-plotdiffsDBN(getDAG(orderDBNfit),DBNmat,struct="init",b=3)
+plotdiffsDBN(getDAG(iterDBNfit),DBNmat,struct="trans",b=3)
 }
 }
 \author{
