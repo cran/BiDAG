@@ -67,11 +67,11 @@ scoreparameters<-function(scoretype=c("bge","bde","bdecat","usr"), data,
   
   if(DBN) {
     
-    dbnpardef<-list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL)
+    dbnpardef<-list(samestruct=TRUE, slices=2, b=0, stationary=TRUE, rowids=NULL, datalist=NULL,learninit=TRUE)
     dbnpardef[names(dbnpar)]<-dbnpar[names(dbnpar)]
     dbnpar<-dbnpardef
     if(is.null(dbnpar$b)) bgnodes<-NULL else if(dbnpar$b>0) bgnodes<-c(1:dbnpar$b) else bgnodes<-NULL
-
+    initparam$learninit<-dbnpar$learninit
     
     
     if (!is.null(dbnpar$samestruct)) {

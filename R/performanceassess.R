@@ -99,8 +99,8 @@ modelp<-function(MCMCchain, p, pdag=FALSE, burnin=0.2) {
   }
   
   if(MCMCchain$info$sampletype=="MAP"){
-    warning("The algorithm was called for MAP search. This option is not recommended for model averaging! \n
-    Use sampleBN() or parameter MAP=FALSE in constructor functions.")
+    #warning("The algorithm was called for MAP search. This option is not recommended for model averaging! \n
+    #Use sampleBN() or parameter MAP=FALSE in constructor functions.")
   }
 
   DBN<-MCMCchain$info$DBN

@@ -162,11 +162,16 @@ DBNinit<-function(adj,dyn,b){
 #Combining initial and transition DBN structures in one matrix
 mergeDBNstr<-function(initStruct,transStruct) {
   n<-ncol(initStruct)
-  if(!is.matrix(initStruct)) {
+  if(is(initStruct,"graphNEL")) {
     initStruct<-graph2m(initStruct)
-  }
-  if(!is.matrix(transStruct)) {
+  } else if(!is.matrix(initStruct)) {
+    initStruct<-as.matrix(initStruct)
+  } 
+  
+  if(is(transStruct,"graphNEL")) {
     transStruct<-graph2m(transStruct)
+  }else if(!is.matrix(transStruct)) {
+    transStruct<-as.matrix(transStruct)
   }
   n<-ncol(initStruct)
   transStruct[1:n,1:n]<-initStruct

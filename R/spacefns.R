@@ -46,6 +46,8 @@ newspaceskel<-function(n,startspace,currspace,softlimit,hardlimit,posterior,blac
 
 newspacemap<-function(n,startspace,currspace,softlimit,hardlimit,blacklist, 
                       maxdag=NULL,mergetype="skeleton",accum) {
+  
+  if(!is.matrix(maxdag)) maxdag<-as.matrix(maxdag)
   switch(mergetype,
          "dag" = { 
            maxdag<-maxdag

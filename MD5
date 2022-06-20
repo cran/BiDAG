@@ -1,8 +1,8 @@
-fa8f046dd3bddca574dea1e9efcd47b6 *DESCRIPTION
+ac2dec47a18656f613a3cff7f8fc4a35 *DESCRIPTION
 aca0ed304ca01e189372b3603dc3b70d *NAMESPACE
 347c290434ef6039e5c6614254cefb5e *R/Asiaadj.R
 f9e25e1f4620a14fc8cd64d1757ee00d *R/DBNdata.R
-a2328730379f776b1ca6f379b381a731 *R/DBNfns.R
+385df584d387846ee6758e91fc97648a *R/DBNfns.R
 311a4723278b29730468a6fec575bab4 *R/DBNmat.R
 60c0309553530c4274ef8b013c79f32c *R/DBNunrolled.R
 750c84509207a047952735b99b808d50 *R/KIRC.R
@@ -15,10 +15,10 @@ b680e369c421ee24ae10db19c88bcaa9 *R/dataSTRING.R
 2071a5ce98bce0e85b3d5abec4e09f45 *R/extractors.R
 07f9411cacc3e3e06d86c84c42dcf8e1 *R/graphhelpfns.R
 255ff79713cfcef6d327299d2572c72c *R/gsimadj.R
-f13404324fc7c783b159462375eabf90 *R/initpar.R
+a26ee42cc2850f70cacbe10b218756c8 *R/initpar.R
 0c90ef2dc95529c3d2b801343ce8c87f *R/iterativeMCMC.R
 7a188e561d043c63222975effab4a307 *R/learningdata.R
-4b78b1455f1d568303fe47382dad00eb *R/main.R
+19504b6ff02c61e7f8d4344a9ae08fc9 *R/main.R
 ca99115051734d9bb9eabfa0e052c00e *R/newbinaryscoring.R
 891f77ac2b7ff990ddba4b3afb200f10 *R/newcatscoring.R
 239821ddabff6a665fa858cd3a0799a7 *R/orderMCMCbase.R
@@ -37,7 +37,7 @@ b4bb5847836f000342118a0aa0168571 *R/partitionMCMCmain.R
 c4f4a1c9b883f56e623bcd10f8eb48c8 *R/partitionmoves.R
 1fa7ea93687e2a6e00f7a277e99ae853 *R/partitionposetfns.R
 fc32a58ebac759449a73502b5cd03fa7 *R/partitionscore.R
-d28f0a876f7416f84c58a6b8617c2c62 *R/performanceassess.R
+26f73b972b40befabe08af0488f0af65 *R/performanceassess.R
 e37329d31ab62c044693c324dbc751a7 *R/plotS3.R
 3f8fbdf508f1debef600d91322d90d2e *R/plotfns.R
 195b0aa915af21354761c5339a26fb66 *R/plotusingrgraphviz.R
@@ -46,7 +46,7 @@ e37329d31ab62c044693c324dbc751a7 *R/plotS3.R
 b05f61ef17c2d133644d579ec0d72531 *R/scoreagainstDBN.R
 443cf8ea56673198cfd0f0d95839e878 *R/scoreagainstdag.R
 6d5fe44a0d37a4952972767cd038ab0c *R/scorefns.R
-7429adfd61e2a1fbb57e9648bea40705 *R/spacefns.R
+b9150e37ff46e871cf9659e8a31832af *R/spacefns.R
 86d85f15b707aadbf8491af93ecbc703 *R/summary.R
 686a5c002f629a5f9a55557f56edde51 *R/usrscorefns.R
 997cd025f36605b97f8c2ab9fe1d89b2 *R/wrappers.R

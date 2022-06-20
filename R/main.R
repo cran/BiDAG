@@ -125,7 +125,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
                                 startspace=startspace$trans,blacklist=blacklist$trans,gamma=gamma,verbose=verbose,
                                 hardlimit=hardlimit,compress=compress)
       
-      if(scorepar$dbnpar$learninit) {
+      if(scorepar$learninit) {
         result.init<-orderMCMCmain(param=param1,iterations,stepsave,startorder=startorder$init,
                                    moveprobs=moveprobs,alpha=alpha,cpdag=cpdag,scoretable=NULL,
                                    plus1=plus1,MAP=MAP,chainout=chainout, scoreout=FALSE,
