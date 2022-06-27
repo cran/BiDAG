@@ -197,7 +197,11 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
         updatenodeslist[[i]]<-updatenodes
         if(is.null(plus1it)) {
           oldadj<-newadj
-        } else if(i<plus1it) oldadj<-newadj
+        } else if(i<plus1it) { 
+          oldadj<-newadj
+        } else if (!scoreout) {
+          oldadj<-newadj
+          }
         startorder<-c(MCMCresult$orders[[maxN]],param$bgnodes)
         i<-i+1
       }

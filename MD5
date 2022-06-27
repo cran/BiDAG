@@ -1,4 +1,4 @@
-ac2dec47a18656f613a3cff7f8fc4a35 *DESCRIPTION
+2e22e8cc46afcc6dde408ae16a4744d6 *DESCRIPTION
 aca0ed304ca01e189372b3603dc3b70d *NAMESPACE
 347c290434ef6039e5c6614254cefb5e *R/Asiaadj.R
 f9e25e1f4620a14fc8cd64d1757ee00d *R/DBNdata.R
@@ -16,14 +16,14 @@ b680e369c421ee24ae10db19c88bcaa9 *R/dataSTRING.R
 07f9411cacc3e3e06d86c84c42dcf8e1 *R/graphhelpfns.R
 255ff79713cfcef6d327299d2572c72c *R/gsimadj.R
 a26ee42cc2850f70cacbe10b218756c8 *R/initpar.R
-0c90ef2dc95529c3d2b801343ce8c87f *R/iterativeMCMC.R
+04fad822366856945517c04366c9b4de *R/iterativeMCMC.R
 7a188e561d043c63222975effab4a307 *R/learningdata.R
 19504b6ff02c61e7f8d4344a9ae08fc9 *R/main.R
 ca99115051734d9bb9eabfa0e052c00e *R/newbinaryscoring.R
 891f77ac2b7ff990ddba4b3afb200f10 *R/newcatscoring.R
 239821ddabff6a665fa858cd3a0799a7 *R/orderMCMCbase.R
 e017c213c4320548743fa2bd78f4f199 *R/orderMCMCbasemax.R
-12a294fd6dbf716a941c7ec1463b1661 *R/orderMCMCmain.R
+7789cd47e4491c8c4742b3c139b9d7ca *R/orderMCMCmain.R
 abd1f293953026b3a97d70ccfae5c962 *R/orderMCMCplus1.R
 c37c13ead03c67f570ccd6a6772e5311 *R/orderMCMCplus1max.R
 c3130601235030dc6c6415bf68956f10 *R/orderposetfns.R

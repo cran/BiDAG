@@ -1,7 +1,7 @@
 Package: BiDAG
 Type: Package
 Title: Bayesian Inference for Directed Acyclic Graphs
-Version: 2.0.9
+Version: 2.1.0
 Author: Polina Suter [aut, cre], Jack Kuipers [aut]
 Maintainer: Polina Suter <polina.suter@bsse.ethz.ch>
 Description: Implementation of a collection of MCMC methods for Bayesian structure learning
@@ -33,6 +33,6 @@ RoxygenNote: 7.2.0
 Encoding: UTF-8
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2022-06-19 22:20:31 UTC; polinasuter
+Packaged: 2022-06-26 18:07:37 UTC; polinasuter
 Repository: CRAN
-Date/Publication: 2022-06-20 10:20:09 UTC
+Date/Publication: 2022-06-27 08:40:10 UTC

@@ -130,7 +130,7 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
   }
 
   if(verbose) {
-    cat(paste("score tables computed, orderMCMCis running"),"\n")
+    cat(paste("score tables computed, orderMCMC is running"),"\n")
     flush.console()
   }
 
