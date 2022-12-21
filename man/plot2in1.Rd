@@ -4,12 +4,16 @@
 \alias{plot2in1}
 \title{Highlighting similarities between two graphs}
 \usage{
-plot2in1(graph1, graph2, bidir = FALSE, ...)
+plot2in1(graph1, graph2, name1 = NULL, name2 = NULL, bidir = FALSE, ...)
 }
 \arguments{
 \item{graph1}{binary adjacency matrix of a graph}
 
 \item{graph2}{binary adjacency matrix of a graph, column names should coincide with column names of 'graph1'}
+
+\item{name1}{character, custom name for 'graph1'; when NULL no legend will be plotted}
+
+\item{name2}{character, custom name for 'graph2'}
 
 \item{bidir}{logical, defines if arrows of bidirected edges are drawn; FALSE by defauls.}
 

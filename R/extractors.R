@@ -96,3 +96,24 @@ getTrace<-function(x,which=0) {
     if(which==0) return(x$trace) else return(x$traceadd[[which]])
   }
 }
+
+
+#' Extracting runtime
+#' 
+#' This function extracts runtime of a particular step of order and partition MCMC.
+#' 
+#' @param x object of class 'orderMCMC'or 'partitionMCMC'
+#' @param which integer, defines if the runtime is extracted for: computing score tables (which = 1), running MCMC chain (which = 2)
+#' @return runtime of a particular step of MCMC scheme or total runtime
+#' @examples
+#'myscore<-scoreparameters("bge",Boston)
+#'\dontrun{
+#'orderfit<-sampleBN(myscore,algorithm="order")
+#'(getRuntime(orderfit,1))
+#'(getRuntime(orderfit,2))
+#'}
+#' @export
+getRuntime<-function(x,which=0) {
+    if(which==1) return(x$info$runtimes["scoretables"]) else return(x$info$runtimes["MCMCchain"])
+}
+

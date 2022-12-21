@@ -1144,13 +1144,16 @@ plotdiffs<-function(graph1,graph2,estimated=TRUE,name1="graph1",
 #' 
 #'@param graph1 binary adjacency matrix of a graph
 #'@param graph2 binary adjacency matrix of a graph, column names should coincide with column names of 'graph1'
+#'@param name1 character, custom name for 'graph1'; when NULL no legend will be plotted
+#'@param name2 character, custom name for 'graph2'
 #'@param bidir logical, defines if arrows of bidirected edges are drawn; FALSE by defauls.
 #'@param ... optional parameters passed to \pkg{Rgraphviz} plotting functions e.g. \code{main}, \code{fontsize}
 #'@return plots the graph which includes nodes and edges two graphs; nodes which are connected to at least one other node in both graphs are plotted only once and coloured orange, edges which are shared by two graphs
 #'are coloured orange; all other nodes and edges a plotted once for each 'graph1' and 'graph2' and coloured blue and green accordingly.
 #'@author Polina Suter
 #'@export
-plot2in1<-function(graph1, graph2, bidir=FALSE, ...) {
+plot2in1<-function(graph1, graph2, name1=NULL,
+                   name2=NULL,bidir=FALSE, ...) {
   
   if(is(graph1,"graphNEL")) {
     graph1<-graph2m(graph1)
@@ -1243,6 +1246,35 @@ plot2in1<-function(graph1, graph2, bidir=FALSE, ...) {
     graph::edgeRenderInfo(graph.plot)[["arrowtail"]][u] = "none"
   }
   graph::edgeRenderInfo(graph.plot)[["lwd"]]<-2
+  
+  layout(matrix(c(1,1,1,1,1,
+                  1,1,1,1,1,
+                  1,1,1,1,1,
+                  1,1,1,1,1,
+                  1,1,1,1,1,
+                  1,1,1,2,1), nrow = 6, ncol = 5, byrow = TRUE))
   Rgraphviz::renderGraph(graph.plot)
+  if(!is.null(name1)){
+      par(mar = c(0,0,0,0))
+      plot(1:10,1:10,type="n", axes = FALSE, xlab = "", ylab = "")
+      op <- par(cex = 1.7)
+      legend("topright",
+             col=c("#cbd5e8", "#ccebc5","#fdcdac"),
+             lwd = 2,
+             lty = 1,
+             legend = c(name1,name2,"both"),
+             cex = 0.6,
+             bg = NA,bty = "n")
+      legend("topright",
+             col = "black",
+             pt.bg = c("#cbd5e8", "#ccebc5","#fdcdac"),
+             pch = 21,
+             lwd = 1,
+             legend = c(name1,name2,"both"),
+             cex = 0.6,
+             lty = 0,
+             bty = "n")
+  }
+  
 }
 

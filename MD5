@@ -1,5 +1,5 @@
-e4dcd59508605f4bd9e409b334f6669f *DESCRIPTION
-aca0ed304ca01e189372b3603dc3b70d *NAMESPACE
+40acf2487f3e761758095c0961981816 *DESCRIPTION
+2513cba436aef5fd25ef44eb1038c031 *NAMESPACE
 347c290434ef6039e5c6614254cefb5e *R/Asiaadj.R
 f9e25e1f4620a14fc8cd64d1757ee00d *R/DBNdata.R
 385df584d387846ee6758e91fc97648a *R/DBNfns.R
@@ -12,7 +12,7 @@ c88932e1dea0bff381e488202a53085b *R/RcppExports.R
 88561dd6321614437e8d030cb31e7cf2 *R/bidag2coda.R
 da35c163b8cb4c6c8fb088df38907ca2 *R/corescore.R
 b680e369c421ee24ae10db19c88bcaa9 *R/dataSTRING.R
-2071a5ce98bce0e85b3d5abec4e09f45 *R/extractors.R
+bf24b89aec844b8b7997ee66fb991aa1 *R/extractors.R
 07f9411cacc3e3e06d86c84c42dcf8e1 *R/graphhelpfns.R
 255ff79713cfcef6d327299d2572c72c *R/gsimadj.R
 a26ee42cc2850f70cacbe10b218756c8 *R/initpar.R
@@ -40,7 +40,7 @@ fc32a58ebac759449a73502b5cd03fa7 *R/partitionscore.R
 26f73b972b40befabe08af0488f0af65 *R/performanceassess.R
 e37329d31ab62c044693c324dbc751a7 *R/plotS3.R
 3f8fbdf508f1debef600d91322d90d2e *R/plotfns.R
-195b0aa915af21354761c5339a26fb66 *R/plotusingrgraphviz.R
+9f90049fbaaa16203c07044a8dfd1f9d *R/plotusingrgraphviz.R
 64b4a0c1c5431ef664b77bd8ff4d6d17 *R/printmethods.R
 596b41b9207563d50240daa41a91349a *R/samplefns.R
 b05f61ef17c2d133644d579ec0d72531 *R/scoreagainstDBN.R
@@ -81,6 +81,7 @@ f2930acce778c24ddaa917e46e404047 *man/connectedSubGraph.Rd
 b287d9df2079e01c7c5dd53e61126d93 *man/full2compact.Rd
 b7ef3173c2d342e3f98ed9075031c039 *man/getDAG.Rd
 94b7fa30965d99902fa0570a628bfd51 *man/getMCMCscore.Rd
+5322bb8db854ab37fa5260d7d62f260f *man/getRuntime.Rd
 a3460ca86dfe8bedf5209677234e9d6f *man/getSpace.Rd
 32352fff62a489c39439df287e22e7b4 *man/getSubGraph.Rd
 7248bb7d7df32b7272cc1aee1081bfbb *man/getTrace.Rd
@@ -102,7 +103,7 @@ b401b390a6fff11506e739c123ef45d1 *man/orderMCMC.Rd
 273d13fb80f0b98888b8e169e9796ed2 *man/orderMCMCclass.Rd
 7882dbf913fda7e397ac770605a72144 *man/partitionMCMC.Rd
 01f622c16c33fc9a6ca4007e11e25466 *man/partitionMCMCclass.Rd
-5132ccc650b37e8cfd3a25b81e2c54a8 *man/plot2in1.Rd
+dac6f97fc48e30f38a43cf083b558388 *man/plot2in1.Rd
 fe5c6c7cfe0fbf085094c2da129769c0 *man/plotDBN.Rd
 a610a89809989253021ecdc66c8ad2bb *man/plotdiffs.Rd
 5e649a2ed183432fb9bd0a4119ff0155 *man/plotdiffsDBN.Rd
