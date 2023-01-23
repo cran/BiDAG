@@ -1,0 +1,23 @@
+bibentry(bibtype = "Article",
+  title        = "{B}ayesian Structure Learning and Sampling of {B}ayesian Networks with the {R} Package {BiDAG}",
+  author       = c(person(given = "Polina",
+                          family = "Suter",
+                          email = "polina.suter@gmail.com"),
+                   person(given = "Jack",
+                          family = "Kuipers",
+                          email = "jack.kuipers@bsse.ethz.ch"),
+                   person(given = "Giusi",
+                          family = "Moffa",
+                          email = "giusi.moffa@unibas.ch"),
+                   person(given = "Niko",
+                          family = "Beerenwinkel",
+                          email = "niko.beerenwinkel@bsse.ethz.ch")),
+  journal      = "Journal of Statistical Software",
+  year         = "2023",
+  volume       = "105",
+  number       = "9",
+  pages        = "1--31",
+  doi          = "10.18637/jss.v105.i09",
+  header       = "To cite BiDAG in publications use:"
+)
+

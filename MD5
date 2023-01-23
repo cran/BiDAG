@@ -1,4 +1,4 @@
-40acf2487f3e761758095c0961981816 *DESCRIPTION
+1e6769e7ce085ed9a15661b165ef58b8 *DESCRIPTION
 2513cba436aef5fd25ef44eb1038c031 *NAMESPACE
 347c290434ef6039e5c6614254cefb5e *R/Asiaadj.R
 f9e25e1f4620a14fc8cd64d1757ee00d *R/DBNdata.R
@@ -63,6 +63,7 @@ fa8a856d7d07bfd10cae5ae239297dee *data/gsim.rda
 c2fb70daa15bb8f5d67392e41dc8e73a *data/kirc.rda
 c63fb038d0eeb38fa010e4cf3553beff *data/kirp.rda
 eee735f2ca5ff863bc2e911bdc35d0c1 *data/mapping.rda
+47b78c6326123868f582ff0f334cd5bf *inst/CITATION
 fd76cb557e6f6685cb142215545c892f *man/Asia.Rd
 b24c23657349dc1f7d3f91387d053d50 *man/Asiamat.Rd
 18d195d501546dbb67e4b02798138a02 *man/Boston.Rd
