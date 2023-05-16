@@ -156,6 +156,8 @@ plot(itfit)
 }
 }
 \references{
+P. Suter, J. Kuipers, G. Moffa, N.Beerenwinkel (2023) <doi:10.18637/jss.v105.i09>
+
 Kuipers J, Super P and Moffa G (2020). Efficient Sampling and Structure Learning of Bayesian Networks. (arXiv:1803.07859v3)
 
 Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.

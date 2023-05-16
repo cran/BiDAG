@@ -149,7 +149,7 @@ iterativeMCMCplus1<-function(param,iterations,stepsave,plus1it=NULL,MAP=TRUE, po
           MCMCresult<-orderMCMCplus1(n,nsmall,startorder,iterations,stepsave,moveprobs,parenttable,
                                      scoretable,aliases,numparents,rowmaps,plus1lists,
                                      bannedscore,numberofparentsvec,gamma=gamma,bgnodes=param$bgnodes,
-                                     matsize=matsize,chainout=chainout,compress=compress)
+                                     matsize=matsize,chainout=TRUE,compress=compress)
         }
         
         

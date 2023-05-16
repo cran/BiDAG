@@ -111,6 +111,8 @@ plot(partfit)
 }
 }
 \references{
+P. Suter, J. Kuipers, G. Moffa, N.Beerenwinkel (2023) <doi:10.18637/jss.v105.i09>
+
 Kuipers J and Moffa G (2017). Partition MCMC for inference on acyclic digraphs. Journal of the American Statistical Association 112, 282-299.
 
 Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
@@ -122,5 +124,5 @@ Kalisch M, Maechler M, Colombo D, Maathuis M and Buehlmann P (2012). Causal infe
 Kuipers J, Moffa G and Heckerman D (2014). Addendum on the scoring of Gaussian directed acyclic graphical models. The Annals of Statistics 42, 1689-1691.
 }
 \author{
-Polina Suter, Jack Kuipers, the code partly derived from the partition MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
+Jack Kuipers, Polina Suter, the code partly derived from the partition MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 }

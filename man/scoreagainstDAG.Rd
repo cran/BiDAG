@@ -9,7 +9,8 @@ scoreagainstDAG(
   incidence,
   datatoscore = NULL,
   marginalise = FALSE,
-  onlymain = FALSE
+  onlymain = FALSE,
+  bdecatCvec = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ scoreagainstDAG(
 \item{marginalise}{(optional for continuous data) defines, whether to use the posterior mean for scoring (default) or to marginalise over the posterior distribution (more computationally costly)}
 
 \item{onlymain}{(optional), defines the the score is computed for nodes excluding 'bgnodes'; FALSE by default}
+
+\item{bdecatCvec}{(optional for categorical data)}
 }
 \value{
 the log of the BDe/BGe score of given observations against a DAG

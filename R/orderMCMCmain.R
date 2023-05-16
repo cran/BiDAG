@@ -38,6 +38,9 @@ orderMCMCmain<-function(param,iterations,stepsave,MAP=TRUE, posterior=0.5,
 
   #defining startskel
   if (!is.null(scoretable)) {
+    if(is(scoretable,"iterativeMCMC")){
+      scoretable<-getSpace(scoretable)
+    }
     startskel<-scoretable$adjacency
     blacklist<-scoretable$blacklist
     scoretable<-scoretable$tables

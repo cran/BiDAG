@@ -38,6 +38,7 @@
 #' as adjacency matrix of the maximum scoring DAG, its score and the order score. The output can optionally include DAGs sampled in MCMC iterations and the score tables. 
 #' Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{orderMCMC class}} for a detailed class structure.
 #' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
+#'@references P. Suter, J. Kuipers, G. Moffa, N.Beerenwinkel (2023) <doi:10.18637/jss.v105.i09>
 #'@references Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.
 #'@references Kalisch M, Maechler M, Colombo D, Maathuis M and Buehlmann P (2012). Causal inference using graphical models with the R package pcalg. Journal of Statistical Software 47, 1-26.
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
@@ -217,6 +218,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #' as adjacency matrix of the maximum scoring DAG, its score and the order score. Additionally, returns all sampled DAGs (represented by their adjacency matrices), their scores,
 #'orders and partitions See \code{\link{partitionMCMC class}}.
 #' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
+#'@references P. Suter, J. Kuipers, G. Moffa, N.Beerenwinkel (2023) <doi:10.18637/jss.v105.i09>
 #'@references Kuipers J and Moffa G (2017). Partition MCMC for inference on acyclic digraphs. Journal of the American Statistical Association 112, 282-299.
 #'@references Geiger D and Heckerman D (2002). Parameter priors for directed acyclic graphical models and the characterization of several probability distributions. The Annals of Statistics 30, 1412-1440.
 #'@references Heckerman D and Geiger D (1995). Learning Bayesian networks: A unification for discrete and Gaussian domains. In Eleventh Conference on Uncertainty in Artificial Intelligence, pages 274-284.
@@ -229,7 +231,7 @@ orderMCMC<-function(scorepar, MAP=TRUE, plus1=TRUE,chainout=FALSE, scoreout=FALS
 #'plot(partfit)
 #'}
 #'@import pcalg
-#'@author Polina Suter, Jack Kuipers, the code partly derived from the partition MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
+#'@author Jack Kuipers, Polina Suter, the code partly derived from the partition MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 #'@export
 partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NULL, alpha = 0.05, gamma=1,verbose=FALSE,
                         scoreout=FALSE,compress=TRUE,startspace=NULL, blacklist=NULL,scoretable=NULL, startDAG=NULL) {
@@ -391,6 +393,7 @@ partitionMCMC<-function(scorepar, moveprobs=NULL, iterations=NULL,  stepsave=NUL
 #' @return Object of class \code{iterativeMCMC}, which contains log-score trace as well as adjacency matrix of the maximum scoring DAG, its score and the order score. 
 #' The output can optionally include DAGs sampled in MCMC iterations and the score tables. Optional output is regulated by the parameters \code{chainout} and \code{scoreout}. See \code{\link{iterativeMCMC class}} for a detailed class structure.
 #' @note see also extractor functions \code{\link{getDAG}}, \code{\link{getTrace}}, \code{\link{getSpace}}, \code{\link{getMCMCscore}}.
+#'@references P. Suter, J. Kuipers, G. Moffa, N.Beerenwinkel (2023) <doi:10.18637/jss.v105.i09>
 #'@references Kuipers J, Super P and Moffa G (2020). Efficient Sampling and Structure Learning of Bayesian Networks. (arXiv:1803.07859v3)
 #'@references Friedman N and Koller D (2003). A Bayesian approach to structure discovery in bayesian networks. Machine Learning 50, 95-125.
 #'@references Kalisch M, Maechler M, Colombo D, Maathuis M and Buehlmann P (2012). Causal inference using graphical models with the R package pcalg. Journal of Statistical Software 47, 1-26.
@@ -581,7 +584,7 @@ iterativeMCMC<-function(scorepar, MAP=TRUE,posterior=0.5, softlimit=9, hardlimit
 #' DAGscore(myScore, Asiamat)
 #' @import pcalg
 #' @export
-#' @author Polina Suter, Jack Kuipers, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
+#' @author Jack Kuipers, Polina Suter, the code partly derived from the order MCMC implementation from Kuipers J, Moffa G (2017) <doi:10.1080/01621459.2015.1133426>
 DAGscore <- function(scorepar, incidence){ 
   if(scorepar$DBN) {
     stop("To calculate DBN score DBNscore should be used!")
